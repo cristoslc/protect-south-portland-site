@@ -589,6 +589,28 @@ blockquote {
 
 .hero-band--low { min-height: 260px; }
 
+/* homepage band photo: Bug Light, the schooner and the picnic lawn (ledger
+   row 76). The image and its crop live here rather than in a per-element
+   style, so the wide-viewport rule below can retune the crop as the band's
+   aspect flattens; every other band keeps the shared center 40%. */
+
+.hero-band--home {
+  background-image: url('assets/photos/hero-coast.jpg');
+  background-position: center 52%;
+}
+
+/* A fixed 260px band over this photo shows a thinner vertical slice as the
+   viewport widens: the cover render is 505 rows tall at 900 wide and 808 at
+   1440, so the window falls from about 460 source rows to 289. Center 52%
+   put that window's bottom edge on the schooner's deck rail at 1440, so the
+   crowd sat right on the frame and the lawn fell below it. From the tablet
+   breakpoint up, the crop climbs to trade sky for lawn, because a park full
+   of people is the reason this photo sits here. */
+
+@media (min-width: 901px) {
+  .hero-band--home { background-position: center 58%; }
+}
+
 @media (max-width: 700px) { .hero-band { min-height: 190px; } }
 
 .figure { margin: 24px 0; }

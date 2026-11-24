@@ -934,18 +934,33 @@ def test_homepage_hero_band_shows_the_shoreline(docs):
     under sail, the park lawn at dusk). The band is a CSS background with
     role="img", so the aria-label is the only description a screen reader
     gets, and the file it names has to exist in the built tree or the band
-    ships as an empty grey strip with nothing to catch it."""
+    ships as an empty grey strip with nothing to catch it.
+
+    Gate finding 2026-11-24: the crop is no longer an inline style. The photo
+    and its narrow-width crop live in the page-scoped `.hero-band--home`
+    class, and a wide-viewport rule climbs the crop so the lawn and the
+    people survive at desktop width, where the 260px band shows the thinnest
+    slice of the frame."""
     idx = read(docs, "index.html")
     m = re.search(
-        r'<div class="hero-band hero-band--low"\s+'
-        r'style="background-image:url\(\'([^\']+)\'\)[^"]*"\s+'
+        r'<div class="hero-band hero-band--low hero-band--home"\s+'
         r'role="img"\s+aria-label="([^"]+)"',
         idx,
     )
-    assert m, 'the homepage band keeps background-image + role="img" + aria-label'
-    src, label = m.group(1), m.group(2)
-    assert src == "assets/photos/hero-coast.jpg"
-    assert os.path.isfile(os.path.join(docs, src)), f"{src} must exist in the built tree"
+    assert m, 'the homepage band keeps its classes + role="img" + aria-label'
+    label = m.group(1)
+    assert "background-image" not in idx.split('class="banner"')[0], "no inline band style"
+    css = read(docs, "styles.css")
+    rule = re.search(r"\.hero-band--home\s*\{([^}]*)\}", css)
+    assert rule, "the band's photo is declared in a page-scoped class, not an inline style"
+    base_rule = rule.group(1)
+    assert "assets/photos/hero-coast.jpg" in base_rule
+    assert "background-position" in base_rule
+    assert os.path.isfile(os.path.join(docs, "assets/photos/hero-coast.jpg")), \
+        "hero-coast.jpg must exist in the built tree"
+    wide = re.search(r"@media \(min-width: 901px\) \{(.*?)\n\}", css, re.S)
+    assert wide, "a wide-viewport rule retunes this band's crop"
+    assert ".hero-band--home" in wide.group(1) and "center 58%" in wide.group(1)
     assert "tank" not in label.lower(), "the band no longer describes tanks"
     for landmark in ("Bug Light", "schooner"):
         assert landmark in label, f"the description names the {landmark} the photo shows"

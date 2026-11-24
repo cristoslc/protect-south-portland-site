@@ -3,30 +3,42 @@
   "finding": "homepage hero band showed the tanks (tanks-27-28.jpg) under a banner about tank-farm pollution; replaced with hero-coast.jpg (Bug Light, schooner, park lawn)",
   "reverses": "ledger row 31 (2026-10-14) took this same coast photo out of this same placement when the operator swapped in their own Pixel 8 Pro photo of tanks 27 and 28; ledger row 76 (2026-11-24) records this swap as that reversal. Row 31 keeps its own record and its photo stays on disk",
   "page": "index.html",
-  "region": ".hero-band.hero-band--low",
+  "region": ".hero-band.hero-band--low.hero-band--home",
   "source_image": {
     "path": "site/assets/photos/hero-coast.jpg",
     "width": 1600,
     "height": 898
   },
-  "position": "center 52% (inline, per image; the shared rule keeps center 40%)",
+  "crop_rule": {
+    "where": "site/styles.css, .hero-band--home plus a min-width 901px override; no inline style on the element",
+    "below_901px": "center 52%",
+    "from_901px": "center 58%, which trades sky for lawn",
+    "why_two_steps": "the band is a fixed 260px over a 1600x898 photo, so the cover render shrinks its visible window as the page widens: about 540 source rows at 768, 406 at 1024, 325 at 1280, 289 at 1440, 217 at 1920. Center 52% put the 1440 window's bottom edge on the schooner's deck rail, leaving the crowd on the frame edge and the lawn below it, which the gate review flagged as the reason the photo is here being least legible at the widest width. The wide value climbs the window until the crowd stands on grass.",
+    "no_restyle": "band height, background-size cover and the shared center 40% rule are untouched; only this band's own position moves, and only inside its own class"
+  },
   "captured_with": "bb browser-automation, local headless Chrome, deviceScaleFactor 1",
   "served_from": "python3 -m http.server over freshly built docs/",
-  "widths": [412, 768, 1440],
-  "band_height_px": {"412": 190, "768": 260, "1440": 260},
+  "widths_captured": [412, 768, 1024, 1280, 1440, 1920],
+  "band_height_px": {"412": 190, "768": 260, "1024": 260, "1280": 260, "1440": 260, "1920": 260},
   "crops": {
-    "home-hero-band-412.png": {"width": 412, "height": 190, "source_y_window": "85-823 of 898"},
-    "home-hero-band-768.png": {"width": 768, "height": 260, "source_y_window": "194-736 of 898"},
-    "home-hero-band-1440.png": {"width": 1440, "height": 260, "source_y_window": "317-606 of 898"},
+    "home-hero-band-412.png": {"width": 412, "height": 190, "source_y_window": "85-823 of 898", "rule": "center 52%"},
+    "home-hero-band-768.png": {"width": 768, "height": 260, "source_y_window": "194-736 of 898", "rule": "center 52%"},
+    "home-hero-band-1024.png": {"width": 1024, "height": 260, "source_y_window": "285-691 of 898", "rule": "center 58%"},
+    "home-hero-band-1280.png": {"width": 1280, "height": 260, "source_y_window": "332-658 of 898", "rule": "center 58%"},
+    "home-hero-band-1440.png": {"width": 1440, "height": 260, "source_y_window": "353-642 of 898", "rule": "center 58%"},
+    "home-hero-band-1920.png": {"width": 1920, "height": 260, "source_y_window": "474-691 of 898", "rule": "center 58%"},
     "home-hero-seam-1440.png": {"width": 1440, "height": 480, "note": "banner sign-off over band over who-we-are strip"}
   },
   "verdict": {
-    "reader": "read directly from the four captures above",
-    "412": "lighthouse, schooner and lawn all whole; the lawn stays populated, with figures walking across it, a seated group in folding chairs under the right-hand sail and a dog at the water's edge; nobody cut in half",
-    "768": "the widest view of the scene: lawn, crowd, both masts and the full tower, horizon band behind",
-    "1440": "lantern and finial intact, deck rail at the bottom edge, both sails whole down to the boom; only the hull sits below the crop",
+    "reader": "read directly from the seven captures above, after the desktop fix",
+    "412": "whole scene: lighthouse with its lamp, both sails, the lawn and the people on it, dog at the water's edge; nobody cut in half",
+    "768": "the widest view of the scene: lawn, crowd, both masts, full tower, horizon behind",
+    "1024": "full tower including the lamp, both sails, crowd standing on grass from head to waist, lawn reading across the bottom",
+    "1280": "full tower including the lamp, both sails, crowd on grass to waist and thigh, lawn strip along the bottom",
+    "1440": "the lamp's roof and finial now fall above the frame; the lantern glass, gallery, tower body, both sails and the crowd from head to waist are in frame, standing on a lawn band that reads. This is the trade the gate review asked for, and it is the widest frame where the tower is still recognisably a lighthouse",
+    "1920": "KNOWN LIMIT, stated rather than hidden: at 1920 the visible window is 217 source rows, so the lamp sits wholly above the frame and the tower shows from the gallery down. Both sails and the crowd remain. No position value can fix this; the 260px band is simply too flat for a 1.78 source frame at that width",
     "seam_1440": "dark green sign-off block meets the photo's pale haze at a clean hard edge; the warm tones start below the seam, so the two do not fight",
-    "why_not_40": "the shared center 40% left the 1440 band mostly empty sky and cut the lantern base and both sails at the waterline",
-    "phone_people_rule": "the people are why this photo works in this band, so the 412 crop was read for them specifically: the lawn stays populated at 190px tall. No tower-tightening rule was added, because none was needed"
+    "why_not_40": "the shared center 40% left the 1440 band as mostly empty sky and cut the lantern base and both sails at the waterline",
+    "phone_people_rule": "the people are why this photo works in this band, so the 412 crop was read for them specifically: the lawn stays populated at 190px tall"
   }
 }
