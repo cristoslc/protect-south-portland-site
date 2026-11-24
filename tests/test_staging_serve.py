@@ -14,7 +14,13 @@ tree's shape and the branch's append-only discipline with zero network:
 - a committed tree that is not a fresh build refuses the serve, because
   staging previews exactly what a release pull request would carry;
 - pushes append commits, never force: two serves produce two commits
-  with the first an ancestor of the second.
+  with the first an ancestor of the second;
+- a green serve stamps the served state with an annotated `staging-<sha>`
+  review tag on the fork-main commit it was built from (ledger row 103,
+  operator instruction 2026-11-24), a second serve on the same sha
+  reuses the tag instead of duplicating it, and a failed tag push
+  reports but never fails the serve, because the serve landed and the
+  tag is bookkeeping.
 """
 
 import os
@@ -112,6 +118,11 @@ def _repo_with_origin(path):
     _git(repo, "init", "-b", "main")
     _git(repo, "config", "user.email", "test@example.invalid")
     _git(repo, "config", "user.name", "test")
+    # a dev machine's global signing config (e.g. 1Password SSH signing
+    # of annotated tags) must not reach the generated tag: the hermetic
+    # world is unsigned, like a bare Actions runner.
+    _git(repo, "config", "tag.gpgsign", "false")
+    _git(repo, "config", "tag.forcesignannotated", "false")
     _git(repo, "remote", "add", "origin", str(origin))
     (repo / "seed.txt").write_text("base")
     _git(repo, "add", "-A")
@@ -212,3 +223,110 @@ def test_cli_prepare_only_run_stands_up_end_to_end():
     assert "pages prepared" in proc.stdout
     assert "staging.protectsouthportland.org" in proc.stdout
     assert "(not pushed)" in proc.stdout
+
+
+def _base_commit(repo):
+    """The seed commit, the fork-main sha a serve run is generated from."""
+    proc = subprocess.run(["git", "rev-parse", "main"], cwd=repo,
+                          capture_output=True, text=True, check=True)
+    return proc.stdout.strip()
+
+
+def _remote_list(repo, *git_args):
+    origin_dir = os.path.abspath(os.path.join(repo, "..", "origin.git"))
+    return subprocess.run(
+        ["git", "--git-dir", origin_dir, *git_args],
+        capture_output=True, text=True)
+
+
+def test_a_serve_run_stamps_a_review_tag_for_the_served_sha(tmp_path, monkeypatch):
+    """A green serve run stamps the served state for review checkouts.
+
+    The operator's instruction (ledger row 103, 2026-11-24): staging gets
+    a tag for editorial review checkouts while merges always deploy. The
+    tag names the serve sha the branch's subject names, so tag and branch
+    agree on what was served, and its annotation carries the run id, the
+    UTC time and the served hostname. The reviewable checkout is the
+    fork-main commit the serve was generated from, not the serve branch.
+    """
+    monkeypatch.setenv("GITHUB_RUN_ID", "45444343117")
+    repo = _repo_with_origin(tmp_path)
+    base = _base_commit(repo)
+    tree = _serve_tree(tmp_path / "serve", "tagged serve")
+    staging_serve.push_serve_branch(
+        str(tree), "staging-pages", str(repo), base,
+        cname="staging.protectsouthportland.org")
+    tag = staging_serve.review_tag_name(base)
+    listing = _remote_list(repo, "tag", "--list")
+    assert listing.returncode == 0
+    assert tag in listing.stdout.splitlines(), (
+        "the serve run must leave the review tag on origin")
+    target = _remote_list(repo, "rev-parse", f"{tag}^{{commit}}")
+    assert target.stdout.strip() == base, (
+        "the review tag must point at the fork-main commit the serve "
+        "was generated from, the reviewable checkout")
+    contents = _remote_list(repo, "tag", "--list", "-n99", tag).stdout
+    assert "staging.protectsouthportland.org" in contents
+    assert "45444343117" in contents, "the annotation carries the run id"
+
+
+def test_a_second_serve_on_the_same_sha_reuses_the_same_tag(tmp_path, monkeypatch):
+    """A re-serve of the same fork-main sha must not duplicate or error.
+
+    Tags append for the life of the repo: once a sha's review tag
+    exists, later serves of that sha leave it alone. The serve branch
+    still lands (merges always deploy); only the tag bookkeeping is
+    idempotent.
+    """
+    monkeypatch.setenv("GITHUB_RUN_ID", "45444343117")
+    repo = _repo_with_origin(tmp_path)
+    base = _base_commit(repo)
+    staging_serve.push_serve_branch(
+        str(_serve_tree(tmp_path / "one", "first serve of the sha")),
+        "staging-pages", str(repo), base,
+        cname="staging.protectsouthportland.org")
+    staging_serve.push_serve_branch(
+        str(_serve_tree(tmp_path / "two", "second serve of the sha")),
+        "staging-pages", str(repo), base,
+        cname="staging.protectsouthportland.org")
+    tag = staging_serve.review_tag_name(base)
+    listing = _remote_list(repo, "tag", "--list")
+    assert listing.stdout.splitlines().count(tag) == 1, (
+        "the second serve on the same sha must keep exactly one review tag")
+    target = _remote_list(repo, "rev-parse", f"{tag}^{{commit}}")
+    assert target.stdout.strip() == base
+
+
+def test_a_failed_tag_push_reports_but_never_fails_the_serve(tmp_path, monkeypatch):
+    """The tag is bookkeeping, the branch is the deploy.
+
+    The origin's pre-receive hook rejects tag refs only. The branch must
+    still land and the push must still return: a failed tag push never
+    holds a staging update back, and the serve run's outcome is the
+    branch's, not the tag's.
+    """
+    monkeypatch.setenv("GITHUB_RUN_ID", "45444343117")
+    repo = _repo_with_origin(tmp_path)
+    hook = os.path.join(tmp_path, "origin.git", "hooks", "pre-receive")
+    with open(hook, "w") as fh:
+        fh.write("#!/bin/sh\nwhile read -r _ _ ref; do\n"
+                 "  case \"$ref\" in refs/tags/*) exit 1;; esac\n"
+                 "done\nexit 0\n")
+    os.chmod(hook, 0o755)
+    # a machine's global core.hooksPath would bypass the repo's hooks;
+    # the bare origin anchors its hooks dir in its own config.
+    subprocess.run(
+        ["git", "--git-dir", os.path.join(tmp_path, "origin.git"),
+         "config", "core.hooksPath", "hooks"],
+        check=True, capture_output=True, text=True)
+    base = _base_commit(repo)
+    tree = _serve_tree(tmp_path / "serve", "tagless serve")
+    sha = staging_serve.push_serve_branch(
+        str(tree), "staging-pages", str(repo), base,
+        cname="staging.protectsouthportland.org")  # must not raise
+    remote = _remote_list(repo, "rev-parse", "refs/heads/staging-pages")
+    assert remote.returncode == 0, (
+        "the serve branch lands even when the tag push is refused")
+    assert remote.stdout.strip() == sha
+    listing = _remote_list(repo, "tag", "--list")
+    assert listing.stdout.splitlines() == [], "no tag reached origin"

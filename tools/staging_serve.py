@@ -22,7 +22,15 @@ branch instead:
 - writes the CNAME naming the staging host, the one file that makes this
   branch differ from main and the reason it exists;
 - commits the tree onto staging-pages and pushes, appending — never a
-  force push, so the branch's history is a readable serve log.
+  force push, so the branch's history is a readable serve log;
+- after a successful push, stamps the served state with an annotated
+  `staging-<serve sha>` review tag on the fork-main commit the serve
+  was generated from (ledger row 103, operator instruction:
+  "Staging should get a tag for editorial review checkouts, but
+  merges/changes should always deploy to it"). The tag is bookkeeping
+  for editorial review checkouts, never a deploy trigger: a missing
+  tag never holds a staging update back, a sha whose tag exists is a
+  no-op, and a failed tag push reports without failing the serve.
 
 Usage:
   python3 tools/staging_serve.py            # prepare + verify, no push
@@ -161,12 +169,18 @@ def _commit_identity(cwd):
             "-c", f"user.email={SERVE_COMMITTER_EMAIL}"]
 
 
-def push_serve_branch(tree_dir, branch, cwd, base_sha):
+def push_serve_branch(tree_dir, branch, cwd, base_sha, cname=STAGING_HOST):
     """Commit the prepared tree onto the serve branch and push.
 
     Append-only: an existing branch is checked out, cleared and rebuilt
     with a new commit on top, and the push is a plain fast-forward. The
     branch history is the serve log; nothing is ever force-pushed.
+
+    After a successful branch push the served state is stamped with the
+    `staging-<serve sha>` review tag (ledger row 103, operator
+    instruction 2026-11-24). The tag is bookkeeping, never a gate: a
+    failed tag push reports but does not fail the serve, because the
+    serve landed.
     """
     if branch_exists(branch, cwd):
         ok, _ = _git("checkout", "-B", branch, f"origin/{branch}", cwd=cwd)
@@ -198,7 +212,66 @@ def push_serve_branch(tree_dir, branch, cwd, base_sha):
     ok, why = _git("push", "origin", branch, cwd=cwd)
     if not ok:
         raise SystemExit(f"cannot push the serve branch {branch}: {why}")
+    print("staging serve: " + tag_served_state(cwd, base_sha, cname=cname))
     return sha
+
+
+# Ledger row 103 (operator instruction, 2026-11-24, verbatim: "Staging
+# should get a tag for editorial review checkouts, but merges/changes
+# should always deploy to it"). The tag names the same short sha the
+# serve branch's subject names, so tag and branch agree on what was
+# served; it points at the fork-main commit the serve was generated
+# from, because that commit — source plus the built docs/ — is the
+# reviewable tree an editorial reviewer wants to check out. Tags append
+# for the life of the repo: a sha whose tag exists is a no-op, and a
+# failed tag push never fails the serve run, whose outcome is the
+# branch's, not the tag's.
+
+TAG_PREFIX = "staging-"
+
+
+def review_tag_name(base_sha):
+    return f"{TAG_PREFIX}{base_sha[:12]}"
+
+
+def _review_annotation(base_sha, cname, run_id):
+    when = datetime.datetime.now(
+        datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    return (
+        f"staging served {base_sha[:12]} on {cname}\n\n"
+        f"served host: {cname}\n"
+        f"serve run: {run_id}\n"
+        f"at: {when}\n")
+
+
+def tag_served_state(cwd, base_sha, cname=STAGING_HOST, run_id=None):
+    """Stamp the served state with the review tag, failing soft.
+
+    Returns a one-line report either way. Nothing here raises and
+    nothing here can: the serve branch has already landed when this
+    runs, so tag bookkeeping must never turn a good serve red.
+    """
+    run_id = run_id or os.environ.get("GITHUB_RUN_ID") or "local"
+    name = review_tag_name(base_sha)
+    # ls-remote exits 0 whether or not the ref matched, so existence is
+    # read from its output, not its status code.
+    ok, out = _git("ls-remote", "origin", f"refs/tags/{name}", cwd=cwd)
+    if not (ok and out):  # no remote (test world): fall back to local ref
+        ok, _ = _git("show-ref", "--verify", f"refs/tags/{name}", cwd=cwd)
+    if ok:
+        return f"review tag {name} already exists on the served sha (no-op)"
+    ok, why = _git(
+        *_commit_identity(cwd), "tag", "-a", name, base_sha,
+        "-m", _review_annotation(base_sha, cname, run_id), cwd=cwd)
+    if not ok:
+        return (f"review tag not created, serve unaffected "
+                f"(bookkeeping): {why}")
+    ok, why = _git("push", "origin", f"refs/tags/{name}", cwd=cwd)
+    if not ok:
+        return (f"review tag {name} exists locally but origin refused "
+                f"it, serve unaffected (bookkeeping): {why}")
+    return (f"review tag {name} pushed, pointing at the fork-main "
+            f"commit the serve was generated from")
 
 
 def main():
@@ -221,7 +294,8 @@ def main():
         pages = prepare_serve_tree(args.src_docs, dst, args.cname)
         base_sha = _git("rev-parse", "HEAD", cwd=ROOT)[1]
         if args.push:
-            sha = push_serve_branch(dst, args.branch, ROOT, base_sha)
+            sha = push_serve_branch(dst, args.branch, ROOT, base_sha,
+                                    cname=args.cname)
             print(f"staging serve: {pages} pages on {args.branch} "
                   f"({sha[:12]}) claiming {args.cname}, built from "
                   f"{base_sha[:12]}")
