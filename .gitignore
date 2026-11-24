@@ -7,3 +7,9 @@ _ci_scratch/
 # Fixture-class evidence (e.g. tests/evidence/row-40/) is a different thing
 # and stays tracked.
 tests/evidence/uat-snapshots/
+# Fork model (2026-11-24 migration plan, section 5): the serve tree's CNAME
+# never rides in the tracked tree. A branch deployment reads the served
+# directory's CNAME file as its custom domain, so a tracked file would make
+# Pages claim its hostname the moment it serves main. The cutover PR
+# commits the CNAME deliberately with www.protectsouthportland.org.
+docs/CNAME
