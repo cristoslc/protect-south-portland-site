@@ -3298,3 +3298,27 @@ def test_index_benzene_paragraph_keeps_two_bold_runs(docs):
         f"names; found {len(runs)}: {runs}")
     assert runs == ["South Portland Terminal", "Citgo on Mechanic Street"], (
         f"bold belongs on the facility names only, found {runs}")
+
+
+def test_docs_serve_tree_shape_pins_the_pages_serve_config():
+    """docs/ is the tree GitHub Pages will serve from main (fork model).
+
+    Two shape facts pin the serving config (2026-11-24 migration): .nojekyll
+    must be committed, because Pages must serve the built files verbatim with
+    no build step; and docs/CNAME must NOT be tracked, because a tracked
+    CNAME file is authoritative for branch deploys and would make Pages
+    claim its hostname the moment it starts serving main, at a moment nobody
+    chose. The domain file is committed deliberately at the cutover instead.
+    """
+    import subprocess
+    tracked = subprocess.run(
+        ["git", "ls-files", "docs/CNAME", "docs/.nojekyll"],
+        cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()
+    assert "docs/.nojekyll" in tracked, (
+        "docs/.nojekyll must be committed: Pages serves the built tree "
+        "verbatim, with no Jekyll pass over it")
+    assert "docs/CNAME" not in tracked, (
+        "docs/CNAME tracked: a branch deployment reads it as the custom "
+        "domain, so Pages would claim its hostname the instant it serves "
+        "main — the domain is set deliberately at cutover, never by a file "
+        "that rides along in the tree")
