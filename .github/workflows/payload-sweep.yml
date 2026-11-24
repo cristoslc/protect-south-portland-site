@@ -1,0 +1,29 @@
+name: Sendable-copy payload sweep (non-blocking)
+on:
+  schedule:
+    # Weekday mornings US Eastern (9:45 ET winter / 8:45 summer), 30 minutes
+    # behind the staging audit's 9:15 slot so the two scheduled runs never
+    # contend — runs the UAT ladder's payload-fidelity rung (ledger row 97,
+    # tools/uat_payload.py) against the staging host by URL and files one
+    # digest issue per run; never blocks a deploy (findings exit 0; only a
+    # broken environment exits non-zero).
+    - cron: "45 13 * * 1-5"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: payload-sweep
+  cancel-in-progress: false
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Sweep staging for sendable-copy payload divergence and file the digest issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # stdlib only, no browser, no secrets: the rung fetches the staging
+        # host cookieless (Pages serves full HTML; the row-42 gate is
+        # browser-side), the same shape tools/uat_snapshots.py already runs.
+        run: python3 tools/payload_sweep.py

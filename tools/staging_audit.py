@@ -390,8 +390,11 @@ def _gh(args):
     return subprocess.run(["gh", *args], capture_output=True, text=True)
 
 
-def ensure_labels(repo):
-    for name, color, description in LABELS:
+def ensure_labels(repo, labels=LABELS):
+    """Create any missing label. `labels` is a (name, color, blurb) tuple
+    sequence, LABELS by default; the payload sweep passes its own (the digest
+    issue surface is shared, the label streams are not)."""
+    for name, color, description in labels:
         probe = _gh(["api", f"repos/{repo}/labels/{name}"])
         if probe.returncode == 0:
             continue
@@ -404,8 +407,9 @@ def ensure_labels(repo):
             raise AuditInfraError(f"gh label create failed for {name}:\n{created.stderr}")
 
 
-def last_digest_issue(repo):
-    proc = _gh(["issue", "list", "-R", repo, "--label", "staging-audit",
+def last_digest_issue(repo, label="staging-audit"):
+    """The most recent digest issue carrying `label`, or None."""
+    proc = _gh(["issue", "list", "-R", repo, "--label", label,
                 "--state", "all", "--limit", "1", "--json", "number,title,body"])
     if proc.returncode != 0:
         raise AuditInfraError(f"gh issue list failed:\n{proc.stderr}")
@@ -413,14 +417,14 @@ def last_digest_issue(repo):
     return items[0] if items else None
 
 
-def create_issue(repo, title, body):
+def create_issue(repo, title, body, labels=("staging-audit", "accessibility")):
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as handle:
         handle.write(body)
         path = handle.name
     try:
         proc = _gh(["issue", "create", "-R", repo, "--title", title,
-                    "--body-file", path,
-                    "--label", "staging-audit", "--label", "accessibility"])
+                    "--body-file", path] +
+                   [flag for label in labels for flag in ("--label", label)])
     finally:
         os.unlink(path)
     if proc.returncode != 0:
