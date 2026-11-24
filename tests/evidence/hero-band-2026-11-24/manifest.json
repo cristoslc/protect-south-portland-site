@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-24",
+  "finding": "homepage hero band showed the tanks (tanks-27-28.jpg) under a banner about tank-farm pollution; replaced with hero-coast.jpg (Bug Light, schooner, park lawn)",
+  "page": "index.html",
+  "region": ".hero-band.hero-band--low",
+  "source_image": {
+    "path": "site/assets/photos/hero-coast.jpg",
+    "width": 1600,
+    "height": 898
+  },
+  "position": "center 52% (inline, per image; the shared rule keeps center 40%)",
+  "captured_with": "bb browser-automation, local headless Chrome, deviceScaleFactor 1",
+  "served_from": "python3 -m http.server over freshly built docs/",
+  "widths": [412, 768, 1440],
+  "band_height_px": {"412": 190, "768": 260, "1440": 260},
+  "crops": {
+    "home-hero-band-412.png": {"width": 412, "height": 190, "source_y_window": "85-823 of 898"},
+    "home-hero-band-768.png": {"width": 768, "height": 260, "source_y_window": "194-736 of 898"},
+    "home-hero-band-1440.png": {"width": 1440, "height": 260, "source_y_window": "317-606 of 898"},
+    "home-hero-seam-1440.png": {"width": 1440, "height": 480, "note": "banner sign-off over band over who-we-are strip"}
+  },
+  "verdict": {
+    "reader": "read directly from the four captures above",
+    "412": "lighthouse, schooner and lawn all whole; nobody cut in half; the band reads as a shoreline at dusk",
+    "768": "the widest view of the scene: lawn, crowd, both masts and the full tower, horizon band behind",
+    "1440": "lantern and finial intact, deck rail at the bottom edge, both sails whole down to the boom; only the hull sits below the crop",
+    "seam_1440": "dark green sign-off block meets the photo's pale haze at a clean hard edge; the warm tones start below the seam, so the two do not fight",
+    "why_not_40": "the shared center 40% left the 1440 band mostly empty sky and cut the lantern base and both sails at the waterline"
+  }
+}

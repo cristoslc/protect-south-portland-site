@@ -858,6 +858,31 @@ def test_homepage_who_we_are_block(docs):
         assert leak not in idx, leak
 
 
+def test_homepage_hero_band_shows_the_shoreline(docs):
+    """Operator ask, 2026-11-24: the band under the banner showed petroleum
+    tanks, so the photograph repeated the problem the headline complains
+    about. It now shows what the campaign protects (Bug Light, a schooner
+    under sail, the park lawn at dusk). The band is a CSS background with
+    role="img", so the aria-label is the only description a screen reader
+    gets, and the file it names has to exist in the built tree or the band
+    ships as an empty grey strip with nothing to catch it."""
+    idx = read(docs, "index.html")
+    m = re.search(
+        r'<div class="hero-band hero-band--low"\s+'
+        r'style="background-image:url\(\'([^\']+)\'\)[^"]*"\s+'
+        r'role="img"\s+aria-label="([^"]+)"',
+        idx,
+    )
+    assert m, 'the homepage band keeps background-image + role="img" + aria-label'
+    src, label = m.group(1), m.group(2)
+    assert src == "assets/photos/hero-coast.jpg"
+    assert os.path.isfile(os.path.join(docs, src)), f"{src} must exist in the built tree"
+    assert "tank" not in label.lower(), "the band no longer describes tanks"
+    for landmark in ("Bug Light", "schooner"):
+        assert landmark in label, f"the description names the {landmark} the photo shows"
+    assert len(label.split()) >= 8, "the description stays a real sentence, not a file name"
+
+
 def test_embed_url_is_the_public_embedding(docs):
     """The map is self-hosted: both mapping pages iframe map/embed.html from
     this same published tree — no absolute cristoslc.github.io source."""
