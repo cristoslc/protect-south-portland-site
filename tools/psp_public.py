@@ -35,6 +35,15 @@ PRIVATE_MARKERS = (
     # loud. (The staging leg applies the gate AFTER its own scan, so the
     # intentional gate never trips the scanner that ships it.)
     "staging-gate",
+    # Ledger row 79 (2026-11-24): the staging preview's publish-time line, the
+    # small "Staging preview, updated <date and time>" strip in the masthead.
+    # Same rule as the gate above and for the same reason: only the staging
+    # leg's staged tree ever carries it, production never does, so a tree that
+    # somehow arrives at a prod leg stamped fails the scan by name instead of
+    # shipping a build time to the public site. (The staging leg stamps AFTER
+    # its own scan, so the intentional stamp never trips the scanner that
+    # ships it.)
+    "staging-updated",
 )
 
 # Ledger row 9 (constraint): the Oct 15 assembly is never on the public site.

@@ -64,6 +64,7 @@ import sys
 import tempfile
 import time
 import urllib.request
+import zoneinfo
 
 import psp_public
 
@@ -107,6 +108,33 @@ GATE_ROBOTS_TEXT = (
     "User-agent: *\n"
     "Disallow: /\n"
 )
+
+# Ledger row 79 (2026-11-24): the staging preview's publish-time stamp. The
+# staging mirror carries a small masthead line saying when it was last
+# published, so whoever opens a preview URL knows which build they are looking
+# at. It rides the SAME boundary as the row-42 gate: injected into the staged
+# tree, on the staging leg only, after the mirror scan and before the orphan
+# commit. Its marker joins psp_public's private-surface set, so a tree that
+# somehow carries the stamp fails a production leg's scan loud. The time is the
+# PUBLISH clock, not a content date: no page says it, the leg computes it from
+# the moment it runs, and the same clock is recorded in the publish commit.
+STAMP_MARKER = "staging-updated"
+STAMP_ZONE = "America/New_York"  # South Portland, Maine
+STAMP_PREFIX = "Staging preview, updated "
+# build.py's masthead opening tag. The stamp anchors on it, so a masthead
+# rewrite refuses the leg loudly instead of quietly stamping nothing.
+STAMP_ANCHOR = '<header class="masthead">'
+
+# The stamp's rules travel with the stamp, never in site/styles.css: the
+# stylesheet is production's as well. The background repeats as a literal first
+# so the strip stays legible if the palette variable is missing (white text on
+# white would not be). Contrast: #e6f1f1 on #122a2c is 13.1:1, well past AA.
+STAMP_CSS = """<style>
+/* Row 79, staging leg only: the publish-time strip above the masthead's inner
+   row. It must never exist in site/styles.css, which production serves too. */
+.masthead > .staging-updated{margin:0;padding:5px 20px;background:#122a2c;background:var(--teal-950);color:#e6f1f1;font-size:.8rem;line-height:1.45;font-weight:600;letter-spacing:.01em;text-align:center}
+@media (max-width:520px){.masthead > .staging-updated{padding:4px 12px;font-size:.72rem}}
+</style>"""
 
 
 def repo_pages_base(repo):
@@ -272,6 +300,87 @@ def apply_staging_gate(tree, passphrase):
             "staged page(s) carry no <head> — the gate cannot protect them, "
             "refusing: " + ", ".join(headless))
     return count
+
+
+def staging_leg_gated(repo):
+    """True only for the staging mirror's leg.
+
+    Row 42's gate and row 79's stamp both ride this one leg; a production leg
+    (explicit --repo) carries neither, and the marker sets in psp_public turn a
+    leaked one into a loud scan failure at the other end.
+    """
+    return repo == STAGING_REPO and STAGING_GATE
+
+
+def stamp_label(when):
+    """The staging stamp's line for one instant, in South Portland's zone.
+
+    `when` is the publish clock, so it must carry a timezone: a naive datetime
+    would silently mean whatever zone the publishing host runs in, which is a
+    wrong label nobody would notice.
+    """
+    if when.tzinfo is None:
+        raise SystemExit(
+            "row 79 stamp: a naive datetime has no publish clock — pass an "
+            "aware datetime (main() passes the UTC publish instant)")
+    try:
+        zone = zoneinfo.ZoneInfo(STAMP_ZONE)
+    except zoneinfo.ZoneInfoNotFoundError as exc:
+        raise SystemExit(
+            f"row 79 stamp: time zone {STAMP_ZONE!r} is unavailable ({exc}); "
+            "install tzdata so the stamp can name South Portland's local time "
+            "instead of guessing one") from exc
+    local = when.astimezone(zone)
+    hour = local.strftime("%I").lstrip("0") or "12"
+    return (f"{STAMP_PREFIX}{local.strftime('%b')} {local.day}, {local.year} "
+            f"at {hour}:{local.strftime('%M %p')} {local.strftime('%Z')}")
+
+
+def apply_staging_update_stamp(tree, when):
+    """Row 79, staging leg only: write the publish-time line into every staged
+    page's masthead and its rules into the head. Returns the stamped page count.
+
+    The line is chrome, not copy: it sits inside <header class="masthead"> and
+    above .masthead__inner, so the logo and the nav row keep their own layout.
+    Pages without a masthead are only the redirect stubs (which navigate away)
+    and the chrome-free map pages under map/; anything else refuses the leg
+    loud, because a preview that says "updated" on some pages and not others is
+    the bug this guard exists to prevent. Validated before anything is written,
+    and a second pass is refused rather than stacked.
+    """
+    label = stamp_label(when)
+    line = f'\n  <p class="{STAMP_MARKER}">{label}</p>'
+    stampable = []
+    refused = []
+    for dirpath, dirnames, filenames in os.walk(tree):
+        dirnames.sort()
+        for name in sorted(filenames):
+            if not name.endswith(".html"):
+                continue
+            path = os.path.join(dirpath, name)
+            rel = os.path.relpath(path, tree)
+            text = open(path, encoding="utf-8").read()
+            if STAMP_MARKER in text:
+                raise SystemExit(f"{path}: already stamped — refusing a second stamp")
+            if STAMP_ANCHOR not in text:
+                if rel.split(os.sep)[0] == psp_public.MAP_DIRNAME:
+                    continue  # chrome-free standalone map page: no masthead
+                if '<meta http-equiv="refresh"' in text:
+                    continue  # redirect stub: no chrome, navigates away on load
+            if STAMP_ANCHOR not in text or "<head>" not in text:
+                refused.append(rel)
+                continue
+            stampable.append(path)
+    if refused:
+        raise SystemExit(
+            "staged page(s) carry no masthead or no <head> to stamp — refusing "
+            "to stamp some pages and not others: " + ", ".join(refused))
+    for path in stampable:
+        text = open(path, encoding="utf-8").read()
+        text = text.replace("<head>", "<head>\n" + STAMP_CSS, 1)
+        text = text.replace(STAMP_ANCHOR, STAMP_ANCHOR + line, 1)
+        open(path, "w", encoding="utf-8").write(text)
+    return len(stampable)
 
 
 def repo_url(repo):
@@ -858,6 +967,9 @@ def build_parser():
 
 def main():
     args = build_parser().parse_args()
+    # Row 79: one publish clock for the whole leg — the stamp, the print line
+    # and the commit message all name the same instant.
+    publish_clock = datetime.datetime.now(datetime.timezone.utc)
     # Rung 2b runs before any real work, so a silent skip cannot get as far as
     # a build or a push.
     changelog_line = resolve_changelog_handoff(
@@ -869,7 +981,8 @@ def main():
     # Row 42: the gate rides the leg that targets the staging mirror — the
     # prod leg (explicit --repo) never carries it. The passphrase reads
     # FIRST so a missing value fails loud before any real work happens.
-    staging_gate_on = args.repo == STAGING_REPO and STAGING_GATE
+    # Row 79's stamp rides the same leg.
+    staging_gate_on = staging_leg_gated(args.repo)
     gate_passphrase = staging_passphrase() if staging_gate_on else None
 
     require_clean_worktree()
@@ -889,6 +1002,7 @@ def main():
 
     staging = tempfile.mkdtemp(prefix="psp-publish-")
     gated = 0
+    stamped = 0
     try:
         file_count = stage_publish_tree(staging, cname=domain)
         ensure_git_repo(mirror_dir, is_remote_target, args.repo)
@@ -899,9 +1013,14 @@ def main():
             # Row 42: gate AFTER the mirror scan — the intentional gate must
             # never trip the scanner that ships it (the marker stays a
             # forbidden private-surface string for every OTHER leg).
+            # Row 79's stamp goes after the gate, at the same boundary: it is
+            # staging chrome too, and its marker is in the same forbidden set.
             gated = apply_staging_gate(mirror_dir, gate_passphrase)
+            stamped = apply_staging_update_stamp(mirror_dir, publish_clock)
             print(f"staging gate (row 42): {gated} pages + robots.txt — "
                   "deterrence-grade; prod legs never carry the marker")
+            print(f"staging stamp (row 79): {stamped} pages — "
+                  f"{stamp_label(publish_clock)}")
     finally:
         shutil.rmtree(staging, ignore_errors=True)
 
@@ -915,7 +1034,8 @@ def main():
         f"review on model {review_model} (reviewer class {review_class}, "
         f"content-addressed). Rounds to pass: {per_page}.\n"
         f"Snapshot: {snapshot}."
-        + (f"\nStaging gate (row 42): {gated} pages gated." if staging_gate_on else "")
+        + (f"\nStaging gate (row 42): {gated} pages gated; staging preview "
+           f"stamp (row 79): {stamp_label(publish_clock)}." if staging_gate_on else "")
         + f"\n{changelog_line}"
         + (f"\n{args.note}" if args.note else ""))
 

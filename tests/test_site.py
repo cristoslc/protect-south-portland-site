@@ -21,6 +21,7 @@ Builds site/pages into a temp dir via tools/build.py and pins the hard rules:
   static.wixstatic.com is banned by test_no_wix_assets_copied.
 """
 
+import datetime
 import html
 import hashlib
 import json
@@ -483,6 +484,144 @@ def test_row42_passphrase_sources_and_loud_refusal(tmp_path, monkeypatch):
     assert publish.staging_passphrase() == "from-dotenv"
     monkeypatch.setenv(publish.ENV_NAME, "from-env")
     assert publish.staging_passphrase() == "from-env"
+
+
+# ---- row 79 (2026-11-24): staging publish-time stamp (staging leg only) ----
+
+# The stamp is generated from the clock the staging leg is handed, never typed
+# into a page. 19:32 UTC on 2026-11-24 is 2:32 PM EST in South Portland.
+STAMP_WHEN = datetime.datetime(2026, 11, 24, 19, 32, tzinfo=datetime.timezone.utc)
+STAMP_LABEL = "Staging preview, updated Nov 24, 2026 at 2:32 PM EST"
+MASTHEAD_OPEN = '<header class="masthead">'
+NAV_OPEN = '<nav class="main-nav"'
+
+
+def header_block(markup):
+    """The masthead element's markup, from its opening tag to its close."""
+    start = markup.index(MASTHEAD_OPEN)
+    return markup[start:markup.index("</header>", start)]
+
+
+def nav_block(markup):
+    """The main nav's markup, from <nav class="main-nav" to </nav>."""
+    start = markup.index(NAV_OPEN)
+    return markup[start:markup.index("</nav>", start)]
+
+
+def masthead_pages(tree):
+    """Staged pages that carry the site chrome (the stamp's injection point).
+
+    The redirect stubs and the copied standalone map pages have no masthead,
+    so they are not stampable by construction; every other staged page is.
+    """
+    found = []
+    for rel in html_relpaths(tree):
+        text = open(os.path.join(tree, rel), encoding="utf-8").read()
+        if MASTHEAD_OPEN in text:
+            found.append(rel)
+    return found
+
+
+def test_row79_staging_leg_stamps_every_page_with_the_publish_time(tmp_path, docs):
+    # The line rides the staging leg: every built page whose chrome carries a
+    # masthead gets it, and the date inside it is the clock the leg was given,
+    # so a hand-typed date can never be what ships.
+    tree = staged_tree(tmp_path, docs, "stamp")
+    publish.apply_staging_gate(tree, GATE_TEST_PASSPHRASE)
+    stamped = publish.apply_staging_update_stamp(tree, STAMP_WHEN)
+    pages = masthead_pages(tree)
+    source_pages = [n for n in os.listdir(os.path.join(ROOT, "site", "pages"))
+                    if n.endswith(".html")]
+    assert stamped == len(pages)
+    assert stamped == len(source_pages), (
+        f"every built source page is stamped ({stamped} != {len(source_pages)})")
+    for rel in pages:
+        text = open(os.path.join(tree, rel), encoding="utf-8").read()
+        assert publish.STAMP_MARKER in text, rel
+        assert STAMP_LABEL in text, rel
+
+
+def test_row79_stamp_follows_the_clock_it_is_given(tmp_path, docs):
+    # two publishes, two different minutes: the label is generated, not fixed
+    later = STAMP_WHEN + datetime.timedelta(hours=1)
+    first = staged_tree(tmp_path, docs, "clock-a")
+    second = staged_tree(tmp_path, docs, "clock-b")
+    publish.apply_staging_update_stamp(first, STAMP_WHEN)
+    publish.apply_staging_update_stamp(second, later)
+    a = open(os.path.join(first, "index.html"), encoding="utf-8").read()
+    b = open(os.path.join(second, "index.html"), encoding="utf-8").read()
+    assert STAMP_LABEL in a
+    assert "Staging preview, updated Nov 24, 2026 at 3:32 PM EST" in b
+    assert STAMP_LABEL not in b
+
+
+def test_row79_prod_leg_carries_no_stamp(tmp_path, docs):
+    # the staging leg is the only caller: a production-targeted publish builds
+    # the same tree and never stamps it, and the leg decision is a function
+    # main() reads, so this is provable without a push
+    assert publish.staging_leg_gated(publish.PROD_REPO) is False
+    assert publish.staging_leg_gated(publish.STAGING_REPO) is True
+    tree = staged_tree(tmp_path, docs, "prod-stamp")
+    for rel in html_relpaths(tree) + ["styles.css"]:
+        text = open(os.path.join(tree, rel), encoding="utf-8").read()
+        assert publish.STAMP_MARKER not in text, rel
+        assert "Staging preview" not in text, rel
+
+
+def test_row79_stamp_marker_is_a_private_surface_marker():
+    # containment: the marker joins the private-surface set, so any leg that
+    # somehow carries the stamp fails the publication scan loud
+    assert publish.STAMP_MARKER in psp_public.PRIVATE_MARKERS
+    page = (MASTHEAD_OPEN +
+            f'<p class="{publish.STAMP_MARKER}">{STAMP_LABEL}</p></header>')
+    violations = psp_public.scan_text(page, "scratch page")
+    assert violations, "the stamp marker must fail the publication scan"
+    assert any(publish.STAMP_MARKER in v for v in violations), violations
+
+
+def test_row79_prod_scan_refuses_a_stamped_tree(tmp_path, docs):
+    tree = staged_tree(tmp_path, docs, "prod-stamp-scan")
+    publish.apply_staging_update_stamp(tree, STAMP_WHEN)
+    with pytest.raises(SystemExit):
+        psp_public.assert_clean(psp_public.scan_tree(tree), "scratch")
+
+
+def test_row79_stamp_leaves_the_nav_alone(tmp_path, docs):
+    # the line is chrome above the masthead's inner row: five nav items plus
+    # the pill stay byte-identical, and the label never lands inside the nav
+    tree = staged_tree(tmp_path, docs, "nav")
+    before = open(os.path.join(tree, "index.html"), encoding="utf-8").read()
+    publish.apply_staging_update_stamp(tree, STAMP_WHEN)
+    after = open(os.path.join(tree, "index.html"), encoding="utf-8").read()
+    assert nav_block(after) == nav_block(before), "the stamp must not touch the nav"
+    header = header_block(after)
+    assert header.count("<li") == header_block(before).count("<li") == 14, (
+        "six top-level items (five links + the Act now pill) and eight submenu items")
+    inner = header.index('<div class="masthead__inner">')
+    stamp = header.index(f'class="{publish.STAMP_MARKER}"')
+    assert stamp < inner, "the label sits above the logo/nav row, in the masthead"
+    assert stamp < header.index(NAV_OPEN)
+    assert publish.STAMP_MARKER not in nav_block(after)
+    assert header.count(publish.STAMP_MARKER) == 1, "one stamp per page"
+
+
+def test_row79_stamp_refuses_a_chromeless_page(tmp_path):
+    # a page with neither a masthead nor a redirect stub would silently ship
+    # unstamped; the injection refuses instead
+    tree = tmp_path / "chromeless"
+    tree.mkdir()
+    (tree / "page.html").write_text(
+        "<!DOCTYPE html><html lang=\"en\"><head><title>x</title></head>"
+        "<body><p>hi</p></body></html>", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        publish.apply_staging_update_stamp(str(tree), STAMP_WHEN)
+
+
+def test_row79_stamp_refuses_a_double_stamp(tmp_path, docs):
+    tree = staged_tree(tmp_path, docs, "stamp-twice")
+    assert publish.apply_staging_update_stamp(tree, STAMP_WHEN) > 0
+    with pytest.raises(SystemExit):
+        publish.apply_staging_update_stamp(tree, STAMP_WHEN)
 
 
 def test_map_not_the_lead_on_tank_farms_page(docs):
