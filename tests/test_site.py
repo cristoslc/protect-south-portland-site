@@ -142,6 +142,32 @@ def test_fragments_survive_the_build_structurally(docs):
                 f"{name}: the build lost a <{tag}> element")
 
 
+def test_kicker_never_repeats_the_h1(docs):
+    """2026-11-24 confirmation review: our-campaigns.html rendered a kicker
+    "Our work" directly above an h1 that also said "Our work", the only such
+    duplication on the site, created when the kicker was retagged to match the
+    nav. The h1 carries the page label; the kicker exists to add a different
+    frame, so the two never say the same thing.
+
+    Rule-shaped rather than a page pin, because the failure is a class: every
+    other page pairs a label with a different line ("About" over the Satoro
+    quote, "The campaign" over "South Portland Tank Farms"), and 404.html
+    carries no kicker at all. A page may do either; it may not repeat itself.
+    """
+    for name in html_files(docs):
+        if name in REDIRECT_PAGES:
+            continue
+        page = read(docs, name)
+        kicker = re.search(r'<span class="kicker">(.*?)</span>', page, re.S)
+        heading = re.search(r"<h1[^>]*>(.*?)</h1>", page, re.S)
+        if not kicker or not heading:
+            continue
+        def text_of(match):
+            return html.unescape(re.sub(r"<[^>]+>", "", match.group(1))).strip().lower()
+        assert text_of(kicker) != text_of(heading), (
+            f"{name}: the kicker and the h1 both say {text_of(heading)!r}")
+
+
 def test_expected_pages_built(docs):
     names = html_files(docs)
     for expected in (
