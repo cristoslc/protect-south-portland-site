@@ -1074,27 +1074,33 @@ def test_row6_hero_replaced_and_act_now_landing(docs):
 
 
 def test_row33_oct15_meeting_copy_published(docs):
-    """Ledger row 33 (2026-10-15) sanctioned this meeting bullet; the operator
-    directed the past-tense conversion on 2026-11-05 (the meeting happened).
-    It stays as history above the workshop bullet, without the event links."""
+    """Ledger row 33 (2026-10-15) put this meeting in the record, and the
+    operator directed the past-tense conversion on 2026-11-05 (the meeting had
+    happened). The pin now runs the other way, by operator order: the copy
+    document's own margin note on the bullet said "remove this after 10/15",
+    and the operator ordered the stale blocks removed from the act block on
+    2026-11-24 (ledger row 84). So the bullet must NOT ship, in either the
+    past-tense or the invitation form, and neither may the event-only flyer
+    link; the flyer file itself stays archived in the built tree."""
     idx = read(docs, "index.html")
     # 2026-11-24: the copy pin reads the tag-stripped text, because the bold
-    # pass moved emphasis inside this bullet; what row 33 rules on is the
+    # pass moved emphasis inside this bullet; what row 33 ruled on is the
     # sentence, not where the <strong> sits.
     idx_text = reading_text(idx)
     bullet = ("Neighbors met on Thursday, Oct. 15 for a community meeting to "
               "share ideas, concerns, and stories: 5:30 p.m. food and "
               "community; 6-7 p.m. discussion, at First Congregational Church "
               "UCC, 301 Cottage Road. Kids were welcome.")
-    assert bullet in idx_text, "the past-tense meeting bullet must ship"
+    assert bullet not in idx_text, "the Oct. 15 meeting bullet is retired (row 84)"
     assert "Join neighbors on Thursday, Oct. 15" not in idx, "the invitation form is retired"
     assert 'href="assets/files/tank-talk-flyer.pdf"' not in idx, "the event-only flyer link is dropped"
     flyer = os.path.join(ROOT, "docs", "assets", "files", "tank-talk-flyer.pdf")
     assert os.path.exists(flyer), "the Tank Talk flyer stays archived in the built tree"
-    # meeting bullet sits above the workshop bullet (operator placement)
+    # the surviving bullets keep their order: the Dec. 1 workshop follows the
+    # Oct. 27 report that explains why the Council has options to consider
     callout_pos = idx_text.index("Now is the time to act")
-    assert idx_text.index("Neighbors met on Thursday, Oct. 15", callout_pos) < \
-        idx_text.index("The City Council took no vote at its Oct. 27 workshop", callout_pos)
+    assert idx_text.index("The City Council took no vote at its Oct. 27 workshop", callout_pos) < \
+        idx_text.index("The Council plans its next workshop for", callout_pos)
     # the scan ban is retired: no event markers remain to reject it
     assert tuple(FORBIDDEN_EVENT_MARKERS) == ()
 
