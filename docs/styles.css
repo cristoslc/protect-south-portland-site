@@ -310,6 +310,43 @@ img { max-width: 100%; height: auto; }
 .btn--light { background: #fff; color: var(--teal-900); }
 .btn--light:hover { background: var(--teal-100); }
 
+/* ---------- the family's keyboard ring ----------------------------------
+
+   Every member of the family needs a ring a keyboard reader can see. Until
+   2026-11-24 the only one any member had lived inside the Act now button
+   pair's own page scope; when that pair came out, its scope went with it and
+   left the family with the browser default or nothing.
+
+   The shape is the site's own existing convention, not a third treatment:
+   3px solid, a 2px offset, a palette token, which is exactly what the
+   signup input wears on paper (`.signup input:focus-visible`) and what the
+   MENU toggle wears on the masthead (`.nav-toggle:focus-visible +
+   .nav-toggle-label`). Only the colour changes by surface, the way those
+   two rules already split.
+
+   Two surfaces, two tokens, both measured (WCAG 2.x relative luminance):
+   `--teal-900` is 11.57:1 on --paper, 11.00:1 on --mist, 10.00:1 on
+   --teal-100 and 10.10:1 on --cyan-soft; on the dark bands the same ink is
+   1.97:1 against --teal-900 and 2.09:1 against --teal-950, so the dark
+   override swaps to `--cyan-soft`: 10.10:1 on --teal-900 (banner) and
+   13.16:1 on --teal-950 (footer). Both clear the 3:1 non-text floor of
+   SC 1.4.11. No new colour enters the palette: these are the two tokens the
+   two existing focus rules already use.
+
+   The bare `.btn` rule covers the whole family, including `.btn--light`,
+   which no built page renders today but which inherits the ring rather than
+   waiting for a page to adopt it. The override is scoped to the surfaces
+   the built pages actually put a button on (`banner`, `footer`) plus
+   `section--teal`, the site's one dark band component, so a button that
+   lands there later is legible instead of dark-on-dark. `.btn--cta` keeps
+   its orange fill; the ring sits outside the fill on the band, never on it. */
+
+.btn:focus-visible { outline: 3px solid var(--teal-900); outline-offset: 2px; }
+
+.banner .btn:focus-visible,
+.footer .btn:focus-visible,
+.section--teal .btn:focus-visible { outline-color: var(--cyan-soft); }
+
 /* ---------- newsletter signup: the site's first form control ---------- */
 
 /* Nothing on the site was a text input before the newsletter signup, so this

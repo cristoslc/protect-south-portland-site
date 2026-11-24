@@ -2676,6 +2676,323 @@ def test_nav_cta_pill_contrast_passes_at_every_width():
             "text is 16.2px at weight 800, so WCAG AA normal text wants 4.5:1")
 
 
+# ---- button-family focus ring (2026-11-24, ledger row 95) -------------------
+# The Act now pair removal at `b88ec06` took the only :focus-visible ring any
+# `.btn` family member had (it lived inside `.link-row--buttons`), so every
+# button on the site fell back to the browser default or nothing. The pins
+# below walk the BUILT pages for the census of rendered variants and their
+# ancestor surfaces, then resolve the winning focus declaration from the
+# stylesheet, so neither a new variant nor a new dark band can ship ringless
+# and no page is hand-listed. The shape is compared against the two
+# :focus-visible rules the site already ships (the signup input on paper, the
+# MENU toggle on the masthead), because a third shape would be a new treatment.
+
+FOCUS_RING_MIN_CONTRAST = 3.0  # WCAG 2.1 SC 1.4.11, non-text UI
+
+
+def _is_btn_class(token):
+    return re.fullmatch(r"btn(?:--[\w-]+)?", token) is not None
+
+
+class _ButtonSurfaceWalker(HTMLParser):
+    """Every element carrying a `.btn` member, with its ancestor chain.
+
+    The chain is (tag, classes-in-document-order) from the outermost ancestor
+    inward, so a surface is the nearest ancestor that declares a background in
+    the stylesheet rather than a guess about where a page put its button.
+    """
+
+    VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input",
+            "link", "meta", "source", "track", "wbr"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self._stack = []
+        self.found = []  # (tag, classes tuple, ancestor tuple)
+
+    def _record(self, tag, attrs):
+        classes = tuple((dict(attrs).get("class") or "").split())
+        if any(_is_btn_class(c) for c in classes):
+            self.found.append((tag, classes, tuple(self._stack)))
+        return classes
+
+    def handle_starttag(self, tag, attrs):
+        classes = self._record(tag, attrs)
+        if tag not in self.VOID:
+            self._stack.append((tag, classes))
+
+    def handle_startendtag(self, tag, attrs):
+        self._record(tag, attrs)
+
+    def handle_endtag(self, tag):
+        for index in range(len(self._stack) - 1, -1, -1):
+            if self._stack[index][0] == tag:
+                del self._stack[index:]
+                return
+
+
+def _parse_compound(compound):
+    """Split one compound selector into (kind, name) pairs.
+
+    Only tag names, `.class` and `:focus-visible` are understood. Anything
+    else fails loud instead of being silently treated as a match, so a future
+    selector form cannot ride through the census unnoticed.
+    """
+    parts, i = [], 0
+    while i < len(compound):
+        rest = compound[i:]
+        if compound[i] == ".":
+            m = re.match(r"\.([\w-]+)", rest)
+            assert m, f"cannot parse selector compound {compound!r}"
+            parts.append(("class", m.group(1)))
+            i += m.end()
+        elif compound[i] == ":":
+            m = re.match(r"::?([\w-]+)(\([^)]*\))?", rest)
+            assert m, f"cannot parse selector compound {compound!r}"
+            assert m.group(1) == "focus-visible" and not m.group(2), (
+                f"the focus census cannot evaluate the pseudo-class "
+                f"{rest[:m.end()]!r}; teach this helper before shipping it")
+            parts.append(("focus", None))
+            i += m.end()
+        else:
+            m = re.match(r"[\w-]+", rest)
+            assert m, f"cannot parse selector compound {compound!r}"
+            parts.append(("tag", m.group(0)))
+            i += m.end()
+    return parts
+
+
+def _focus_rules(css):
+    """(order, selector, declarations) for every evaluable focus rule.
+
+    Sibling (`+`, `~`) and child (`>`) combinators are skipped: this census
+    resolves an element inside its ancestor chain only, and pretending to
+    evaluate a combinator it cannot see would be worse than skipping it.
+    """
+    rules = []
+    for order, (_media, selector, body) in enumerate(_css_rules(css)):
+        if ":focus-visible" not in selector:
+            continue
+        for part in selector.split(","):
+            part = " ".join(part.split())
+            if not part or any(ch in part for ch in "+>~"):
+                continue
+            rules.append((order, part, _css_declarations(body)))
+    return rules
+
+
+def _selector_specificity(selector):
+    ids = len(re.findall(r"#[\w-]+", selector))
+    classes = len(re.findall(r"\.[\w-]+|:[\w-]+(?:\([^)]*\))?", selector))
+    tags = len(re.findall(r"(?:^|\s)[a-z][\w-]*", selector))
+    return (ids, classes, tags)
+
+
+def _matches_focus(selector, tag, classes, ancestors):
+    """Does a focus selector reach this element inside its ancestor chain?"""
+    parsed = [_parse_compound(compound) for compound in selector.split()]
+
+    def compound_matches(compound, element_tag, element_classes):
+        for kind, name in compound:
+            if kind == "class" and name not in element_classes:
+                return False
+            if kind == "tag" and name != element_tag:
+                return False
+        return True
+
+    if not compound_matches(parsed[-1], tag, classes):
+        return False
+    cursor = 0
+    for compound in parsed[:-1]:
+        while cursor < len(ancestors):
+            ancestor_tag, ancestor_classes = ancestors[cursor]
+            cursor += 1
+            if compound_matches(compound, ancestor_tag, ancestor_classes):
+                break
+        else:
+            return False
+    return True
+
+
+def _resolve_outline(declarations):
+    """(width, style, colour, offset) from a merged focus declaration block."""
+    width = style = colour = None
+    shorthand = declarations.get("outline")
+    if shorthand:
+        for token in shorthand.split():
+            if token in ("solid", "dashed", "dotted", "double", "none"):
+                style = token
+            elif re.fullmatch(r"[\d.]+px", token):
+                width = token
+            else:
+                colour = token
+    width = declarations.get("outline-width", width)
+    style = declarations.get("outline-style", style)
+    colour = declarations.get("outline-color", colour)
+    offset = declarations.get("outline-offset")
+    return width, style, colour, offset
+
+
+def _class_backgrounds(css):
+    """Background each single-class rule declares, plus the body's own."""
+    backgrounds = {}
+    for _media, selector, body in _css_rules(css):
+        if ":" in selector:
+            continue
+        declarations = _css_declarations(body)
+        fill = declarations.get("background-color") or declarations.get("background")
+        if not fill or fill.startswith("url(") or fill in ("none", "transparent"):
+            continue
+        for part in selector.split(","):
+            part = part.strip()
+            m = re.fullmatch(r"\.([\w-]+)", part)
+            if m:
+                backgrounds[m.group(1)] = fill
+            elif part == "body":
+                backgrounds["body"] = fill
+    return backgrounds
+
+
+def _surface_behind(ancestors, backgrounds, variables):
+    """(label, rgb) for the nearest ancestor that paints a surface."""
+    for _tag, classes in reversed(ancestors):
+        for name in classes:
+            if name in backgrounds:
+                fill = backgrounds[name]
+                if fill.startswith("rgba"):
+                    continue
+                return f".{name}", _css_color(fill, variables)
+    assert "body" in backgrounds, (
+        "the stylesheet must declare body's background: it is the surface "
+        "every unbanded button is read against")
+    return "body", _css_color(backgrounds["body"], variables)
+
+
+def _button_census(docs):
+    """{(variant tuple, surface label): ring ratio} for every rendered button."""
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    variables = _css_variables(css)
+    backgrounds = _class_backgrounds(css)
+    rules = _focus_rules(css)
+    census = {}
+    for dirpath, _dirnames, filenames in os.walk(docs):
+        for name in sorted(filenames):
+            if not name.endswith(".html"):
+                continue
+            walker = _ButtonSurfaceWalker()
+            walker.feed(open(os.path.join(dirpath, name), encoding="utf-8").read())
+            for tag, classes, ancestors in walker.found:
+                variant = tuple(c for c in classes if _is_btn_class(c))
+                surface, surface_rgb = _surface_behind(
+                    ancestors, backgrounds, variables)
+                merged, winner = {}, None
+                applicable = sorted(
+                    (order, selector, declarations)
+                    for order, selector, declarations in rules
+                    if _matches_focus(selector, tag, classes, ancestors))
+                for _order, selector, declarations in applicable:
+                    merged.update(declarations)
+                    winner = selector
+                width, style, colour, offset = _resolve_outline(merged)
+                assert colour, (
+                    f"{name}: {tag} {' '.join(variant)} on {surface} has no "
+                    f"reachable :focus-visible colour (winning rule: {winner})")
+                ring = _css_color(colour, variables)
+                census[(variant, surface)] = (
+                    _contrast_ratio(ring, surface_rgb), width, style, offset,
+                    winner, name)
+    return census
+
+
+def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
+    """Ledger row 95: the family keeps a visible ring wherever it renders.
+
+    Census walked from the built pages (not a page list): each rendered
+    variant on each surface it actually sits on must resolve a focus ring that
+    clears the 3:1 non-text floor against the surface behind it. The two
+    combinations the family renders today are `.btn.btn--cta` and
+    `.btn.btn--ghost`; the assertion below names them so a build that loses
+    all buttons fails instead of shrinking the census to an empty pass.
+    """
+    census = _button_census(docs)
+    rendered = {variant for variant, _surface in census}
+    assert ("btn", "btn--cta") in rendered, "the CTA variant must be in the census"
+    assert ("btn", "btn--ghost") in rendered, "the ghost variant must be in the census"
+    surfaces = {surface for _variant, surface in census}
+    assert ".banner" in surfaces, "the dark banner surface must be exercised"
+    assert ".footer" in surfaces, "the dark footer surface must be exercised"
+    assert any(surface not in (".banner", ".footer", ".section--teal")
+               for surface in surfaces), "a light surface must be exercised too"
+
+    for (variant, surface), (ratio, width, style, offset, winner, name) in sorted(census.items()):
+        label = " ".join(variant)
+        assert width == "3px" and style == "solid", (
+            f"{name}: {label} on {surface} renders outline {width} {style} "
+            f"(rule {winner}); the site's focus convention is 3px solid")
+        assert offset == "2px", (
+            f"{name}: {label} on {surface} renders outline-offset {offset} "
+            f"(rule {winner}); the site's focus convention is 2px")
+        assert ratio >= FOCUS_RING_MIN_CONTRAST, (
+            f"{name}: {label} on {surface} gets a {ratio:.2f}:1 focus ring "
+            f"(rule {winner}); WCAG 2.1 SC 1.4.11 wants 3:1 against the "
+            "surface the ring sits on")
+
+
+def test_button_focus_ring_colour_is_a_palette_token_and_keeps_the_shape():
+    """Ledger row 95: the ring is a token, and its shape is the site's own.
+
+    No new colour enters the palette: every `.btn` focus rule paints with a
+    `var(--token)` that already exists in `:root`, and no literal hex or rgb()
+    value appears anywhere in those rules. The shape is compared against the
+    two focus rules the site already ships, so a third treatment fails here.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    variables = _css_variables(css)
+    rules = _focus_rules(css)
+    family = [(selector, declarations) for _order, selector, declarations in rules
+              if any(_is_btn_class(token.lstrip("."))
+                     for compound in selector.split()
+                     for token in re.findall(r"\.[\w-]+", compound))]
+    assert family, (
+        "the .btn family has no :focus-visible rule at all; that is the defect "
+        "ledger row 95 exists to close")
+    assert any(selector.strip() == ".btn:focus-visible"
+               for selector, _declarations in family), (
+        "a bare `.btn:focus-visible` rule must cover the whole family, "
+        "including variants no page renders yet (.btn--light)")
+
+    for selector, declarations in family:
+        _width, _style, colour, _offset = _resolve_outline(declarations)
+        assert colour, f"{selector} declares no outline colour"
+        assert re.fullmatch(r"var\(\s*--[\w-]+\s*\)", colour), (
+            f"{selector} paints its ring with {colour!r}; the palette is the "
+            "single source of truth, so the ring must be a token")
+        token = re.fullmatch(r"var\(\s*(--[\w-]+)\s*\)", colour).group(1)
+        assert token in variables, f"{selector} uses undefined token {token}"
+        for value in declarations.values():
+            assert not re.search(r"#[0-9a-fA-F]{3,8}\b|rgba?\(", value), (
+                f"{selector} introduces a literal colour ({value!r}); "
+                "no new colour enters the palette")
+
+    established = set()
+    for _order, selector, declarations in rules:
+        if "signup input" in selector or "nav-toggle" in selector:
+            width, style, _colour, offset = _resolve_outline(declarations)
+            established.add((width, style, offset))
+    assert established == {("3px", "solid", "2px")}, (
+        f"the site's existing focus convention moved: {established}")
+    for selector, declarations in family:
+        width, style, _colour, offset = _resolve_outline(declarations)
+        if width is None:
+            # a surface override may legitimately recolour only (the dark-band
+            # rules do), inheriting width/style/offset from the family base;
+            # the resolved per-element shape is pinned by the census test above
+            continue
+        assert (width, style, offset) in established, (
+            f"{selector} renders {width} {style} offset {offset}, not the "
+            f"site's own {established} convention")
+
+
 def test_heading_order_is_sequential(docs):
     # Staging audit digest #4 (2026-10-15): tank-farms.html and
     # our-campaigns.html opened their outline with an h3 directly under the

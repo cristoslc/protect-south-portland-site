@@ -1,0 +1,356 @@
+{
+  "date": "2026-11-24",
+  "ledger": 95,
+  "method": "bb browser-automation, headless Chromium, real Tab presses to reach each control, viewport screenshot at the control's rect; ring stroke and the surface outside it are sampled from the PNG, and the ratio is computed from those sampled pixels with the WCAG 2.x formula",
+  "min_contrast": 3.0,
+  "captures": [
+    {
+      "width": 412,
+      "page": "http://127.0.0.1:8899/act-now.html",
+      "selector": "main .btn--ghost",
+      "control": "Sign now",
+      "tab_presses": 5,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(29, 62, 64)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgba(0, 0, 0, 0)",
+      "measured_ring": "#1d3e40",
+      "measured_surface": "#d5f6f6",
+      "measured_ratio": 10.1,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "surface_samples": [
+        "#adcbcb",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "frame": "412-act-now-ghost-light.png",
+      "crop": "412-act-now-ghost-light-crop.png"
+    },
+    {
+      "width": 412,
+      "page": "http://127.0.0.1:8899/act-now.html",
+      "selector": "main .btn--cta",
+      "control": "Email the Council",
+      "tab_presses": 8,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(29, 62, 64)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#1d3e40",
+      "measured_surface": "#ffffff",
+      "measured_ratio": 11.57,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "surface_samples": [
+        "#ffffff",
+        "#ffffff",
+        "#ffffff",
+        "#ffffff"
+      ],
+      "frame": "412-act-now-cta-light.png",
+      "crop": "412-act-now-cta-light-crop.png"
+    },
+    {
+      "width": 412,
+      "page": "http://127.0.0.1:8899/index.html",
+      "selector": ".banner .btn--cta",
+      "control": "Act now",
+      "tab_presses": 4,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(213, 246, 246)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#d5f6f6",
+      "measured_surface": "#1d3e40",
+      "measured_ratio": 10.1,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "surface_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "frame": "412-banner-cta-dark.png",
+      "crop": "412-banner-cta-dark-crop.png"
+    },
+    {
+      "width": 412,
+      "page": "http://127.0.0.1:8899/index.html",
+      "selector": ".footer__donate .btn",
+      "control": "Donate",
+      "tab_presses": 29,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(213, 246, 246)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#d5f6f6",
+      "measured_surface": "#122a2c",
+      "measured_ratio": 13.16,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "surface_samples": [
+        "#122a2c",
+        "#122a2c",
+        "#122a2c",
+        "#122a2c"
+      ],
+      "frame": "412-footer-cta-dark.png",
+      "crop": "412-footer-cta-dark-crop.png"
+    },
+    {
+      "width": 768,
+      "page": "http://127.0.0.1:8899/act-now.html",
+      "selector": "main .btn--ghost",
+      "control": "Sign now",
+      "tab_presses": 5,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(29, 62, 64)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgba(0, 0, 0, 0)",
+      "measured_ring": "#1d3e40",
+      "measured_surface": "#d5f6f6",
+      "measured_ratio": 10.1,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "surface_samples": [
+        "#afcdcd",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "frame": "768-act-now-ghost-light.png",
+      "crop": "768-act-now-ghost-light-crop.png"
+    },
+    {
+      "width": 768,
+      "page": "http://127.0.0.1:8899/act-now.html",
+      "selector": "main .btn--cta",
+      "control": "Email the Council",
+      "tab_presses": 8,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(29, 62, 64)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#1d3e40",
+      "measured_surface": "#ffffff",
+      "measured_ratio": 11.57,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "surface_samples": [
+        "#ffffff",
+        "#ffffff",
+        "#ffffff",
+        "#ffffff"
+      ],
+      "frame": "768-act-now-cta-light.png",
+      "crop": "768-act-now-cta-light-crop.png"
+    },
+    {
+      "width": 768,
+      "page": "http://127.0.0.1:8899/index.html",
+      "selector": ".banner .btn--cta",
+      "control": "Act now",
+      "tab_presses": 4,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(213, 246, 246)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#d5f6f6",
+      "measured_surface": "#1d3e40",
+      "measured_ratio": 10.1,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "surface_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "frame": "768-banner-cta-dark.png",
+      "crop": "768-banner-cta-dark-crop.png"
+    },
+    {
+      "width": 768,
+      "page": "http://127.0.0.1:8899/index.html",
+      "selector": ".footer__donate .btn",
+      "control": "Donate",
+      "tab_presses": 29,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(213, 246, 246)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#d5f6f6",
+      "measured_surface": "#122a2c",
+      "measured_ratio": 13.16,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "surface_samples": [
+        "#122a2c",
+        "#122a2c",
+        "#122a2c",
+        "#122a2c"
+      ],
+      "frame": "768-footer-cta-dark.png",
+      "crop": "768-footer-cta-dark-crop.png"
+    },
+    {
+      "width": 1440,
+      "page": "http://127.0.0.1:8899/act-now.html",
+      "selector": "main .btn--ghost",
+      "control": "Sign now",
+      "tab_presses": 18,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(29, 62, 64)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgba(0, 0, 0, 0)",
+      "measured_ring": "#1d3e40",
+      "measured_surface": "#d5f6f6",
+      "measured_ratio": 10.1,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "surface_samples": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "frame": "1440-act-now-ghost-light.png",
+      "crop": "1440-act-now-ghost-light-crop.png"
+    },
+    {
+      "width": 1440,
+      "page": "http://127.0.0.1:8899/act-now.html",
+      "selector": "main .btn--cta",
+      "control": "Email the Council",
+      "tab_presses": 21,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(29, 62, 64)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#1d3e40",
+      "measured_surface": "#ffffff",
+      "measured_ratio": 11.57,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "surface_samples": [
+        "#ffffff",
+        "#ffffff",
+        "#ffffff",
+        "#ffffff"
+      ],
+      "frame": "1440-act-now-cta-light.png",
+      "crop": "1440-act-now-cta-light-crop.png"
+    },
+    {
+      "width": 1440,
+      "page": "http://127.0.0.1:8899/index.html",
+      "selector": ".banner .btn--cta",
+      "control": "Act now",
+      "tab_presses": 17,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(213, 246, 246)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#d5f6f6",
+      "measured_surface": "#1d3e40",
+      "measured_ratio": 10.1,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "surface_samples": [
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40",
+        "#1d3e40"
+      ],
+      "frame": "1440-banner-cta-dark.png",
+      "crop": "1440-banner-cta-dark-crop.png"
+    },
+    {
+      "width": 1440,
+      "page": "http://127.0.0.1:8899/index.html",
+      "selector": ".footer__donate .btn",
+      "control": "Donate",
+      "tab_presses": 42,
+      "focused": true,
+      "computed_outline": "solid 3px rgb(213, 246, 246)",
+      "computed_outline_offset": "2px",
+      "control_fill": "rgb(184, 64, 26)",
+      "measured_ring": "#d5f6f6",
+      "measured_surface": "#122a2c",
+      "measured_ratio": 13.16,
+      "passes_3_to_1": true,
+      "ring_samples": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "surface_samples": [
+        "#122a2c",
+        "#122a2c",
+        "#122a2c",
+        "#122a2c"
+      ],
+      "frame": "1440-footer-cta-dark.png",
+      "crop": "1440-footer-cta-dark-crop.png"
+    }
+  ]
+}
