@@ -602,7 +602,7 @@ def test_row79_stamp_leaves_the_nav_alone(tmp_path, docs):
     assert stamp < inner, "the label sits above the logo/nav row, in the masthead"
     assert stamp < header.index(NAV_OPEN)
     assert publish.STAMP_MARKER not in nav_block(after)
-    assert header.count(publish.STAMP_MARKER) == 1, "one stamp per page"
+    assert header.count(f'class="{publish.STAMP_MARKER}"') == 1, "one stamp per page"
 
 
 def test_row79_stamp_refuses_a_chromeless_page(tmp_path):
@@ -622,6 +622,112 @@ def test_row79_stamp_refuses_a_double_stamp(tmp_path, docs):
     assert publish.apply_staging_update_stamp(tree, STAMP_WHEN) > 0
     with pytest.raises(SystemExit):
         publish.apply_staging_update_stamp(tree, STAMP_WHEN)
+
+
+# ---- row 79, second pass: the comparison boundary (operator, 2026-11-24) ----
+#
+# The production lane verifies a staging tree by fetching the HTML staging
+# serves and comparing it against the page hashes in the gate report. Both
+# publish-time injections (the row-42 gate block and the row-79 stamp) make
+# served bytes differ from the hashed bytes, so ONE strip function takes both
+# off before any such comparison.
+
+def injected_tree(tmp_path, docs, name):
+    """A staged tree carrying both injections, as the staging leg ships it."""
+    tree = staged_tree(tmp_path, docs, name)
+    publish.apply_staging_gate(tree, GATE_TEST_PASSPHRASE)
+    publish.apply_staging_update_stamp(tree, STAMP_WHEN)
+    return tree
+
+
+def test_row79_strip_removes_both_injections_and_restores_the_build(tmp_path, docs):
+    tree = staged_tree(tmp_path, docs, "strip-src")
+    built = {rel: open(os.path.join(tree, rel), encoding="utf-8").read()
+             for rel in html_relpaths(tree)}
+    publish.apply_staging_gate(tree, GATE_TEST_PASSPHRASE)
+    publish.apply_staging_update_stamp(tree, STAMP_WHEN)
+    assert publish.INJECTED_BLOCK_MARKERS == (
+        publish.GATE_MARKER, publish.STAMP_MARKER), (
+        "one registry, both publish-time injections")
+    for rel, before in sorted(built.items()):
+        served = open(os.path.join(tree, rel), encoding="utf-8").read()
+        assert served != before, f"{rel}: nothing was injected"
+        assert publish.GATE_MARKER in served, rel
+        stripped = publish.strip_injected_blocks(served)
+        assert stripped == before, f"{rel}: the strip must restore the build byte for byte"
+        assert publish.GATE_MARKER not in stripped, rel
+        assert publish.STAMP_MARKER not in stripped, rel
+
+
+def test_row79_served_pages_hash_equal_the_gate_report_after_the_strip(tmp_path, docs):
+    # the comparison the production lane runs: fetch what staging serves, strip
+    # the two injections, hash, compare with the report's page hash
+    tree = injected_tree(tmp_path, docs, "compare")
+    pages = [n for n in os.listdir(os.path.join(ROOT, "site", "pages"))
+             if n.endswith(".html")]
+    for page in pages:
+        served = open(os.path.join(tree, page), encoding="utf-8").read()
+        built_sha = publish.page_sha256(page, docs_dir=str(docs))
+        assert publish.served_page_sha256(served) == built_sha, page
+        assert publish.served_page_matches(served, page, docs_dir=str(docs)) is True, page
+        # without the strip the same page does not match: that is the defect
+        assert hashlib.sha256(served.encode("utf-8")).hexdigest() != built_sha, page
+
+
+def test_row79_index_check_sees_through_both_injections(tmp_path, docs, monkeypatch):
+    # the served index must compare equal because the bytes match after the
+    # strip, not because the banner fallback waved it through: the fallback is
+    # made impossible here, so only the strip can pass this
+    tree = injected_tree(tmp_path, docs, "index-check")
+    served = open(os.path.join(tree, "index.html"), encoding="utf-8").read()
+    built_path = os.path.join(str(docs), "index.html")
+    monkeypatch.setattr(psp_public, "BANNER_TEXT", "a banner no page carries")
+    assert publish.index_matches_built(served, built_path) is True, (
+        "both injections must come off before the served index is compared")
+    tampered = served.replace("Protect South Portland", "Protect South Portland!", 1)
+    assert publish.index_matches_built(tampered, built_path) is False, (
+        "a real content change must still fail the comparison")
+
+
+def test_row79_prod_leg_refuses_a_tree_that_already_carries_the_stamp(
+        tmp_path, docs, monkeypatch, capsys):
+    # the ban, exercised through the production leg's own path: a docs tree
+    # that already carries the stamp reaches the mirror scan and is refused
+    # with the marker named. Nothing is built (build_site is stubbed) and
+    # nothing leaves the temp dir (custom --mirror-dir = local run).
+    root = tmp_path / "repo"
+    shutil.copytree(str(docs), str(root / "docs"))
+    shutil.copytree(os.path.join(ROOT, "site", "pages"),
+                    str(root / "site" / "pages"))
+    assert publish.apply_staging_update_stamp(
+        str(root / "docs"), STAMP_WHEN) > 0
+    monkeypatch.setattr(publish, "ROOT", str(root))
+    monkeypatch.setattr(publish, "build_site", lambda: None)
+    monkeypatch.setattr(publish, "require_clean_worktree", lambda: None)
+    monkeypatch.setattr(publish, "source_provenance", lambda: ("deadbee", ""))
+    pages = sorted(n for n in os.listdir(root / "site" / "pages")
+                   if n.endswith(".html"))
+    report = {
+        "date": "row79-test",
+        "review_model": "test/full-class",
+        "review_class": "full",
+        "pages": {page: {"rounds": 1, "outcome": "pass",
+                         "sha256": publish.page_sha256(page)}
+                  for page in pages},
+    }
+    report_path = tmp_path / "report.json"
+    report_path.write_text(json.dumps(report), encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", [
+        "publish.py", "--gate-report", str(report_path),
+        "--repo", publish.PROD_REPO,
+        "--mirror-dir", str(tmp_path / "mirror"),
+        "--changelog-waiver", "test run, nothing is published anywhere",
+    ])
+    with pytest.raises(SystemExit) as refused:
+        publish.main()
+    assert publish.STAMP_MARKER in str(refused.value), (
+        "the production leg's scan must name the marker: " + str(refused.value))
+    assert not (tmp_path / "mirror").exists(), "nothing is pushed or committed"
 
 
 def test_map_not_the_lead_on_tank_farms_page(docs):

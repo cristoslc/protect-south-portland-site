@@ -56,6 +56,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import shutil
 import socket
 import ssl
@@ -135,6 +136,43 @@ STAMP_CSS = """<style>
 .masthead > .staging-updated{margin:0;padding:5px 20px;background:#122a2c;background:var(--teal-950);color:#e6f1f1;font-size:.8rem;line-height:1.45;font-weight:600;letter-spacing:.01em;text-align:center}
 @media (max-width:520px){.masthead > .staging-updated{padding:4px 12px;font-size:.72rem}}
 </style>"""
+
+# The comparison boundary (operator, 2026-11-24). The production lane verifies
+# a staging tree by fetching the HTML staging serves and comparing it against
+# the page hashes in the gate report. Both publish-time injections (row 42's
+# gate block, row 79's stamp) make a served page differ from the bytes the
+# report hashed, so every injected region is wrapped in a paired comment
+# carrying its marker. ONE function strips all of them, by marker, so the two
+# can never drift apart into separate strips. A page that goes through
+# strip_injected_blocks and then does not hash to the report's sha256 is a real
+# difference, and the comparison must fail loudly on it rather than get waived.
+INJECTED_BLOCK_MARKERS = (GATE_MARKER, STAMP_MARKER)
+
+
+def injected_block_open(marker):
+    return f"<!-- {marker}:injected -->"
+
+
+def injected_block_close(marker):
+    return f"<!-- /{marker}:injected -->"
+
+
+def strip_injected_blocks(text):
+    """Remove every publish-time injection from served HTML.
+
+    The single strip at the comparison boundary, for both row 42's gate block
+    and row 79's stamp. Each injection writes a paired marker comment around
+    itself and nothing else, so removing both regions restores the page to the
+    exact bytes the build produced and the gate report hashed. Deliberately one
+    function: a second, parallel strip would drift the first time one of the
+    two blocks changed shape.
+    """
+    for marker in INJECTED_BLOCK_MARKERS:
+        pattern = re.compile(
+            re.escape(injected_block_open(marker)) + r".*?"
+            + re.escape(injected_block_close(marker)), re.DOTALL)
+        text = pattern.sub("", text)
+    return text
 
 
 def repo_pages_base(repo):
@@ -293,7 +331,10 @@ def apply_staging_gate(tree, passphrase):
                 headless.append(os.path.relpath(path, tree))
                 continue
             open(path, "w", encoding="utf-8").write(
-                text.replace("<head>", "<head>\n" + block, 1))
+                text.replace(
+                    "<head>",
+                    "<head>" + injected_block_open(GATE_MARKER) + "\n" + block
+                    + "\n" + injected_block_close(GATE_MARKER), 1))
             count += 1
     if headless:
         raise SystemExit(
@@ -349,7 +390,9 @@ def apply_staging_update_stamp(tree, when):
     and a second pass is refused rather than stacked.
     """
     label = stamp_label(when)
-    line = f'\n  <p class="{STAMP_MARKER}">{label}</p>'
+    line = (injected_block_open(STAMP_MARKER)
+            + f'\n  <p class="{STAMP_MARKER}">{label}</p>\n'
+            + injected_block_close(STAMP_MARKER))
     stampable = []
     refused = []
     for dirpath, dirnames, filenames in os.walk(tree):
@@ -377,7 +420,10 @@ def apply_staging_update_stamp(tree, when):
             "to stamp some pages and not others: " + ", ".join(refused))
     for path in stampable:
         text = open(path, encoding="utf-8").read()
-        text = text.replace("<head>", "<head>\n" + STAMP_CSS, 1)
+        text = text.replace(
+            "<head>",
+            "<head>" + injected_block_open(STAMP_MARKER) + "\n" + STAMP_CSS
+            + "\n" + injected_block_close(STAMP_MARKER), 1)
         text = text.replace(STAMP_ANCHOR, STAMP_ANCHOR + line, 1)
         open(path, "w", encoding="utf-8").write(text)
     return len(stampable)
@@ -426,13 +472,36 @@ def run(cmd, cwd=ROOT):
     return proc.stdout.strip()
 
 
-def page_sha256(name):
+def page_sha256(name, docs_dir=None):
     """sha256 of a page's BUILT file — the content a verdict reviewed and the
     content the mirror ships. Hashing the source page alone missed shared
     chrome (the footer strip, injected by build.py), so a chrome-only change
-    could publish against stale verdicts."""
-    with open(os.path.join(ROOT, "docs", name), "rb") as fh:
+    could publish against stale verdicts.
+
+    docs_dir overrides the build tree (tests pass their own build; production
+    leaves it None = the repo's docs/).
+    """
+    path = os.path.join(docs_dir or os.path.join(ROOT, "docs"), name)
+    with open(path, "rb") as fh:
         return hashlib.sha256(fh.read()).hexdigest()
+
+
+def served_page_sha256(served_text):
+    """sha256 of a page as a visitor's browser receives it, publish-time
+    injections stripped. This is the hash the gate report can be compared to."""
+    return hashlib.sha256(
+        strip_injected_blocks(served_text).encode("utf-8")).hexdigest()
+
+
+def served_page_matches(served_text, name, docs_dir=None):
+    """True when the served page, minus the two publish-time injections, is
+    byte-equal to the built page whose hash the gate report carries.
+
+    This is the comparison the production lane runs against a staging tree.
+    Anything that differs after the strip is a real difference and must be
+    treated as one.
+    """
+    return served_page_sha256(served_text) == page_sha256(name, docs_dir=docs_dir)
 
 
 def load_gate_report(path):
@@ -814,12 +883,22 @@ def tls_cert_subject(host, timeout=20):
 
 
 def index_matches_built(text, index_path):
-    """The served index equals the freshly built one, or at least carries
-    the verbatim banner line (ledger row 5)."""
+    """The served index equals the freshly built one once the publish-time
+    injections come off, or at least carries the verbatim banner line
+    (ledger row 5).
+
+    The strip is first and primary: a staging index serves the row-42 gate
+    block and the row-79 stamp, so comparing the raw bytes would fail every
+    time and invite someone to waive the check. Stripping both regions makes
+    the comparison pass because the bytes match, not because the comparison
+    was loosened. The banner line stays as the fallback it always was.
+    """
     if not os.path.exists(index_path):
         return False
-    return (text == open(index_path, encoding="utf-8").read()
-            or psp_public.BANNER_TEXT in text)
+    built = open(index_path, encoding="utf-8").read()
+    if strip_injected_blocks(text) == strip_injected_blocks(built):
+        return True
+    return psp_public.BANNER_TEXT in text
 
 
 def verify_custom_domain(domain, index_path, minutes=8):
