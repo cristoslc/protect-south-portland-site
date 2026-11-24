@@ -544,11 +544,13 @@ img { max-width: 100%; height: auto; }
    0 above and 14px below, so a heading hugged the section before it and
    floated off its own. h1 now keeps its 18px step to the content it heads
    and gains 22px of air above; h2 keeps the 14px step to its own content
-   and takes 44px above, which also clears the h3 family's 1.6em (28.8px)
-   top margin that wins the collapse when an h3 follows an h2, so the
-   heading reads closer to the block it introduces than to the section
-   before it (act-now.html "Writing a letter to the editor" is the checked
-   case: 44px above vs 28.8px below). The h3, h2.h3-look and h4.h3-look
+   and takes 44px above, which also clears the h3 family's 1.6em top margin
+   (33.7px: 1.6em of h3's computed font size, the browser's default 1.17em
+   of the 18px root, not 1em) that wins the collapse when an h3 follows an
+   h2, so the heading reads closer to the block it introduces than to the
+   section before it (act-now.html "Writing a letter to the editor" is the
+   checked case: 44px above vs 33.7px below). The h3, h2.h3-look and
+   h4.h3-look
    rules already comply (1.6em above vs 0.5em below) and are untouched; card
    and band headings keep their own boxed convention, where the heading
    belongs to the sentence under it. */
