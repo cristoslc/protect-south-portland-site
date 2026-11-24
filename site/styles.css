@@ -319,9 +319,8 @@ img { max-width: 100%; height: auto; }
    No new colour enters the palette. The button is the .btn family unchanged,
    so the pill, the fill and the white label keep their measured contrast.
    Corner choice: 8px, the site's small-control rounding (the nav links and
-   the MENU toggle carry it). The square corners elsewhere are the Act now
-   pair's deliberate exception, and the pill is the button family's own
-   shape; an input is neither, so it follows the small-control value. */
+   the MENU toggle carry it). The pill is the button family's own shape; an
+   input is neither, so it follows the small-control value. */
 
 .signup label {
   display: block;
@@ -353,7 +352,8 @@ img { max-width: 100%; height: auto; }
 
 .signup input:focus-visible { outline: 3px solid var(--teal-900); outline-offset: 2px; }
 
-/* the row owns this button's spacing, the way the Act now pair does */
+/* the row owns this button's spacing, so the family's inline-button margin
+   comes off */
 .signup .btn { margin: 0; flex: 0 0 auto; }
 
 .signup__note { font-size: 0.95rem; color: var(--muted); margin: 0.9rem 0 0; }
@@ -363,9 +363,9 @@ img { max-width: 100%; height: auto; }
 
 /* No media query here on purpose: the field's 18rem basis plus the button is
    wider than the panel at phone widths, so the row wraps by itself and the
-   button drops under a full-width field. The stylesheet's single max-width
-   719 block belongs to the Act now pair further up, and a second one would
-   move that cascade. */
+   button drops under a full-width field. The stylesheet's one max-width 719
+   block belonged to the Act now pair and left with it on 2026-11-24, so this
+   row's wrapping owes nothing to a cascade it shares. */
 
 /* ---------- generic sections ---------- */
 
@@ -388,37 +388,13 @@ img { max-width: 100%; height: auto; }
 
 .link-row li { margin: 0; }
 
-/* Act now's two child links, as a matched pair under the sign-now pill.
-   Layout, square corners and the shared width floor only: the fill, border,
-   colour, padding, type and underline reset all come from the .btn family
-   now, so this scope is not a third variant (row 88 consolidation). */
-.link-row--buttons { gap: 0.75rem; margin: 1.1rem 0 1.15rem; }
-.link-row--buttons > li { flex: 0 0 auto; }
-.link-row--buttons a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  /* the list owns this row's spacing, so the family's inline-button margin
-     comes off and the pair keeps the geometry it already had */
-  margin: 0;
-  border-radius: 0;
-}
-/* The family declares no focus ring of its own, and one teal ring cannot
-   serve the dark masthead and footer surfaces where .btn also appears, so
-   the loud ring stays on this light-surface pair instead of moving up. */
-.link-row--buttons a:focus-visible { outline: 3px solid var(--teal-900); outline-offset: 3px; }
-
-@media (min-width: 720px) {
-  /* a shared floor so the pair reads as a set, not two ragged labels */
-  .link-row--buttons a { min-width: 14rem; }
-  /* one row of buttons needs more air under it than the stacked pair
-     does, or the bold heading below reads as if it touches the row */
-  .link-row--buttons { margin-bottom: 1.75rem; }
-}
-@media (max-width: 719px) {
-  .link-row--buttons { flex-direction: column; align-items: stretch; }
-  .link-row--buttons a { width: 100%; }
-}
+/* The Act now button-pair scope from rows 82 and 88 lived here: the square
+   corners, the shared 14rem width floor, the phone stack and the focus ring
+   for the page's Donate / Report an odor pair. Row 92's card grid put the same
+   two destinations on the page, and the operator removed the pair on
+   2026-11-24 ("ah, they're there now but you didn't remove the earlier
+   buttons"), so every rule in that scope lost its only user and went with it.
+   Act now was the only page that ever carried the modifier. */
 
 .section--mist { background: var(--mist); }
 

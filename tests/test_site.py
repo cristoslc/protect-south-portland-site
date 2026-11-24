@@ -2935,71 +2935,57 @@ def test_no_past_event_invitations(docs):
         assert not hits, f"{name}: past-event invitation: {hits}"
 
 
-def test_act_now_child_links_are_square_buttons(docs):
-    """The two child links are square buttons, scoped to this list (2026-11-24).
+def test_act_now_action_links_are_the_cards(docs):
+    """The two action links are the card grid's now; the button pair is gone.
 
-    Operator: "Donate" and "Report an odor" read as an afterthought as plain
-    underlined links under the sign-now pill, so they become bigger square
-    buttons. "Square" means square corners, not a square shape. The list, the
-    labels and the targets stay as they are; only the presentation changes, and
-    the rule is scoped to this one list so no other link row moves.
+    Both rulings on these two links, in the order they were made.
 
-    2026-11-24 (row 88): the operator then said "act-now.html has too many
-    button variants, it's visually confusing", so the pair joins the standard
-    family instead of carrying its own border, fill, colour, padding, type and
-    underline reset. This pin follows the pair into the family: it asserts
-    membership plus the declarations that legitimately stay local (layout, the
-    square corner, the width floor, the focus ring). It no longer asserts the
-    bespoke values the consolidation deleted, because pinning those would pin
-    the third variant the operator asked to remove.
+    2026-11-24 (row 88, the consolidation): the operator said "act-now.html has
+    too many button variants, it's visually confusing", so Donate and Report an
+    odor stopped carrying their own border, fill, colour, padding, type and
+    underline reset and became members of the standard .btn family, keeping
+    only the local layout, the square corners the operator asked for on row 82,
+    the shared 14rem width floor and the focus ring. That leg kept the pair on
+    purpose: quick action belonged in the pair, the fuller description in the
+    cards below it.
+
+    2026-11-24 (row 94, the removal): row 92's card grid then carried both
+    destinations one above the other, so the operator said "ah, they're there
+    now but you didn't remove the earlier buttons" and the pair came out. That
+    is a recorded reversal of the consolidation ruling above, not drift. This
+    is the same pin retargeted rather than deleted, and it is not loosened: it
+    asserts the exact card links the page now carries, the exact anchors that
+    are gone, that neither destination lost its only way through the page body,
+    and that the pair's now-unused stylesheet scope went with it.
     """
     act = read(docs, "act-now.html")
     css = read(docs, "styles.css")
 
-    # the list and the targets are unchanged; both anchors are family members
-    assert '<ul class="link-row link-row--buttons">' in act
-    assert '<a class="btn btn--ghost" href="donate.html">Donate</a>' in act
-    assert '<a class="btn btn--ghost" href="report-an-odor.html">Report an odor</a>' in act
+    # the pair is gone: its markup and both of its anchors
+    assert '<ul class="link-row link-row--buttons">' not in act
+    assert '<a class="btn btn--ghost" href="donate.html">Donate</a>' not in act
+    assert '<a class="btn btn--ghost" href="report-an-odor.html">Report an odor</a>' not in act
 
-    # scoped to this list: the modifier appears on Act now and nowhere else
+    # both destinations survive, exactly once each in the page body, through
+    # the card grid's own call to action
+    body = act[act.index('<div class="prose">'):act.index("</section>")]
+    assert body.count('href="donate.html"') == 1, (
+        "Donate must have exactly one way through the page body now")
+    assert body.count('href="report-an-odor.html"') == 1, (
+        "Report an odor must have exactly one way through the page body now")
+    assert '<a class="card__more" href="donate.html">DONATE →</a>' in body
+    assert '<a class="card__more" href="report-an-odor.html">REPORT AN ODOR →</a>' in body
+
+    # the cards sit directly under the current-ask callout now, so the grid
+    # opens the prose column the callout closes
+    assert '<div class="prose">\n      <div class="card-grid">' in act
+
+    # the pair's stylesheet scope had Act now as its only user, so it went with
+    # the pair instead of being left dead: no rule and no modifier anywhere
+    assert "link-row--buttons" not in css
     users = [name for name in html_files(docs)
              if "link-row--buttons" in read(docs, name)]
-    assert users == ["act-now.html"], (
-        f"the button modifier is scoped to the Act now list, found on {users}")
-
-    # the declaration block itself: layout, the square corner, and nothing the
-    # family already provides
-    start = css.index(".link-row--buttons a {")
-    block = css[start:css.index("}", start)]
-    assert "border-radius: 0" in block, "square corners are explicit and local"
-    assert "border-radius: 999px" not in block
-    for family_prop in ("border:", "background:", "color:", "padding:",
-                        "min-height:", "font-weight:", "font-size:",
-                        "letter-spacing:", "text-transform:",
-                        "text-decoration:"):
-        assert family_prop not in block, (
-            f"the pair must take {family_prop} from the .btn family, not "
-            f"re-declare it in the local scope")
-
-    # the pair is a .btn member on the page, and the family is where its
-    # shape comes from
-    for cls in (".btn {", ".btn--cta {", ".btn--ghost {"):
-        assert cls in css, f"the standard family must declare {cls}"
-
-    # square corners are explicit, and the pair matches on desktop
-    desktop = css[css.index("@media (min-width: 720px)"):]
-    desktop = desktop[:desktop.index("@media", 5)]
-    assert ".link-row--buttons a { min-width: 14rem; }" in desktop, (
-        "desktop needs a shared width floor so the pair reads as a set")
-
-    # the phone layout stacks full width
-    phone = css[css.index("@media (max-width: 719px)"):]
-    phone = phone[:phone.index("@media", 5)]
-    assert "flex-direction: column" in phone
-    assert "width: 100%" in phone
-
-    # a bigger button a keyboard cannot find is half a fix
-    assert ".link-row--buttons a:focus-visible { outline: 3px solid" in css
+    assert users == [], f"the removed button modifier is still on {users}"
 
 
 def test_act_now_past_tense_and_one_email_action(docs):

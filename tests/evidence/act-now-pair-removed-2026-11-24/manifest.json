@@ -1,0 +1,107 @@
+{
+  "row": 94,
+  "date": "2026-11-24",
+  "branch": "bb/act-now-pair-removed",
+  "worktree": "/Users/cristos/Documents/projects/protect-south-portland/.worktrees/act-now-pair-removed",
+  "base_commit": "85e63aa42ae794b4a11e82d8cd53cf5b5c39140c",
+  "page": "act-now.html",
+  "instruction": "ah, they're there now but you didn't remove the earlier buttons",
+
+  "what_changed": "The redundant Donate / Report an odor button pair under the current-ask callout is gone. The two row-92 cards, which carry the same two destinations, stay exactly where they were, so the card grid now opens the prose column directly under the callout. No card word, heading, order or class changed, and no other element on the page moved.",
+
+  "safety_check": {
+    "run_before_any_removal": true,
+    "read_from": "docs/act-now.html as built at 85e63aa, before the edit",
+    "pair_targets": ["donate.html", "report-an-odor.html"],
+    "card_targets": {
+      "Donate": "donate.html",
+      "Report an odor": "report-an-odor.html"
+    },
+    "result": "match: both cards point at the same two pages the pair carried, in the same order and with the same labels, so removing the pair leaves no destination unreachable. The check passed and the removal proceeded.",
+    "if_it_had_failed": "the pair would have stayed and the mismatch would have been reported instead; this is the one condition that overrides the instruction"
+  },
+
+  "removed_markup": [
+    "      <ul class=\"link-row link-row--buttons\">",
+    "        <li><a class=\"btn btn--ghost\" href=\"donate.html\">Donate</a></li>",
+    "        <li><a class=\"btn btn--ghost\" href=\"report-an-odor.html\">Report an odor</a></li>",
+    "      </ul>"
+  ],
+  "removed_from": "site/pages/act-now.html, immediately after <div class=\"prose\"> and immediately before <div class=\"card-grid\">",
+
+  "pin_retargeted": {
+    "old_name": "test_act_now_child_links_are_square_buttons",
+    "new_name": "test_act_now_action_links_are_the_cards",
+    "same_pin": "retargeted, not deleted and not loosened",
+    "docstring_records": "both rulings in order: row 88's consolidation (the pair joined the standard .btn family deliberately, quick action in the pair and the fuller description in the cards) and the operator's 2026-11-24 removal once the cards carried both destinations",
+    "assertions_now": [
+      "the pair's block is absent: '<ul class=\"link-row link-row--buttons\">' not in act",
+      "both old anchors are absent, exact strings: '<a class=\"btn btn--ghost\" href=\"donate.html\">Donate</a>' and '<a class=\"btn btn--ghost\" href=\"report-an-odor.html\">Report an odor</a>'",
+      "each destination survives exactly once inside the page body: body.count('href=\"donate.html\"') == 1 and body.count('href=\"report-an-odor.html\"') == 1",
+      "the exact card links the page carries: '<a class=\"card__more\" href=\"donate.html\">DONATE →</a>' and '<a class=\"card__more\" href=\"report-an-odor.html\">REPORT AN ODOR →</a>'",
+      "the adjacency the removal created: '<div class=\"prose\">\\n      <div class=\"card-grid\">' in act",
+      "the dead scope is gone: 'link-row--buttons' not in css, and no built page carries the modifier"
+    ],
+    "no_other_pin_asserted_the_pair": "grepped tests/ for link-row, btn--ghost, donate.html and report-an-odor.html: the only other hits are the homepage strip test (a different .link-row), the footer donate strip, and the action-strip test that asserts href=\"report-an-odor.html\" is on the page at all, which the card still satisfies"
+  },
+
+  "css_decision": {
+    "rules_in_question": [
+      ".link-row--buttons { gap: 0.75rem; margin: 1.1rem 0 1.15rem; }",
+      ".link-row--buttons > li { flex: 0 0 auto; }",
+      ".link-row--buttons a { display: inline-flex; align-items: center; justify-content: center; margin: 0; border-radius: 0; }  (the square-corner variant)",
+      ".link-row--buttons a:focus-visible { outline: 3px solid var(--teal-900); outline-offset: 3px; }",
+      "@media (min-width: 720px) { .link-row--buttons a { min-width: 14rem; } }  (the width floor)",
+      "@media (min-width: 720px) { .link-row--buttons { margin-bottom: 1.75rem; } }",
+      "@media (max-width: 719px) { .link-row--buttons { flex-direction: column; align-items: stretch; } }",
+      "@media (max-width: 719px) { .link-row--buttons a { width: 100%; } }"
+    ],
+    "users_measured_across_the_built_tree": "docs/act-now.html was the only built page carrying link-row--buttons at 85e63aa (checked every docs/*.html). After the markup removal the modifier appears on no page at all.",
+    "decision": "removed. Every rule in the scope lost its only user, so the whole block went rather than leaving dead selectors behind, and neither media query it owned had another member.",
+    "other_pages_affected": "none. The other 22 built pages are byte-identical; the only changed files in docs/ are act-now.html and styles.css, and the only stylesheet subtraction is this scope.",
+    "comments_corrected_in_the_same_commit": [
+      "the signup block's corner note named the Act now pair's square corners as the site's deliberate exception; the exception is gone, so the note now reads pill-vs-input only",
+      "the signup button's spacing comment said 'the way the Act now pair does'; it now states the rule without the dead reference",
+      "the signup block's no-media-query note said the stylesheet's single max-width 719 block belonged to the Act now pair; that block left with the pair, and the note says so",
+      "the removed scope keeps a short comment in its place recording why it existed and why it went"
+    ]
+  },
+
+  "captures": {
+    "dir": "tests/evidence/act-now-pair-removed-2026-11-24/",
+    "method": "bb browser-automation headless Chrome, full-page screenshots of the built docs/act-now.html served over a local HTTP server, one page load per width with network idle + 500ms settle",
+    "files": [
+      {"width": 412, "path": "act-now-412.png", "bytes": 727960, "viewport_height": 900},
+      {"width": 768, "path": "act-now-768.png", "bytes": 810633, "viewport_height": 900},
+      {"width": 1440, "path": "act-now-1440.png", "bytes": 969167, "viewport_height": 900}
+    ],
+    "read_before_reporting": "all three inspected. At 412 the two cards stack full width under the callout with a clean gap and no crowding; at 768 and 1440 the cards sit side by side under the callout and the Email the Council lede and CTA follow with the same air they had before. No capture shows a collapsed gap, an overlapping block, a stray empty band where the pair used to be, or horizontal overflow.",
+    "horizontal_overflow": "none at any width (scrollWidth equals innerWidth at 412, 768 and 1440)"
+  },
+
+  "measured_gaps": {
+    "method": "getBoundingClientRect on .callout.petition-strip, the removed .link-row--buttons (absent now), .card-grid, p.lede and the mailto .btn--cta, against both this leg's tree and the shared checkout's tree at origin/main 85e63aa, same headless engine, same widths",
+    "after_this_leg_px": {
+      "412": {"callout_to_card_grid": 21, "card_grid_to_lede": 0, "card_grid_to_cta": 162},
+      "768": {"callout_to_card_grid": 22, "card_grid_to_lede": 0, "card_grid_to_cta": 94},
+      "1440": {"callout_to_card_grid": 21, "card_grid_to_lede": 0, "card_grid_to_cta": 95}
+    },
+    "before_at_85e63aa_px": {
+      "412": {"callout_to_pair": 21, "pair_to_card_grid": 20, "card_grid_to_lede": 1, "card_grid_to_cta": 162},
+      "768": {"callout_to_pair": 22, "pair_to_card_grid": 31, "card_grid_to_lede": 0, "card_grid_to_cta": 94},
+      "1440": {"callout_to_pair": 21, "pair_to_card_grid": 31, "card_grid_to_lede": 0, "card_grid_to_cta": 95}
+    },
+    "reading": "the callout-to-card-grid gap after the removal (21/22/21) is the callout's own 1.2em bottom margin, exactly the gap the callout held to the pair before (21/22/21), so the block that now sits directly under the callout sits exactly where the pair sat: the grid's top y is 1135/925/926 after and the pair's top y was 1135/925/926 before, at 412/768/1440. The space above the Email the Council block is unchanged at all three widths: lede offset 0/0/0 before and after (it is the next sibling of the grid with no top margin of its own), and the CTA's offset from the grid is 162/94/95 before and after. Nothing collapsed. The only vertical change is the page getting shorter by the pair's height plus its neighbour gap: the grid moves from y 1021 to y 926 at 1440, a 95px rise made of the pair's 64px and the 31px gap it carried above the grid."
+  },
+
+  "checks": {
+    "build": "python3 tools/build.py clean",
+    "suite": "194 passed, 1 skipped (same totals as the baseline at 85e63aa: the pin is retargeted, not added)",
+    "scanner": "psp_public.scan_tree('docs') returned [] (empty)",
+    "files_changed": ["site/pages/act-now.html", "site/styles.css", "docs/act-now.html", "docs/styles.css", "tests/test_site.py", "tests/evidence/act-now-pair-removed-2026-11-24/"]
+  },
+
+  "reversal_record": "This is a recorded reversal of the consolidation decision made earlier the same day (row 88, which deliberately kept this pair as a quick-action row while adding the cards under it in row 92). The operator removed the pair on 2026-11-24 once the cards carried both destinations: it is a ruling, not drift.",
+
+  "not_done": ["no publish", "no merge", "no change to any other page's buttons", "no change to the current-ask callout, the cards or the Email the Council block"]
+}

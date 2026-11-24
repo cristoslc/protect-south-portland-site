@@ -1,0 +1,407 @@
+{
+  "after": {
+    "412": {
+      "callout": {
+        "x": 20,
+        "y": 516,
+        "w": 372,
+        "h": 598
+      },
+      "pair": null,
+      "grid": {
+        "x": 20,
+        "y": 1135,
+        "w": 372,
+        "h": 458
+      },
+      "lede": {
+        "x": 20,
+        "y": 1593,
+        "w": 372,
+        "h": 134
+      },
+      "cta": {
+        "x": 20,
+        "y": 1755,
+        "w": 239,
+        "h": 54
+      },
+      "cards": [
+        {
+          "rect": {
+            "x": 20,
+            "y": 1135,
+            "w": 372,
+            "h": 205
+          },
+          "heading": "Donate",
+          "more": "DONATE \u2192",
+          "moreHref": "donate.html"
+        },
+        {
+          "rect": {
+            "x": 20,
+            "y": 1358,
+            "w": 372,
+            "h": 235
+          },
+          "heading": "Report an odor",
+          "more": "REPORT AN ODOR \u2192",
+          "moreHref": "report-an-odor.html"
+        }
+      ],
+      "card_count": 2,
+      "pair_in_dom": false,
+      "modifier_rule_count": 0,
+      "scroll_width": 412,
+      "viewport_width": 412,
+      "has_horizontal_overflow": false,
+      "gap_callout_to_pair": null,
+      "gap_pair_to_grid": null,
+      "gap_callout_to_grid": 21,
+      "gap_grid_to_lede": 0,
+      "gap_grid_to_cta": 162
+    },
+    "768": {
+      "callout": {
+        "x": 20,
+        "y": 573,
+        "w": 728,
+        "h": 330
+      },
+      "pair": null,
+      "grid": {
+        "x": 20,
+        "y": 925,
+        "w": 728,
+        "h": 235
+      },
+      "lede": {
+        "x": 20,
+        "y": 1160,
+        "w": 728,
+        "h": 67
+      },
+      "cta": {
+        "x": 20,
+        "y": 1254,
+        "w": 239,
+        "h": 54
+      },
+      "cards": [
+        {
+          "rect": {
+            "x": 20,
+            "y": 925,
+            "w": 355,
+            "h": 235
+          },
+          "heading": "Donate",
+          "more": "DONATE \u2192",
+          "moreHref": "donate.html"
+        },
+        {
+          "rect": {
+            "x": 393,
+            "y": 925,
+            "w": 355,
+            "h": 235
+          },
+          "heading": "Report an odor",
+          "more": "REPORT AN ODOR \u2192",
+          "moreHref": "report-an-odor.html"
+        }
+      ],
+      "card_count": 2,
+      "pair_in_dom": false,
+      "modifier_rule_count": 0,
+      "scroll_width": 768,
+      "viewport_width": 768,
+      "has_horizontal_overflow": false,
+      "gap_callout_to_pair": null,
+      "gap_pair_to_grid": null,
+      "gap_callout_to_grid": 22,
+      "gap_grid_to_lede": 0,
+      "gap_grid_to_cta": 94
+    },
+    "1440": {
+      "callout": {
+        "x": 190,
+        "y": 604,
+        "w": 1060,
+        "h": 301
+      },
+      "pair": null,
+      "grid": {
+        "x": 190,
+        "y": 926,
+        "w": 1060,
+        "h": 205
+      },
+      "lede": {
+        "x": 190,
+        "y": 1131,
+        "w": 1060,
+        "h": 67
+      },
+      "cta": {
+        "x": 190,
+        "y": 1226,
+        "w": 239,
+        "h": 54
+      },
+      "cards": [
+        {
+          "rect": {
+            "x": 190,
+            "y": 926,
+            "w": 521,
+            "h": 205
+          },
+          "heading": "Donate",
+          "more": "DONATE \u2192",
+          "moreHref": "donate.html"
+        },
+        {
+          "rect": {
+            "x": 729,
+            "y": 926,
+            "w": 521,
+            "h": 205
+          },
+          "heading": "Report an odor",
+          "more": "REPORT AN ODOR \u2192",
+          "moreHref": "report-an-odor.html"
+        }
+      ],
+      "card_count": 2,
+      "pair_in_dom": false,
+      "modifier_rule_count": 0,
+      "scroll_width": 1440,
+      "viewport_width": 1440,
+      "has_horizontal_overflow": false,
+      "gap_callout_to_pair": null,
+      "gap_pair_to_grid": null,
+      "gap_callout_to_grid": 21,
+      "gap_grid_to_lede": 0,
+      "gap_grid_to_cta": 95
+    }
+  },
+  "before": {
+    "412": {
+      "callout": {
+        "x": 20,
+        "y": 516,
+        "w": 372,
+        "h": 598
+      },
+      "pair": {
+        "x": 20,
+        "y": 1135,
+        "w": 372,
+        "h": 141
+      },
+      "grid": {
+        "x": 20,
+        "y": 1296,
+        "w": 372,
+        "h": 458
+      },
+      "lede": {
+        "x": 20,
+        "y": 1755,
+        "w": 372,
+        "h": 134
+      },
+      "cta": {
+        "x": 20,
+        "y": 1916,
+        "w": 239,
+        "h": 54
+      },
+      "cards": [
+        {
+          "rect": {
+            "x": 20,
+            "y": 1296,
+            "w": 372,
+            "h": 205
+          },
+          "heading": "Donate",
+          "more": "DONATE \u2192",
+          "moreHref": "donate.html"
+        },
+        {
+          "rect": {
+            "x": 20,
+            "y": 1520,
+            "w": 372,
+            "h": 235
+          },
+          "heading": "Report an odor",
+          "more": "REPORT AN ODOR \u2192",
+          "moreHref": "report-an-odor.html"
+        }
+      ],
+      "card_count": 2,
+      "pair_in_dom": true,
+      "modifier_rule_count": 6,
+      "scroll_width": 412,
+      "viewport_width": 412,
+      "has_horizontal_overflow": false,
+      "gap_callout_to_pair": 21,
+      "gap_pair_to_grid": 20,
+      "gap_callout_to_grid": 182,
+      "gap_grid_to_lede": 1,
+      "gap_grid_to_cta": 162
+    },
+    "768": {
+      "callout": {
+        "x": 20,
+        "y": 573,
+        "w": 728,
+        "h": 330
+      },
+      "pair": {
+        "x": 20,
+        "y": 925,
+        "w": 728,
+        "h": 64
+      },
+      "grid": {
+        "x": 20,
+        "y": 1020,
+        "w": 728,
+        "h": 235
+      },
+      "lede": {
+        "x": 20,
+        "y": 1255,
+        "w": 728,
+        "h": 67
+      },
+      "cta": {
+        "x": 20,
+        "y": 1349,
+        "w": 239,
+        "h": 54
+      },
+      "cards": [
+        {
+          "rect": {
+            "x": 20,
+            "y": 1020,
+            "w": 355,
+            "h": 235
+          },
+          "heading": "Donate",
+          "more": "DONATE \u2192",
+          "moreHref": "donate.html"
+        },
+        {
+          "rect": {
+            "x": 393,
+            "y": 1020,
+            "w": 355,
+            "h": 235
+          },
+          "heading": "Report an odor",
+          "more": "REPORT AN ODOR \u2192",
+          "moreHref": "report-an-odor.html"
+        }
+      ],
+      "card_count": 2,
+      "pair_in_dom": true,
+      "modifier_rule_count": 6,
+      "scroll_width": 768,
+      "viewport_width": 768,
+      "has_horizontal_overflow": false,
+      "gap_callout_to_pair": 22,
+      "gap_pair_to_grid": 31,
+      "gap_callout_to_grid": 117,
+      "gap_grid_to_lede": 0,
+      "gap_grid_to_cta": 94
+    },
+    "1440": {
+      "callout": {
+        "x": 190,
+        "y": 604,
+        "w": 1060,
+        "h": 301
+      },
+      "pair": {
+        "x": 190,
+        "y": 926,
+        "w": 1060,
+        "h": 64
+      },
+      "grid": {
+        "x": 190,
+        "y": 1021,
+        "w": 1060,
+        "h": 205
+      },
+      "lede": {
+        "x": 190,
+        "y": 1226,
+        "w": 1060,
+        "h": 67
+      },
+      "cta": {
+        "x": 190,
+        "y": 1321,
+        "w": 239,
+        "h": 54
+      },
+      "cards": [
+        {
+          "rect": {
+            "x": 190,
+            "y": 1021,
+            "w": 521,
+            "h": 205
+          },
+          "heading": "Donate",
+          "more": "DONATE \u2192",
+          "moreHref": "donate.html"
+        },
+        {
+          "rect": {
+            "x": 729,
+            "y": 1021,
+            "w": 521,
+            "h": 205
+          },
+          "heading": "Report an odor",
+          "more": "REPORT AN ODOR \u2192",
+          "moreHref": "report-an-odor.html"
+        }
+      ],
+      "card_count": 2,
+      "pair_in_dom": true,
+      "modifier_rule_count": 6,
+      "scroll_width": 1440,
+      "viewport_width": 1440,
+      "has_horizontal_overflow": false,
+      "gap_callout_to_pair": 21,
+      "gap_pair_to_grid": 31,
+      "gap_callout_to_grid": 116,
+      "gap_grid_to_lede": 0,
+      "gap_grid_to_cta": 95
+    }
+  },
+  "captures": {
+    "412": {
+      "path": "act-now-412.png",
+      "bytes": 727960
+    },
+    "768": {
+      "path": "act-now-768.png",
+      "bytes": 810633
+    },
+    "1440": {
+      "path": "act-now-1440.png",
+      "bytes": 969167
+    }
+  }
+}
