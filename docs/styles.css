@@ -537,9 +537,25 @@ img { max-width: 100%; height: auto; }
   margin-bottom: 6px;
 }
 
-h1 { color: var(--teal-900); font-size: clamp(1.7rem, 4vw, 2.4rem); line-height: 1.2; margin: 6px 0 18px; letter-spacing: -0.01em; }
+/* Heading margins are top-heavy on purpose (2026-11-24): the principle is
+   "headers should be closer to the content they belong with than to the
+   prior section" — a heading takes more air before it than after it. The
+   old values inverted that: h1 carried 6px above and 18px below, h2 carried
+   0 above and 14px below, so a heading hugged the section before it and
+   floated off its own. h1 now keeps its 18px step to the content it heads
+   and gains 22px of air above; h2 keeps the 14px step to its own content
+   and takes 44px above, which also clears the h3 family's 1.6em (28.8px)
+   top margin that wins the collapse when an h3 follows an h2, so the
+   heading reads closer to the block it introduces than to the section
+   before it (act-now.html "Writing a letter to the editor" is the checked
+   case: 44px above vs 28.8px below). The h3, h2.h3-look and h4.h3-look
+   rules already comply (1.6em above vs 0.5em below) and are untouched; card
+   and band headings keep their own boxed convention, where the heading
+   belongs to the sentence under it. */
 
-h2 { color: var(--teal-900); font-size: clamp(1.4rem, 3vw, 1.9rem); line-height: 1.25; margin: 0 0 14px; letter-spacing: -0.01em; }
+h1 { color: var(--teal-900); font-size: clamp(1.7rem, 4vw, 2.4rem); line-height: 1.2; margin: 22px 0 18px; letter-spacing: -0.01em; }
+
+h2 { color: var(--teal-900); font-size: clamp(1.4rem, 3vw, 1.9rem); line-height: 1.25; margin: 44px 0 14px; letter-spacing: -0.01em; }
 
 h3 { color: var(--teal-700); margin: 1.6em 0 0.5em; }
 

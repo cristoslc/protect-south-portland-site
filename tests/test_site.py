@@ -4738,3 +4738,129 @@ def test_uat_ladder_payload_rung_stops_a_blank_payload_page(tmp_path, capsys):
     printed = capsys.readouterr().out
     assert code == 0
     assert "0 findings" in printed
+
+
+# ---------------------------------------------------------------------------
+# Heading margin direction (2026-11-24, ledger row 104).
+#
+# The operator's principle, verbatim: "margin is also inverted here --
+# headers should be closer to the content they belong with than to the
+# prior section." Ruled on dec_f9zp4ryi7mdj, option "Space above larger
+# than space below": a heading's top margin is strictly greater than its
+# bottom margin, so more air sits before a heading than after it.
+#
+# The pin walks the stylesheet rather than hand-listing rules: a rule is a
+# base heading rule when a selector in its group targets a bare heading
+# element, optionally with its own classes, and carries no ancestor
+# combinator. Boxed headings (.card h3, .action-band h2.h3-look, ...) are
+# excluded by that same construction, not by a list: inside a box the
+# heading belongs to the sentence under it and the box's own boundary
+# separates it from the prior section, which is the ruling's implied note.
+
+_ROOT_PX = 18.0  # html { font-size: 112.5% } of the 16px browser default
+
+_BASE_HEADING_SELECTOR = re.compile(r"^h[1-6](?:\.[A-Za-z0-9_-]+)*$")
+
+
+def _length_px(value, font_px, where):
+    m = re.fullmatch(r"(-?\d+(?:\.\d+)?)(px|rem|em)", value.strip())
+    if not m:
+        raise AssertionError(
+            f"{where}: cannot resolve length {value!r}; this pin only "
+            "understands px, rem and em so an unresolvable unit is never "
+            "waved through")
+    number, unit = float(m.group(1)), m.group(2)
+    if unit == "px":
+        return number
+    if unit == "rem":
+        return number * _ROOT_PX
+    return number * font_px
+
+
+def _heading_font_px(decls, where):
+    """The font size em margins resolve against, in px.
+
+    A rule without its own font-size keeps whatever scale the browser gives
+    the heading; top and bottom em values share that one font factor, so the
+    direction comparison is exact whatever the rendered size is.
+    """
+    if "font-size" not in decls:
+        return _ROOT_PX
+    value = decls["font-size"]
+    m = re.fullmatch(r"(\d+(?:\.\d+)?)(px|rem|em|%)", value.strip())
+    if not m:
+        raise AssertionError(
+            f"{where}: cannot resolve font-size {value!r} for em margins; "
+            "declare the heading's size in px, rem or em")
+    number, unit = float(m.group(1)), m.group(2)
+    factor = {"px": 1.0, "rem": _ROOT_PX, "em": _ROOT_PX,
+              "%": _ROOT_PX / 100.0}[unit]
+    return number * factor
+
+
+def _vertical_margin_pair(decls, where):
+    """(top_raw, bottom_raw) from a rule's own margin declarations, or None
+    when the rule leaves the vertical margins alone."""
+    if "margin" in decls:
+        parts = decls["margin"].split()
+        if not 1 <= len(parts) <= 4:
+            raise AssertionError(
+                f"{where}: unreadable margin shorthand {decls['margin']!r}")
+        if len(parts) == 1:
+            top = bottom = parts[0]
+        elif len(parts) == 2:
+            top = bottom = parts[0]
+        elif len(parts) == 3:
+            top, bottom = parts[0], parts[2]
+        else:
+            top, bottom = parts[0], parts[3]
+        return top, bottom
+    if "margin-top" in decls or "margin-bottom" in decls:
+        if "margin-top" not in decls or "margin-bottom" not in decls:
+            raise AssertionError(
+                f"{where}: declares only one of margin-top/margin-bottom; "
+                "declare both (or the shorthand) so the direction stays "
+                "checkable")
+        return decls["margin-top"], decls["margin-bottom"]
+    return None
+
+
+def test_base_heading_margins_are_top_heavy(docs):
+    """Every base heading rule declares more margin above than below.
+
+    Ledger row 104 (2026-11-24). The operator's principle: "headers should
+    be closer to the content they belong with than to the prior section."
+    Ruling dec_f9zp4ryi7mdj, option "Space above larger than space below".
+    The walk discovers the rules from the selectors themselves, so a future
+    base heading rule cannot ship inverted and a future scoped box head
+    (.anything h2) is out of the pin by construction.
+    """
+    css = read(docs, "styles.css")
+    checked = []
+    for media, selector, body in _css_rules(css):
+        parts = [p.strip() for p in selector.split(",")]
+        if not any(_BASE_HEADING_SELECTOR.match(p) for p in parts):
+            continue
+        decls = _css_declarations(body)
+        pair = _vertical_margin_pair(decls, f"styles.css `{selector}`")
+        if pair is None:
+            continue
+        where = f"styles.css `{selector}`"
+        pair = _vertical_margin_pair(decls, where)
+        if pair is None:
+            continue
+        needs_font = any(v.endswith("em") for v in pair)
+        font_px = (_heading_font_px(decls, where) if needs_font else _ROOT_PX)
+        top = _length_px(pair[0], font_px, where)
+        bottom = _length_px(pair[1], font_px, where)
+        checked.append(selector)
+        assert top > bottom, (
+            f"{where}: margin resolves to {top:g}px above but {bottom:g}px "
+            "below — the inversion the operator named on 2026-11-24. A "
+            "heading must sit closer to the content it introduces than to "
+            "the prior section (ruling dec_f9zp4ryi7mdj)")
+    covered = {re.match(r"h[1-6]", s).group(0) for s in checked}
+    missing = {"h1", "h2", "h3"} - covered
+    assert not missing, (
+        f"the walk found no margin-bearing base rule for {sorted(missing)}; "
+        "the pin is blind if the base heading margin rules disappear")

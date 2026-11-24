@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-24",
+  "ledger_row": 104,
+  "decision": "dec_f9zp4ryi7mdj",
+  "ruling_option": "Space above larger than space below",
+  "operator_principle_verbatim": "margin is also inverted here -- headers should be closer to the content they belong with than to the prior section.",
+  "change": {
+    "h1": { "before": "margin: 6px 0 18px", "after": "margin: 22px 0 18px" },
+    "h2": { "before": "margin: 0 0 14px", "after": "margin: 44px 0 14px" },
+    "untouched": [
+      "h3, h2.h3-look, h4.h3-look: margin: 1.6em 0 0.5em (already top-heavy)",
+      "card and band heads (.card h3, .card h2.h3-look, .card--photo h2.h3-look, .card--photo h3, .report-actions__card h2.h3-look, .action-band h2.h3-look): boxed-heading convention, the box boundary separates them from the prior section"
+    ]
+  },
+  "method": {
+    "before_tree": "git archive origin/main (ded71b6) docs/, served on 127.0.0.1:8137",
+    "after_tree": "this worktree's rebuilt docs/, served on 127.0.0.1:8138",
+    "browser": "bb browser-automation, local headless Chrome, host host_yat733yf8z",
+    "screenshots": "full-page PNGs at 412 / 768 / 1440 for act-now.html, index.html and tank-farms.html, plus viewport crops centered on the acceptance heading (act-now-acceptance-<w>.png)"
+  },
+  "environment_notes": {
+    "root_font": "18px (html { font-size: 112.5% } of the 16px browser default)",
+    "h3_computed_font": "21.06px — no stylesheet rule sets h3's font-size, so the browser's 1.17em default applies; its 1.6em top margin is 33.7px, not the 28.8px a 1rem assumption gives",
+    "contact_list_note": "ul.contact-list is a multi-column container (columns: 2), an independent formatting context, so the last li's 10px margin-bottom stays inside the ul box; the before gap measured at the box level is 0px, where the baseline note's 'about 10px' described the li margin that a non-column list would have collapsed outward"
+  },
+  "acceptance_case": {
+    "description": "act-now.html: h2 'Writing a letter to the editor' — gap above = contact list box bottom to h2 top; gap below = h2 bottom to the Sentry h3 top. The heading must sit visibly closer to the Sentry block it introduces than to the legislator contact rows above it.",
+    "before": { "412": { "abovePx": 0, "belowPx": 33.7 }, "768": { "abovePx": 0, "belowPx": 33.7 }, "1440": { "abovePx": 0, "belowPx": 33.7 } },
+    "after": { "412": { "abovePx": 44, "belowPx": 33.7 }, "768": { "abovePx": 44, "belowPx": 33.7 }, "1440": { "abovePx": 44, "belowPx": 33.7 } },
+    "verdict": "passes at all three widths: 44px above vs 33.7px below after, against 0px above vs 33.7px below before — the heading moved off the rows it does not belong to and onto the block it introduces"
+  },
+  "files": {
+    "before": ["act-now-412.png", "act-now-768.png", "act-now-1440.png", "index-412.png", "index-768.png", "index-1440.png", "tank-farms-412.png", "tank-farms-768.png", "tank-farms-1440.png", "act-now-acceptance-412.png", "act-now-acceptance-768.png", "act-now-acceptance-1440.png"],
+    "after": ["act-now-412.png", "act-now-768.png", "act-now-1440.png", "index-412.png", "index-768.png", "index-1440.png", "tank-farms-412.png", "tank-farms-768.png", "tank-farms-1440.png", "act-now-acceptance-412.png", "act-now-acceptance-768.png", "act-now-acceptance-1440.png"]
+  },
+  "read_before_reporting": "before/act-now-acceptance-1440.png, before/act-now-acceptance-412.png, after/act-now-acceptance-1440.png, after/act-now-acceptance-412.png, after/index-412.png, after/tank-farms-768.png — the acceptance case reads correctly after the change at both widths read; index and tank-farms keep their hierarchy with no collapsed sections"
+}
