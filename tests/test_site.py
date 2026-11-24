@@ -1344,6 +1344,34 @@ def test_map_copy_strips_audit_provenance(tmp_path):
         "the strip must drop the citation, not the note around it")
 
 
+def test_build_strips_planted_map_citation(tmp_path):
+    """End to end through tools/build.py: the copy boundary holds even when
+    the map source itself carries an audit citation.
+
+    This is the guarantee that matters, because the public tree must not
+    depend on the upstream tank-farms repo staying clean.
+    """
+    src = tmp_path / "map-src"
+    src.mkdir()
+    (src / "embed.html").write_text(
+        "<script>\n/* a11y (staging audit issue #4, Lighthouse "
+        "aria-command-name): x */\n</script>", encoding="utf-8")
+    (src / "map.html").write_text(
+        "<html><body><nav><a href=\"report.html\">Research Report</a></nav>\n"
+        "<script>\n/* a11y (PSP staging audit issue #4, Lighthouse "
+        "aria-command-name): x */\n</script></body></html>", encoding="utf-8")
+    (src / "styles.css").write_text("/* nothing internal */\n", encoding="utf-8")
+    out = tmp_path / "out"
+    env = dict(os.environ, PSP_MAP_DOCS_DIR=str(src))
+    subprocess.run([sys.executable, BUILD, str(out)], check=True,
+                   capture_output=True, env=env)
+    for name in psp_public.MAP_FILES:
+        built = (out / "map" / name).read_text(encoding="utf-8")
+        assert "staging audit" not in built, name
+    assert "Lighthouse aria-command-name" in (
+        out / "map" / "embed.html").read_text(encoding="utf-8")
+
+
 def test_built_tree_scans_clean(docs):
     """The freshly built tree carries no private markers and no internal
     process references."""
