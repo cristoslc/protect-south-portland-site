@@ -1,0 +1,59 @@
+{
+ "change": "Act now: the two child links, Donate and Report an odor, are square buttons instead of plain underlined links under the sign-now pill.",
+ "ledger_row": 81,
+ "source_commit": "pending at capture time (branch bb/act-now-child-buttons off main d1309f1)",
+ "stacking_rule": "below 720px the pair stacks full width with a 0.75rem gap; at 720px and above they sit side by side, aligned left, with a shared 14rem width floor so they read as a matched set",
+ "square_means": "square corners (border-radius: 0), not a square shape; the buttons stay wider than they are tall",
+ "measured": {
+  "412": {
+   "layout": "stacked",
+   "button_widths": [
+    372,
+    372
+   ],
+   "button_height": 65,
+   "gap_to_sign_now_pill_above": 48,
+   "gap_to_email_the_council_heading_below": 21
+  },
+  "768": {
+   "layout": "side by side",
+   "button_widths": [
+    252,
+    252
+   ],
+   "button_height": 65,
+   "gap_to_sign_now_pill_above": 48,
+   "gap_to_email_the_council_heading_below": 32
+  },
+  "1440": {
+   "layout": "side by side",
+   "button_widths": [
+    252,
+    252
+   ],
+   "button_height": 65,
+   "gap_to_sign_now_pill_above": 48,
+   "gap_to_email_the_council_heading_below": 32
+  }
+ },
+ "computed": {
+  "border": "2px solid rgb(44, 110, 112), the existing --teal-700",
+  "fill": "#fff, text rgb(29, 62, 64), the existing --teal-900",
+  "border_radius": "0px",
+  "min_height": "48px, actual 65px",
+  "text_decoration": "none",
+  "focus_visible": "outline 3px solid rgb(29, 62, 64), offset 3px, captured on the Donate button at every width"
+ },
+ "checks": {
+  "no_collision": "measured 48px above at every width, 21px below at 412 where the pair stacks, and 32px below at 768 and 1440 where it is one row; the first pass measured 0px below, and the 1440 capture then read tight against the bold heading, so the desktop breakpoint alone gained the extra margin",
+  "no_global_selector": "the modifier link-row--buttons appears on act-now.html and on no other built page, and every rule in the block is prefixed with it",
+  "bold_rule": "the run-count and share tests walk every p/li; button text sits in an anchor, not a bold block, and the full suite passes with the buttons present",
+  "red_first": "the new pin failed on the pre-change tree (assert on the old ul) and passes on this one"
+ },
+ "captures": [
+  "act-now-buttons-412.png",
+  "act-now-buttons-768.png",
+  "act-now-buttons-1440.png"
+ ],
+ "spacing_note": "The phone layout keeps a 1.15rem bottom margin (21px measured); above 720px the list takes 1.75rem (32px measured) because one row of 65px buttons needs more air under it than a stacked pair does, or the bold heading below reads as if it touches the row. Raised after reading the 1440 capture at native scale rather than trusting the number."
+}

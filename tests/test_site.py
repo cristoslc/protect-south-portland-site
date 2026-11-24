@@ -2769,6 +2769,54 @@ def test_no_past_event_invitations(docs):
         assert not hits, f"{name}: past-event invitation: {hits}"
 
 
+def test_act_now_child_links_are_square_buttons(docs):
+    """The two child links are square buttons, scoped to this list (2026-11-24).
+
+    Operator: "Donate" and "Report an odor" read as an afterthought as plain
+    underlined links under the sign-now pill, so they become bigger square
+    buttons. "Square" means square corners, not a square shape. The list, the
+    labels and the targets stay as they are; only the presentation changes, and
+    the rule is scoped to this one list so no other link row moves.
+    """
+    act = read(docs, "act-now.html")
+    css = read(docs, "styles.css")
+
+    # the list, the labels and the targets are unchanged
+    assert '<ul class="link-row link-row--buttons">' in act
+    assert '<a href="donate.html">Donate</a>' in act
+    assert '<a href="report-an-odor.html">Report an odor</a>' in act
+
+    # scoped to this list: the modifier appears on Act now and nowhere else
+    users = [name for name in html_files(docs)
+             if "link-row--buttons" in read(docs, name)]
+    assert users == ["act-now.html"], (
+        f"the button modifier is scoped to the Act now list, found on {users}")
+
+    # the declaration block itself
+    start = css.index(".link-row--buttons a {")
+    block = css[start:css.index("}", start)]
+    for prop in ("min-height: 48px", "padding: 0.9rem 1.8rem",
+                 "border: 2px solid var(--teal-700)", "border-radius: 0",
+                 "text-decoration: none", "color: var(--teal-900)"):
+        assert prop in block, f"the button rule must declare {prop}"
+
+    # square corners are explicit, and the pair matches on desktop
+    assert "border-radius: 0" in block and "border-radius: 999px" not in block
+    desktop = css[css.index("@media (min-width: 720px)"):]
+    desktop = desktop[:desktop.index("@media", 5)]
+    assert ".link-row--buttons a { min-width: 14rem; }" in desktop, (
+        "desktop needs a shared width floor so the pair reads as a set")
+
+    # the phone layout stacks full width
+    phone = css[css.index("@media (max-width: 719px)"):]
+    phone = phone[:phone.index("@media", 5)]
+    assert "flex-direction: column" in phone
+    assert "width: 100%" in phone
+
+    # a bigger button a keyboard cannot find is half a fix
+    assert ".link-row--buttons a:focus-visible { outline: 3px solid" in css
+
+
 def test_act_now_past_tense_and_one_email_action(docs):
     # Ruling B (2026-11-05): the page asks for the outcome, not an instrument.
     # The Oct. 27 workshop happened, so the opener states it and the page
