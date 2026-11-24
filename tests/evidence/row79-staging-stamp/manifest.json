@@ -1,19 +1,27 @@
 {
   "what": "Masthead crops proving the row-79 staging publish-time stamp at three widths",
   "source": "local mirror-dir dry run: python3 tools/publish.py --gate-report <throwaway> --mirror-dir /tmp/psp-dry-79/mirror (staging target, gate + stamp applied, nothing pushed)",
-  "captured": "2026-11-24",
+  "captured": "2026-11-24 (second run, after the paired-comment markers landed)",
   "passphrase_cookie": "psp_staging set from a throwaway local passphrase so the row-42 gate opened for the capture",
-  "pages": ["index.html"],
-  "widths": [412, 768, 1440],
+  "pages": [
+    "index.html"
+  ],
+  "widths": [
+    412,
+    768,
+    1440
+  ],
   "findings": {
     "strip_lines": "one line at every width",
     "strip_vs_logo": "no overlap at every width; strip sits above .masthead__inner",
     "nav": "six top-level items (five links + the Act now pill), no wrap, no horizontal overflow",
-    "contrast": "#e6f1f1 on #122a2c = 13.07:1 (AA normal text needs 4.5:1)"
+    "contrast": "#e6f1f1 on #122a2c = 13.07:1 (AA normal text needs 4.5:1)",
+    "strip": "one strip removes the gate block and the stamp; map pages strip back to the build byte for byte"
   },
   "files": {
     "index-412.png": "412px viewport, masthead band",
     "index-768.png": "768px viewport, masthead band",
     "index-1440.png": "1440px viewport, masthead band"
-  }
+  },
+  "comparison_boundary": "all 17 report pages hash back to the gate report after publish.strip_injected_blocks; 0 mismatches"
 }
