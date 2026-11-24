@@ -41,6 +41,15 @@ control pairs with a sendable block only when no heading other than the block's
 own governing label sits between them and no other sendable block sits between
 them. On `act-now.html` the CTA sits directly above "Example message", so it
 pairs; the "Workshop alerts" mailto several headings further down does not.
+One exception, content-proven pairing (2026-11-24): a control whose payload
+already equals the displayed copy pairs across any headings, because the
+payload itself proves which copy it sends — the heading fence exists to stop a
+control PROMISING a letter it never sees, and a control carrying the letter
+word for word promises nothing else. This is what keeps act-now.html's CTA
+paired after the operator's sketch moved it into the top callout, above the
+action grid, where ordinary headings now legitimately sit between it and
+"Example message". A control without a payload, or with a payload that differs,
+still needs the fence.
 
 WHAT THE RULE DOES NOT DO: it does not judge prose, does not require a page to
 offer a send mechanism at all (displayed copy with no nearby control is
@@ -320,8 +329,18 @@ def copy_payload_pairs(markup):
     pairs = []
     for block in blocks:
         for control in controls:
-            if not _region_ok(block, control, block["governing"],
-                              scan.headings, blocks):
+            # Content-proven pairing first (see the module docstring): a
+            # control whose payload equals the block's copy has proven which
+            # copy it sends, so the heading fence does not apply to it. A
+            # control without a payload, or with a differing one, still needs
+            # the fence.
+            payload, has_param, _subject = _control_payload(control)
+            content_proven = (
+                control["kind"] != "form"
+                and has_param and payload
+                and canonical(payload) == canonical(block["text"]))
+            if not content_proven and not _region_ok(
+                    block, control, block["governing"], scan.headings, blocks):
                 continue
             label = (control.get("label") or control["attrs"].get("value")
                      or control["attrs"].get("action", ""))
@@ -330,7 +349,6 @@ def copy_payload_pairs(markup):
                               "mechanism": "form", "copy": canonical(block["text"]),
                               "payload": None, "has_payload_param": False})
                 continue
-            payload, has_param, _subject = _control_payload(control)
             mechanism = urllib.parse.urlsplit(
                 control["attrs"].get("href", "")).scheme.casefold() or "link"
             pairs.append({"control": label, "copy_label": block["label"],

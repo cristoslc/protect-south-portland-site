@@ -3220,10 +3220,12 @@ def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
 
     Census walked from the built pages (not a page list): each rendered
     variant on each surface it actually sits on must resolve a focus ring that
-    clears the 3:1 non-text floor against the surface behind it. The two
-    combinations the family renders today are `.btn.btn--cta` and
-    `.btn.btn--ghost`; the assertion below names them so a build that loses
-    all buttons fails instead of shrinking the census to an empty pass.
+    clears the 3:1 non-text floor against the surface behind it. The
+    combinations the family renders today are `.btn.btn--cta` (on the light
+    island surface and the dark bands), `.btn.btn--ghost`, and — since the row
+    106 act-now restructure — `.btn.btn--light` on the teal tile fill; the
+    assertions below name them so a build that loses all buttons fails instead
+    of shrinking the census to an empty pass.
     """
     census = _button_census(docs)
     rendered = {variant for variant, _surface in census}
@@ -3937,15 +3939,17 @@ def test_act_now_action_links_are_the_cards(docs):
     replaced". The quick action in the pair and the richer description in the
     cards are row 92's grounds, not row 88's.
 
-    2026-11-24 (row 94, the removal): row 92's card grid carried both
-    destinations one above the other, so the operator said "ah, they're there
-    now but you didn't remove the earlier buttons" and the pair came out. That
-    is a recorded reversal of the pair's survival, not drift. This is the same
-    pin retargeted rather than deleted, and it is not loosened: it asserts the
-    exact card links the page now carries, the exact anchors that are gone,
-    that neither destination lost its only way through the page body, that the
-    pair's now-unused stylesheet scope went with it, and that the family blocks
-    the page's remaining two buttons rely on still exist.
+    # 2026-11-24 (row 106, the restructure): the operator's sketch moved the
+    # Email the Council ask into a white island inside the teal callout and
+    # turned the grid's top row into two CTA tiles (Tell your story, Sign the
+    # petition), with Report an odor and Donate as the bottom row. The cards
+    # keep their content and their .card__more calls to action; the Sign now
+    # pill stopped being a free-standing control and became the petition
+    # tile's .btn--light action, so this page now renders .btn--cta and
+    # .btn--light members of the family. .btn--ghost keeps its class because
+    # five other pages still render it (index, our-campaigns, tank-farms,
+    # report-an-odor, share-your-story) — audited the way link-row--buttons
+    # was, and kept because its users are named.
     """
     act = read(docs, "act-now.html")
     css = read(docs, "styles.css")
@@ -3966,8 +3970,10 @@ def test_act_now_action_links_are_the_cards(docs):
     assert '<a class="card__more" href="report-an-odor.html">REPORT AN ODOR →</a>' in body
 
     # the cards sit directly under the current-ask callout now, so the grid
-    # opens the prose column the callout closes
-    assert '<div class="prose">\n      <div class="card-grid">' in act
+    # opens the prose column the callout closes (row 106: the grid carries
+    # the restructure's modifier, and the tiles are its first two children)
+    assert '<div class="prose">\n      <div class="card-grid card-grid--act">' in act
+    assert body.index('class="card--cta card"') < body.index('href="report-an-odor.html"')
 
     # the pair's stylesheet scope had Act now as its only user, so it went with
     # the pair instead of being left dead: no rule and no modifier anywhere
@@ -3976,15 +3982,102 @@ def test_act_now_action_links_are_the_cards(docs):
              if "link-row--buttons" in read(docs, name)]
     assert users == [], f"the removed button modifier is still on {users}"
 
-    # the family the pair joined is still declared, because this page still
-    # renders two of its members: the Sign now pill is a .btn--ghost and the
-    # Email the Council call to action is a .btn--cta, both under the .btn rule.
-    # The retarget that removed the pair dropped the suite's only existence
-    # check on these three blocks (ledger row 94 follow-up), so it lands back
-    # here rather than nowhere: a page that renders a family member with no
-    # family rule behind it is a broken button, and nothing else would go red.
-    for cls in (".btn {", ".btn--cta {", ".btn--ghost {"):
+    # the retired petition-strip modifier got the same audit (row 106): it had
+    # no rules of its own anywhere, act-now.html was its only user, and the
+    # petition it named moved out of the callout into its own tile
+    assert "petition-strip" not in css
+    strip_users = [name for name in html_files(docs)
+                   if "petition-strip" in read(docs, name)]
+    assert strip_users == [], f"the retired petition-strip modifier is still on {strip_users}"
+
+    # the family is still declared, because this page still renders two of its
+    # members: the Email the Council call to action is a .btn--cta and the two
+    # tile actions are .btn--light, both under the .btn rule. The retarget that
+    # removed the pair dropped the suite's only existence check on these blocks
+    # (ledger row 94 follow-up), so it lands back here rather than nowhere: a
+    # page that renders a family member with no family rule behind it is a
+    # broken button, and nothing else would go red. .btn--ghost is no longer
+    # rendered here but keeps its declaration for the five pages that use it.
+    for cls in (".btn {", ".btn--cta {", ".btn--light {", ".btn--ghost {"):
         assert cls in css, f"the standard family must declare {cls}"
+
+
+def test_act_now_ask_island_carries_the_featured_action(docs):
+    """Row 106, sketch item 1: the teal callout keeps its frame and carries a
+    white island with the Email the Council ask, so the featured weight comes
+    from the island's contrast against the teal callout, not from a separate
+    band. The island is a scoped variant of the callout + card grammar, never
+    a new block. The hear-your-voice and petition copy moved out to the tiles,
+    so the callout holds the ask and nothing else."""
+    act = read(docs, "act-now.html")
+    css = read(docs, "styles.css")
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "site", "pages", "act-now.html"), encoding="utf-8").read()
+    start = act.index('<div class="callout callout--ask">')
+    end = act.index("</div>", act.index("ask-island"))
+    callout = act[start:end]
+    assert '<div class="ask-island">' in callout
+    assert "Current ask:" in callout
+    assert "<strong>Email the Council</strong>" in callout
+    # the source page opts the CTA into the build's blockquote fill, and the
+    # built page carries the populated body, so the mechanism found its
+    # blockquote after the move into the island
+    assert 'data-mailto-body="blockquote"' in src
+    assert "body=" in callout
+    # the copy that moved to the tiles is gone from the callout
+    assert "We want to hear your voice" not in callout
+    assert "Climate Resilience Petition" not in callout
+    assert "Sign now" not in callout
+    # the free-standing Sign now pill is gone from the page
+    assert '<a class="btn btn--ghost"' not in act
+    # the island's rules are scoped under the callout variant, and the variant
+    # carries the gap acceptance item: more space below the callout than the
+    # base 1.2em, so the grid visibly separates from it
+    assert ".callout--ask .ask-island {" in css
+    assert ".callout--ask { margin-bottom: 2.4em; }" in css
+    assert re.search(r"\.callout \{[^}]*margin: 1\.2em 0", css, re.S), (
+        "the base callout's 1.2em margin is the 'before' the gap is measured against")
+
+
+def test_act_now_cta_tiles_lead_the_grid(docs):
+    """Row 106, sketch items 2 and 4: the grid's top row is two CTA tiles,
+    Tell your story left and Sign the petition right, visibly bigger and
+    bolder than the two text cards below; the bottom row is the existing
+    Report an odor and Donate text cards, unchanged in content. The
+    hear-your-voice copy became the story tile's body and the petition ask
+    and its Sign now action became the petition tile's body and CTA."""
+    act = read(docs, "act-now.html")
+    css = read(docs, "styles.css")
+    body = act[act.index('<div class="prose">'):act.index("</section>")]
+
+    story = body[body.index('class="card--cta card"'):body.index("Share your story</a>")]
+    assert "Tell your story" in story
+    assert "We want to hear your voice" in story
+    assert 'href="share-your-story.html"' in story
+
+    petition = body[body.index("Sign the petition</h2>"):body.index("Sign now</a>")]
+    assert "Climate Resilience Petition" in petition
+    assert "share it with all your contacts in South Portland" in petition
+    assert 'href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform"' in petition
+
+    # the tiles are the grid's first two children; the text cards follow
+    assert body.index("Sign the petition</h2>") < body.index("Report an odor</h2>") < body.index("Donate</h2>")
+    # the tiles read as one filled variant of the card, centered, with the
+    # family's own pill button and the dark-surface ring convention
+    assert ".card--cta {" in css
+    assert "text-align: center" in css[css.index(".card--cta {"):]
+    assert ".card--cta .btn:focus-visible { outline-color: var(--cyan-soft); }" in css
+
+
+def test_no_double_brace_stage_guidance_ships_anywhere(docs):
+    """AGENTS.md hard constraint 5 (operator ruling, 2026-11-24): text inside
+    {{...}} in the campaign copy documents is stage guidance addressed to the
+    agent, never copy. The built tree carries neither the braces nor their
+    words, so the marker class is scanned for directly."""
+    for name in html_files(docs):
+        page = read(docs, name)
+        assert "{{" not in page and "}}" not in page, (
+            f"{name}: double-brace stage guidance reached the built page")
 
 
 def test_act_now_past_tense_and_one_email_action(docs):

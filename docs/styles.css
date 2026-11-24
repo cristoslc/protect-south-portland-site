@@ -890,3 +890,56 @@ blockquote {
 }
 
 .skip-link:focus { left: 8px; }
+/* ---------- act-now action section (2026-11-24) -------------------------
+
+   Scoped to the Act now page's restructured action section; every selector
+   below names one of the three classes only that page carries
+   (`.callout--ask`, `.ask-island`, `.card-grid--act`) or its tile variant
+   (`.card--cta`), so no other page's rendering moves. The island is a
+   variant inside the existing callout + card grammar, not a new block: the
+   teal callout keeps its own rules and the island is a white card-like
+   panel inside it, so the featured ask reads from the contrast between the
+   two surfaces. The tiles are the existing `.card` with a fill variant: the
+   sketch drew them large, filled and centered, so they take the palette's
+   own teal-700 (white ink measures 5.42:1 on it) instead of a new colour,
+   keep the site's pill button via the existing `.btn--light` (no new button
+   variant), and center their text like the sketch drew them. The larger
+   margin under the callout is the gap acceptance item: the space between
+   the callout and the grid must be visibly larger than the 1.2em the base
+   callout carries. The tile focus-ring override follows the family's
+   existing dark-surface convention (`--cyan-soft`, measured 4.74:1 on
+   teal-700, above the 3:1 non-text floor), because the bare `.btn` ring's
+   teal-900 ink disappears on a teal-700 fill. */
+
+.callout--ask { margin-bottom: 2.4em; }
+
+.callout--ask .ask-island {
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.card-grid--act { grid-template-columns: 1fr; }
+
+@media (min-width: 720px) {
+  .card-grid--act { grid-template-columns: 1fr 1fr; }
+}
+
+.card--cta {
+  background: var(--teal-700);
+  border: 0;
+  color: #fff;
+  text-align: center;
+  padding: 28px 22px 24px;
+}
+
+.card--cta h2.h3-look { color: #fff; font-size: 1.35rem; margin: 0 0 10px; }
+
+.card--cta p { color: #fff; }
+
+.card--cta p:last-child { margin-bottom: 0; }
+
+.card--cta .btn { margin-bottom: 0; }
+
+.card--cta .btn:focus-visible { outline-color: var(--cyan-soft); }

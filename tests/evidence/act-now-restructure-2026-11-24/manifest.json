@@ -1,0 +1,41 @@
+{
+  "leg": "Act Now action section restructured to the operator's sketch (ledger row 106)",
+  "date": "2026-11-24",
+  "branch": "bb/act-now-restructure-thr_p257b4jc9k",
+  "base": "a509682 (origin/main, the heading-margins head)",
+  "what_changed": "The teal current-ask callout keeps its frame and carries a white island (.ask-island, a scoped variant of the callout + card grammar) holding the current-ask paragraph, the Email the Council lede and the orange CTA. Below it a 2x2 grid (.card-grid--act): top row two CTA tiles (.card--cta, teal-700 fill, centered, .btn--light actions) - Tell your story left, Sign the petition right; bottom row the existing Report an odor and Donate text cards, content unchanged. The hear-your-voice copy and the petition ask + Sign now action moved out of the callout into their tiles. The free-standing Sign now pill is gone; its .btn--ghost class stays (five other pages use it); the dead petition-strip modifier (no rules, act-now its only user, petition moved out) is retired.",
+  "operator_framing_verbatim": "Act Now still not right. Here's the rough idea of what I'm looking for with the CTAs at the top.",
+  "braces_resolution": "{{Tell Your Story CTA}} meant 'design and word the story tile's call to action' and resolved to the Share your story button linking share-your-story.html; {{ Sign the Petition CTA }} meant the same for the petition tile and resolved to the Sign now button linking the Climate Resilience Petition form (URL unchanged). Neither the braces nor their words ship; test_no_double_brace_stage_guidance_ships_anywhere scans every built page.",
+  "gap_acceptance_item": {
+    "definition": "space between the callout's bottom edge and the card grid's top edge, getBoundingClientRect, before = base tree a509682 (which already carries tonight's heading-margin change), after = this branch; same scroll position in each pair shot (callout top pinned 140px below the viewport top)",
+    "before_px": {"412": 21.59, "768": 21.59, "1440": 21.59},
+    "after_px": {"412": 43.19, "768": 43.19, "1440": 43.19},
+    "mechanism": ".callout--ask { margin-bottom: 2.4em } against the base callout's 1.2em; the gap doubles at every width"
+  },
+  "focus_rings": {
+    "method": "real Tab presses to each control (never el.focus()), 3px/2px site convention verified in computed outline, WCAG 2.x relative-luminance ratio of the ring against the nearest opaque surface behind it, screenshots per control per width",
+    "readings": {
+      "Email the Council (.btn--cta on the white .ask-island)": {"ring": "solid 3px rgb(29,62,64) teal-900", "ratio": 11.57, "surface": "white island"},
+      "Share your story (.btn--light on .card--cta teal-700)": {"ring": "solid 3px rgb(213,246,246) cyan-soft via .card--cta .btn:focus-visible", "ratio": 5.14, "surface": "teal-700 tile"},
+      "Sign now (.btn--light on .card--cta teal-700)": {"ring": "solid 3px cyan-soft via .card--cta .btn:focus-visible", "ratio": 5.14, "surface": "teal-700 tile"}
+    },
+    "floor": "3:1 (WCAG 2.1 SC 1.4.11 non-text) cleared at 412, 768 and 1440"
+  },
+  "payload_rule": {
+    "pair_found": "exactly one clean pair, act-now.html 'Email the Council' against 'Example message'",
+    "extension": "tools/uat_payload.py gained content-proven pairing: a control whose payload already equals the displayed copy pairs across intervening headings, because the payload itself proves which copy it sends; everything else still needs the heading fence. Needed because the sketch legitimately moves the CTA above the action grid, so ordinary headings now sit between it and the letter. The row-101 false-positive guards are unchanged and still pass."
+  },
+  "files": {
+    "site": ["site/pages/act-now.html", "site/styles.css (one clearly separated scoped block at the end of the file)"],
+    "tools": ["tools/uat_payload.py"],
+    "tests": ["tests/test_site.py (retargeted test_act_now_action_links_are_the_cards, new island/tiles/braces pins, census docstring updated)"],
+    "built": ["docs/ rebuilt and committed"]
+  },
+  "checks": {
+    "suite": "225 passed, 1 skipped",
+    "scanner": "psp_public.scan_tree('docs') == []",
+    "release_check": "committed docs/ fresh and publication-clean",
+    "visual_check": "50 width/page geometric checks clean across 700-1440, 20 crops non-uniform"
+  },
+  "not_done": "not published, not merged; staging/production untouched; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}
