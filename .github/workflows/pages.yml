@@ -7,7 +7,13 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: tests
+  # Per-ref (2026-11-24): the group was the repo-wide "tests", so any run on
+  # the repo — another PR's checks, a push elsewhere — cancelled every
+  # in-flight suite mid-run (two cancelled runs on PR #65 tonight, both
+  # cancelled at ~40% green, "The operation was canceled"). Same-ref pushes
+  # still supersede each other; cross-ref runs no longer kill each other,
+  # matching release-gate.yml's per-ref group.
+  group: tests-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build:
