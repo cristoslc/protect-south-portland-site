@@ -1388,16 +1388,30 @@ def test_strip_back_to_doc_pages(docs):
                     built.append(f.read())
     # 2026-11-24 (toolkit reference page): the figure now ships twice, and
     # both counts are named. One is the archived record on the campaign page.
-    # The other is the toolkit page's FAQ answer ("cumulatively licensed to
-    # emit more than 600 tons of VOCs"), which is the campaign document's own
-    # sentence carried forward, not new agent copy. The pin keeps the figure
-    # out of every other page, which is what the press-kit ruling was for.
+    # The other is the toolkit page's FAQ answer, which is the campaign
+    # document's own sentence carried forward, not new agent copy. The pin
+    # keeps the figure out of every other page, which is what the press-kit
+    # ruling was for.
+    #
+    # 2026-11-24 (ruling `dec_wousd5kpjj8r`): a figure that ships twice has to
+    # say the same thing in both places, and it did not. The document says
+    # "approximately 600 tons" on two tabs and "more than 600 tons" on the FAQ
+    # tab, so both surfaces now read "approximately 600 tons" and the two
+    # disagreeing forms are banned outright.
     assert sum(t.count("600 tons") for t in built) == 2, (
         "the verbatim 600-ton figure survives in exactly two places: the "
         "archived record and the carried toolkit FAQ answer")
     assert tank.count("600 tons") == 1, "the archived record keeps its figure"
     assert read(docs, "toolkit.html").count("600 tons") == 1, (
         "the toolkit FAQ answer keeps the document's figure")
+    for name in html_files(docs):
+        page = read(docs, name)
+        for disagreed in ("more than 600 tons", "almost 600 tons"):
+            assert disagreed not in page, (
+                f"{name}: the document disagrees with itself on this figure; "
+                f"both surfaces read 'approximately 600 tons' ({disagreed!r})")
+    assert "approximately 600 tons of volatile organic compounds" in tank
+    assert "approximately 600 tons of VOCs" in read(docs, "toolkit.html")
     for name in html_files(docs):
         if name in REDIRECT_PAGES or name in ("tank-farms.html", "toolkit.html"):
             continue
