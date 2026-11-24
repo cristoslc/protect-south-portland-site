@@ -23,10 +23,19 @@ blank capture. Redirect stubs (oil-tank-emissions.html, vocs.html) and
 robots.txt are excluded from capture and recorded in the manifest: stubs
 navigate away on load (their capture would be a duplicate of their target).
 
+Before any capture the ladder runs the payload-fidelity rule
+(tools/uat_payload.py, ledger row 97): where a page displays sendable copy
+beside an action that transmits it, the payload MUST match the copy. It
+fetches every page by URL through the same base, so it works identically
+against a live host and a local build; a finding is printed with the page,
+the control's label and what diverged, and the ladder stops before it files
+snapshots. `--payload-check-only` runs just that rule.
+
 Usage:
   python3 tools/uat_snapshots.py                                  # staging
   python3 tools/uat_snapshots.py --target local --date 2026-10-15 # local docs
   python3 tools/uat_snapshots.py --url <base>                     # override
+  python3 tools/uat_snapshots.py --target local --payload-check-only
 """
 import argparse
 import datetime as dt
@@ -41,6 +50,7 @@ from urllib.parse import urlparse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import publish
+import uat_payload
 from staging_audit import AuditInfraError
 
 SITE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -201,7 +211,36 @@ def build_parser():
                         help="manifest/capture date label (default: today)")
     parser.add_argument("--out", dest="outdir", default=None,
                         help="explicit output directory override")
+    parser.add_argument("--skip-payload-check", action="store_true",
+                        help="capture only; leave the sendable-copy payload "
+                             "rule (ledger row 97) out of this run")
+    parser.add_argument("--payload-check-only", action="store_true",
+                        help="run the payload rule alone, no browser, no "
+                             "snapshots")
     return parser
+
+
+def run_payload_sweep(base, pages):
+    """The ladder's payload-fidelity rung (ledger row 97), against `base`.
+
+    Fetches each page by URL — http(s) or file: — so a live host and a local
+    build run through the identical rule. A fetch fault is an environment
+    failure and raises; a mismatch is returned as a finding, and the caller
+    stops the ladder before filing snapshots.
+    """
+    try:
+        findings, reports = uat_payload.sweep(base, pages)
+    except uat_payload.PayloadFetchError as exc:
+        raise AuditInfraError(str(exc)) from exc
+    for report in reports.values():
+        for note in report["notes"]:
+            print(f"note: {note}")
+    for finding in findings:
+        print(f"FAIL: {finding}")
+    pairs = sum(len(report["pairs"]) for report in reports.values())
+    print(f"payload sweep: {len(reports)} pages, {pairs} copy/payload pairs "
+          f"compared, {len(findings)} findings")
+    return findings
 
 
 def main(argv=None):
@@ -214,8 +253,6 @@ def main(argv=None):
     base = args.url or DEFAULT_TARGETS[args.target]
     if not base.endswith("/") and not base.startswith("file:"):
         base = base + "/"
-    outdir, date = (args.outdir, args.date) if args.outdir else resolve_outdir(args)
-    os.makedirs(outdir, exist_ok=True)
 
     host = urlparse(base).hostname or "file"
     cookies = gate_cookies(host)
@@ -233,6 +270,22 @@ def main(argv=None):
                 raise AuditInfraError(f"preflight: {url} returned {exc.code}") from exc
             except (urllib.error.URLError, OSError, TimeoutError) as exc:
                 raise AuditInfraError(f"preflight: cannot reach {url}: {exc}") from exc
+
+    if args.skip_payload_check and args.payload_check_only:
+        raise AuditInfraError(
+            "--skip-payload-check and --payload-check-only contradict each other")
+    if not args.skip_payload_check:
+        findings = run_payload_sweep(base, pages)
+        if findings:
+            print("payload sweep stopped the ladder: a page displays sendable "
+                  "copy that its action does not send (ledger row 97)",
+                  file=sys.stderr)
+            return 1
+        if args.payload_check_only:
+            return 0
+
+    outdir, date = (args.outdir, args.date) if args.outdir else resolve_outdir(args)
+    os.makedirs(outdir, exist_ok=True)
 
     session = bb_open()
     samples = []

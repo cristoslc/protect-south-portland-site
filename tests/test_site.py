@@ -43,6 +43,8 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import gate_report
 import psp_public
 import publish
+import uat_payload
+import uat_snapshots
 
 # Ledger row 5 banner, single-sourced from tools/psp_public.py so the
 # tests and publish.py's domain check pin the same string.
@@ -4172,3 +4174,203 @@ def test_docs_serve_tree_shape_pins_the_pages_serve_config():
         "domain, so Pages would claim its hostname the instant it serves "
         "main — the domain is set deliberately at cutover, never by a file "
         "that rides along in the tree")
+
+
+# --- Ledger row 97: sendable copy must be the payload its action sends ------
+#
+# Operator instruction, 2026-11-24, verbatim: "add auto UAT rule to catch this,
+# even though we're not running auto UAT now". The defect, caught by the
+# operator's eye and by nothing else: `act-now.html` displayed a written-out
+# letter under an "Example message" heading beside an orange "Email the
+# Council" CTA whose mailto carried a subject and an EMPTY body, so the click
+# opened a blank draft while the page asked the reader to copy the letter by
+# hand. The rule lives once, in tools/uat_payload.py, and runs as the UAT
+# ladder's payload rung (tools/uat_snapshots.py); the pins below are the
+# always-on guard that runs with every suite run.
+
+_UAT_MESSAGE = (
+    "Dear Councilors,\n\n"
+    "New state fence-line data shows benzene above Maine\u2019s ambient air "
+    "guideline at ten of the eleven terminals.\n\n"
+    "Sincerely,\n[Your name and street or neighborhood]"
+)
+
+
+def _sendable_fixture(href, heading="Example message", message=_UAT_MESSAGE):
+    """A minimal page carrying the defect's shape: a CTA above a labelled
+    blockquote of sendable copy. `href` is the control's link, so a caller
+    decides whether the payload is blank, truncated or whole."""
+    paragraphs = "".join(
+        f"<p>{chunk}</p>" for chunk in html.escape(message).split("\n\n"))
+    return f"""<!doctype html><html><body>
+<p><a class="btn btn--cta" href="{href}">Email the Council</a></p>
+<h2>{heading}</h2>
+<blockquote>{paragraphs}</blockquote>
+</body></html>"""
+
+
+def test_act_now_cta_mailto_body_carries_the_example_message(docs):
+    """The operator's 2026-11-24 catch, pinned on the built page.
+
+    `act-now.html` displays a letter under "Example message" beside the
+    "Email the Council" CTA. The CTA's decoded mailto body MUST be that
+    letter, byte for byte after decoding: a subject with an empty body opens
+    a blank draft and asks the reader to paste the whole letter by hand,
+    which is exactly what the operator saw. Whitespace runs collapse on both
+    sides (tools/uat_payload.canonical), so a paragraph separator cannot fail
+    the pin while any word, punctuation mark or missing tail still does.
+    """
+    markup = read(docs, "act-now.html")
+    pairs = [pair for pair in uat_payload.copy_payload_pairs(markup)
+             if pair["control"] == "Email the Council"]
+    assert len(pairs) == 1, (
+        f"expected exactly one 'Email the Council' sendable pair on "
+        f"act-now.html, found {pairs}")
+    pair = pairs[0]
+    assert pair["copy"].startswith("Dear Councilors,"), pair["copy"][:80]
+    assert pair["copy_label"].lower().find("message") != -1, (
+        f"the displayed copy's label changed: {pair['copy_label']!r}")
+    assert pair["payload"], (
+        "act-now.html: the 'Email the Council' mailto carries no body while "
+        f"the page displays {len(pair['copy'])} characters of sendable copy "
+        f"under {pair['copy_label']!r} — the click opens a blank draft")
+    assert pair["payload"] == pair["copy"], (
+        "act-now.html: the 'Email the Council' mailto body diverges from the "
+        f"displayed copy: {uat_payload.divergence(pair['copy'], pair['payload'])}")
+
+
+def test_uat_payload_rule_is_clean_across_every_built_page(docs):
+    """The rule over the whole tree, through the same fetched-HTML path the
+    UAT ladder uses, so this pin also proves the sweep works by URL.
+
+    It must come back with zero findings, and it must not be vacuous: the
+    Act now CTA is compared and carries a real payload. Every other page in
+    the tree carries contact addresses, subject-only newsletter and workshop
+    links, and mailing-address blockquotes, and none of those may fail.
+    """
+    pages = html_files(docs)
+    base = "file:" + os.path.join(str(docs), "index.html")
+    findings, reports = uat_payload.sweep(base, pages)
+    assert findings == [], "\n".join(findings)
+    assert set(reports) == set(pages)
+    act = reports["act-now.html"]
+    assert [pair["control"] for pair in act["pairs"]] == ["Email the Council"]
+    assert len(act["pairs"][0]["payload"]) == len(act["pairs"][0]["copy"])
+    # No other built page displays sendable copy today, so no other page is
+    # inspected at all — a new sendable block on a new page shows up here as
+    # a pair, and its payload must then match or this pin fails.
+    others = {name: report["pairs"] for name, report in reports.items()
+              if name != "act-now.html" and report["pairs"]}
+    assert others == {}, f"unexpected sendable-copy pairs: {others}"
+
+
+def test_uat_payload_rule_catches_blank_and_mismatched_payloads():
+    """The two failures the rule exists for, on the defect's own shape.
+
+    Red first: these assertions were written against the rule and are what
+    make a blank or truncated payload a named failure rather than silence.
+    """
+    blank = _sendable_fixture(
+        "mailto:citycouncil@example.org?subject=Require%20better%20technology")
+    findings = uat_payload.check_page(blank, "act-now.html")
+    assert len(findings) == 1
+    assert findings[0].startswith(
+        "sendable-payload:missing-payload act-now.html: control "
+        "'Email the Council'"), findings[0]
+    assert "empty payload" in findings[0]
+    assert f"{len(uat_payload.canonical(_UAT_MESSAGE))} characters" in findings[0]
+
+    truncated = uat_payload.canonical(_UAT_MESSAGE).split(" Sincerely")[0]
+    href = ("mailto:citycouncil@example.org?subject=Ask&body="
+            + urllib.parse.quote(truncated))
+    findings = uat_payload.check_page(
+        _sendable_fixture(href), "act-now.html")
+    assert len(findings) == 1
+    assert findings[0].startswith(
+        "sendable-payload:payload-mismatch act-now.html"), findings[0]
+    assert "payload stops after" in findings[0], findings[0]
+
+    whole = ("mailto:citycouncil@example.org?subject=Ask&body="
+             + urllib.parse.quote(uat_payload.canonical(_UAT_MESSAGE)))
+    assert uat_payload.check_page(_sendable_fixture(whole), "act-now.html") == []
+
+
+def test_uat_payload_rule_leaves_contact_and_unpaired_controls_alone():
+    """The false-positive sweep, one case per shape the live site carries.
+
+    A bare contact address, a subject-only alert link with no displayed copy,
+    a mailing-address blockquote, a subject-only control several headings away
+    from the copy, and a CTA whose page displays no copy must all pass.
+    """
+    contact_only = """<html><body>
+<p>Write to <a href="mailto:protectsouthportland@gmail.com">protectsouthportland@gmail.com</a>.</p>
+</body></html>"""
+    assert uat_payload.check_page(contact_only, "contact.html") == []
+
+    subject_only = """<html><body>
+<p><a href="mailto:hello@example.org?subject=Subscribe%20to%20the%20newsletter">hello@example.org</a></p>
+</body></html>"""
+    assert uat_payload.check_page(subject_only, "newsletter.html") == []
+
+    mailing_address = """<html><body>
+<h2>Mailing address</h2>
+<blockquote><p>Protect South Portland
+15 Cottage Road, Suite 2154
+South Portland, ME 04116</p></blockquote>
+</body></html>"""
+    assert uat_payload.check_page(mailing_address, "donate.html") == []
+
+    far_control = """<html><body>
+<h2>Example message</h2>
+<blockquote><p>Dear Councilors,</p><p>Please require better technology at the
+tank farms and make the special counsel advice public.</p></blockquote>
+<h2>Write to City Councilors</h2>
+<p>Addresses are below.</p>
+<h2>Workshop alerts</h2>
+<p>Write to <a href="mailto:hello@example.org?subject=Workshop%20alerts">hello@example.org</a>.</p>
+</body></html>"""
+    report = uat_payload.inspect_page(far_control, "act-now.html")
+    assert report["findings"] == [], report["findings"]
+    assert report["notes"], "the unpaired copy should be noted, not failed"
+
+    no_copy = """<html><body>
+<p><a class="btn btn--cta" href="mailto:hello@example.org?subject=Workshop%20alerts">Email us</a></p>
+<p>Email us to get plugged into local efforts.</p>
+</body></html>"""
+    assert uat_payload.check_page(no_copy, "act-now.html") == []
+
+
+def test_uat_ladder_payload_rung_stops_a_blank_payload_page(tmp_path, capsys):
+    """The rule is wired into the UAT ladder, not only importable.
+
+    `tools/uat_snapshots.py` runs the payload sweep before it opens a browser
+    or files a single capture. A blank payload stops the ladder with exit 1
+    and the finding printed; a whole payload lets the ladder through. No
+    browser is opened on either run because `--payload-check-only` returns
+    before the session, so this pin is cheap and headless.
+    """
+    suite = tmp_path / "suite.json"
+    suite.write_text(json.dumps({"start_pages": ["act-now.html"]}))
+
+    blank = tmp_path / "blank" / "act-now.html"
+    blank.parent.mkdir()
+    blank.write_text(_sendable_fixture(
+        "mailto:citycouncil@example.org?subject=Require%20better%20technology"))
+    code = uat_snapshots.main([
+        "--target", "local", "--suite", str(suite), "--payload-check-only",
+        "--url", "file:" + str(blank)])
+    printed = capsys.readouterr().out
+    assert code == 1
+    assert "FAIL: sendable-payload:missing-payload act-now.html" in printed
+
+    whole = tmp_path / "whole" / "act-now.html"
+    whole.parent.mkdir()
+    whole.write_text(_sendable_fixture(
+        "mailto:citycouncil@example.org?subject=Ask&body="
+        + urllib.parse.quote(uat_payload.canonical(_UAT_MESSAGE))))
+    code = uat_snapshots.main([
+        "--target", "local", "--suite", str(suite), "--payload-check-only",
+        "--url", "file:" + str(whole)])
+    printed = capsys.readouterr().out
+    assert code == 0
+    assert "0 findings" in printed
