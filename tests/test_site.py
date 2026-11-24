@@ -3558,7 +3558,7 @@ def test_no_past_event_invitations(docs):
 def test_act_now_action_links_are_the_cards(docs):
     """The two action links are the card grid's now; the button pair is gone.
 
-    Both rulings on these two links, in the order they were made.
+    The rulings on these two links, in the order they were made.
 
     2026-11-24 (row 88, the consolidation): the operator said "act-now.html has
     too many button variants, it's visually confusing", so Donate and Report an
