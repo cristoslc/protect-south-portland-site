@@ -319,6 +319,21 @@ def test_toolkit_reference_page(docs):
     document's own opening lines, the artifacts that must never ship, the
     chapters the ruling left behind, the two places that reach the page, and
     the header staying at five items.
+
+    Two carried-copy defects stay on the page by decision, taken in the gate
+    review of 2026-11-24, and a later agent must not "fix" them silently:
+
+    - "The lawsuits create a public outcry but ends in consent decrees" is the
+      campaign document's own subject-verb slip. Correcting it would rewrite
+      campaign prose, so the page keeps it and the campaign fixes the source.
+    - Two FAQ answers name the Oct. 27 workshop and "this year's" council
+      candidates. The chapter lede already dates every answer to the October 15
+      meeting, so the dated answer is honest as the snapshot it is.
+
+    The same review fixed four others, and those came down to a proper-noun
+    spelling or an anchor label rather than campaign wording: Bug Light (the
+    source writes "Bug LIght"), Ligonia (the source writes "Lygonia"), the
+    orientation line, and the Press Herald letters link's anchor text.
     """
     page = read(docs, "toolkit.html")
 
