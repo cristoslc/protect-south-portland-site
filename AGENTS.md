@@ -25,6 +25,14 @@ A prod push that skips staging (prod-direct) is reserved for extreme exceptional
 
 Before any staging or production leg, invoke the `psp-changelog` skill at `.agents/skills/psp-changelog/SKILL.md`. The `--changelog-handoff` flag is a hard requirement of `tools/publish.py`, not an optional courtesy.
 
+## Orchestrator role (operator directive, 2026-11-24)
+
+All redwork MUST [RFC 2119] be done by child threads, or handed off to another orchestrator or a top-level thread. The orchestrator ONLY [RFC 2119] does bluework and oversight. The exception: the orchestrator is permitted to evaluate pull requests and merge the low-risk ones.
+
+Redwork means any execution that changes bytes or state: builds, publishes, worktree surgery, ledger rows, script writing, file edits, dry runs. If a command would create, change or push anything, it belongs to a child thread.
+
+Bluework means rulings, review, planning, briefs, PR evaluation and the low-risk merges the exception allows.
+
 ## Staging audit — non-blocking, automated (2026-10-15)
 
 `tools/staging_audit.py` audits the staging mirror on a schedule and files one digest issue per run on this repo, labeled `staging-audit` + `accessibility` (create-if-absent). Schedule: weekday mornings ~13:15 UTC plus manual `workflow_dispatch`, via `.github/workflows/staging-audit.yml`. Per run it checks every public page for HTTP 200, runs Lighthouse accessibility (desktop) on all pages plus a mobile pass on `index.html`, re-checks the typography floor against the `styles.css` staging actually serves (root `112.5%` + body `1rem` — the same contract `test_typography_older_visitor_floor` pins on the source file), and diffs its findings against the previous run's digest, read from the machine JSON block inside the last `staging-audit` issue.
