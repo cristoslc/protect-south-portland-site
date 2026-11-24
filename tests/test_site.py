@@ -1485,6 +1485,131 @@ def test_footer_cta_contrast_wins_over_footer_link_color():
         "footer .btn--cta must re-pin white text on the orange fill"
 
 
+# ---- header contrast (2026-11-23): the Act now pill keeps one passing pair --
+# Measured in headless Chrome at 412 (menu open) and 1440: the pill rendered
+# #b8401a on #de5021 (1.39:1) on the phone, because the 1120px block repainted
+# only the label, and #fff on #de5021 (3.98:1) on desktop. Its text is 16.2px
+# at weight 800 — under the 18.66px/700 large-text threshold — so AA wants
+# 4.5:1, not 3:1. These helpers read the stylesheet the way the cascade would:
+# every rule that touches the pill is resolved against the base rule when it
+# declares only one of the pair, so a color-only mobile override fails here.
+
+def _css_rules(css, media_max_width=None):
+    """Yield (media_max_width, selector, declarations) for every style rule.
+
+    Recurses into at-rules so a max-width override is reported with its own
+    bound instead of vanishing into the outer text.
+    """
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    i, prelude = 0, ""
+    while i < len(css):
+        ch = css[i]
+        if ch == "{":
+            depth, j = 1, i + 1
+            while j < len(css) and depth:
+                if css[j] == "{":
+                    depth += 1
+                elif css[j] == "}":
+                    depth -= 1
+                j += 1
+            body, head = css[i + 1:j - 1], prelude.strip()
+            prelude, i = "", j
+            if head.startswith("@"):
+                bound = media_max_width
+                m = re.search(r"max-width:\s*([\d.]+)px", head)
+                if m:
+                    bound = float(m.group(1))
+                yield from _css_rules(body, bound)
+            else:
+                yield media_max_width, head, body
+        elif ch == "}":
+            prelude, i = "", i + 1
+        else:
+            prelude += ch
+            i += 1
+
+
+def _css_declarations(body):
+    decls = {}
+    for part in body.split(";"):
+        if ":" not in part:
+            continue
+        prop, value = part.split(":", 1)
+        decls[prop.strip().lower()] = value.strip()
+    return decls
+
+
+def _css_variables(css):
+    variables = {}
+    for _media, _selector, body in _css_rules(css):
+        for prop, value in _css_declarations(body).items():
+            if prop.startswith("--"):
+                variables[prop] = value
+    return variables
+
+
+def _css_color(value, variables, seen=()):
+    """Resolve a CSS color value (var(), hex, or rgb()) to (r, g, b)."""
+    value = re.sub(r"!important\s*$", "", value.strip()).strip()
+    m = re.fullmatch(r"var\(\s*(--[\w-]+)\s*\)", value)
+    if m:
+        assert m.group(1) in variables, f"{m.group(1)} is not defined"
+        assert m.group(1) not in seen, f"circular var() chain at {m.group(1)}"
+        return _css_color(variables[m.group(1)], variables, seen + (m.group(1),))
+    m = re.fullmatch(r"#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})", value)
+    if m:
+        digits = m.group(1)
+        if len(digits) == 3:
+            digits = "".join(c * 2 for c in digits)
+        return tuple(int(digits[k:k + 2], 16) for k in (0, 2, 4))
+    m = re.fullmatch(r"rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+[\d.]+)?\s*\)", value)
+    if m:
+        return tuple(int(g) for g in m.groups())
+    raise AssertionError(
+        f"cannot resolve CSS color {value!r}; this test only understands "
+        "hex, rgb() and var() so that a new color form is never waved through")
+
+
+def _contrast_ratio(fg, bg):
+    def luminance(rgb):
+        channels = []
+        for channel in rgb:
+            c = channel / 255
+            channels.append(c / 12.92 if c <= 0.03928
+                            else ((c + 0.055) / 1.055) ** 2.4)
+        return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+    light, dark = sorted((luminance(fg), luminance(bg)), reverse=True)
+    return (light + 0.05) / (dark + 0.05)
+
+
+def test_nav_cta_pill_contrast_passes_at_every_width():
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    variables = _css_variables(css)
+    rules = [(media, selector, _css_declarations(body))
+             for media, selector, body in _css_rules(css)
+             if "nav-cta" in selector]
+    base = next(((selector, decls) for media, selector, decls in rules
+                 if media is None and selector.strip() == ".main-nav .nav-cta > a"),
+                None)
+    assert base, "the Act now pill needs its own base rule to declare its pair"
+    assert "background" in base[1], "the pill's fill must be declared, not inherited"
+    assert "color" in base[1], "the pill's text color must be declared"
+    base_bg = _css_color(base[1]["background"], variables)
+    base_fg = _css_color(base[1]["color"], variables)
+
+    for media, selector, decls in rules:
+        fg = _css_color(decls["color"], variables) if "color" in decls else base_fg
+        fill = decls.get("background", decls.get("background-color"))
+        bg = _css_color(fill, variables) if fill else base_bg
+        where = "all widths" if media is None else f"max-width {media:g}px"
+        ratio = _contrast_ratio(fg, bg)
+        assert ratio >= 4.5, (
+            f"{selector.strip()} ({where}): the pill label renders "
+            f"#{fg[0]:02x}{fg[1]:02x}{fg[2]:02x} on "
+            f"#{bg[0]:02x}{bg[1]:02x}{bg[2]:02x} = {ratio:.2f}:1; the nav "
+            "text is 16.2px at weight 800, so WCAG AA normal text wants 4.5:1")
+
+
 def test_heading_order_is_sequential(docs):
     # Staging audit digest #4 (2026-10-15): tank-farms.html and
     # our-campaigns.html opened their outline with an h3 directly under the

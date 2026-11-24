@@ -1,0 +1,147 @@
+{
+  "412-menu-closed": {
+    "pill": {
+      "selector": "nav.main-nav > ul > li.nav-cta > a",
+      "text": "Act now",
+      "color": "rgb(255, 255, 255)",
+      "colorHex": "#ffffff",
+      "backgroundColorDeclared": "rgb(184, 64, 26)",
+      "backgroundHex": "#b8401a",
+      "fontSize": "16.2px",
+      "fontWeight": "800",
+      "ratio": 5.55
+    },
+    "label": {
+      "selector": ".nav-toggle-label",
+      "text": "MENU",
+      "colorHex": "#ffffff",
+      "backgroundHex": "#1d3e40",
+      "fontSize": "18px",
+      "fontWeight": "800",
+      "ratio": 11.57
+    },
+    "menuVisible": false,
+    "pillRect": {
+      "x": 0,
+      "y": 0,
+      "w": 0,
+      "h": 0
+    }
+  },
+  "412-menu-open": {
+    "pill": {
+      "selector": "nav.main-nav > ul > li.nav-cta > a",
+      "text": "Act now",
+      "color": "rgb(255, 255, 255)",
+      "colorHex": "#ffffff",
+      "backgroundColorDeclared": "rgb(184, 64, 26)",
+      "backgroundHex": "#b8401a",
+      "fontSize": "16.2px",
+      "fontWeight": "800",
+      "ratio": 5.55
+    },
+    "label": {
+      "selector": ".nav-toggle-label",
+      "text": "MENU",
+      "colorHex": "#ffffff",
+      "backgroundHex": "#1d3e40",
+      "fontSize": "18px",
+      "fontWeight": "800",
+      "ratio": 11.57
+    },
+    "menuVisible": true,
+    "pillRect": {
+      "x": 16,
+      "y": 685,
+      "w": 380,
+      "h": 41
+    }
+  },
+  "768-menu-closed": {
+    "pill": {
+      "selector": "nav.main-nav > ul > li.nav-cta > a",
+      "text": "Act now",
+      "color": "rgb(255, 255, 255)",
+      "colorHex": "#ffffff",
+      "backgroundColorDeclared": "rgb(184, 64, 26)",
+      "backgroundHex": "#b8401a",
+      "fontSize": "16.2px",
+      "fontWeight": "800",
+      "ratio": 5.55
+    },
+    "label": {
+      "selector": ".nav-toggle-label",
+      "text": "MENU",
+      "colorHex": "#ffffff",
+      "backgroundHex": "#1d3e40",
+      "fontSize": "18px",
+      "fontWeight": "800",
+      "ratio": 11.57
+    },
+    "menuVisible": false,
+    "pillRect": {
+      "x": 0,
+      "y": 0,
+      "w": 0,
+      "h": 0
+    }
+  },
+  "768-menu-open": {
+    "pill": {
+      "selector": "nav.main-nav > ul > li.nav-cta > a",
+      "text": "Act now",
+      "color": "rgb(255, 255, 255)",
+      "colorHex": "#ffffff",
+      "backgroundColorDeclared": "rgb(184, 64, 26)",
+      "backgroundHex": "#b8401a",
+      "fontSize": "16.2px",
+      "fontWeight": "800",
+      "ratio": 5.55
+    },
+    "label": {
+      "selector": ".nav-toggle-label",
+      "text": "MENU",
+      "colorHex": "#ffffff",
+      "backgroundHex": "#1d3e40",
+      "fontSize": "18px",
+      "fontWeight": "800",
+      "ratio": 11.57
+    },
+    "menuVisible": true,
+    "pillRect": {
+      "x": 16,
+      "y": 685,
+      "w": 736,
+      "h": 41
+    }
+  },
+  "1440-menu-closed": {
+    "pill": {
+      "selector": "nav.main-nav > ul > li.nav-cta > a",
+      "text": "Act now",
+      "color": "rgb(255, 255, 255)",
+      "colorHex": "#ffffff",
+      "backgroundColorDeclared": "rgb(184, 64, 26)",
+      "backgroundHex": "#b8401a",
+      "fontSize": "16.2px",
+      "fontWeight": "800",
+      "ratio": 5.55
+    },
+    "label": {
+      "selector": ".nav-toggle-label",
+      "text": "MENU",
+      "colorHex": "#ffffff",
+      "backgroundHex": "#1d3e40",
+      "fontSize": "18px",
+      "fontWeight": "800",
+      "ratio": 11.57
+    },
+    "menuVisible": true,
+    "pillRect": {
+      "x": 1147,
+      "y": 13,
+      "w": 103,
+      "h": 41
+    }
+  }
+}

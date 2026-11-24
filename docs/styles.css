@@ -101,14 +101,14 @@ img { max-width: 100%; height: auto; }
 }
 
 /* Act now is the only pill in the header: filled, far right, and never
-   confusable with the page you are already on. */
-.main-nav .nav-cta > a { background: var(--orange); color: #fff; font-weight: 800;
+   confusable with the page you are already on. The fill is --orange-dark so
+   the white 16.2px/800 label clears AA at 5.55:1 (white on --orange was
+   3.98:1); the hover steps darker still (white on --orange-darker, 7.11:1). */
+.main-nav .nav-cta > a { background: var(--orange-dark); color: #fff; font-weight: 800;
   padding: 0.4rem 0.95rem; border-radius: 999px; }
-.main-nav .nav-cta > a:hover { background: #fff; color: var(--orange-dark); }
+.main-nav .nav-cta > a:hover { background: var(--orange-darker); color: #fff; }
 .main-nav .nav-cta > a[aria-current="page"] { box-shadow: none; outline: 2px solid #fff; outline-offset: 2px; }
 .main-nav a[aria-current="page"] { box-shadow: inset 0 -3px 0 currentColor; }
-
-.main-nav .nav-cta > a:hover { color: #fff; background: var(--orange); }
 
 .main-nav a:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
 
@@ -224,12 +224,13 @@ img { max-width: 100%; height: auto; }
   }
 
   /* fix 1 (page-structure review): the phone menu panel is white; dark ink
-     for menu links, dark-orange for the Act now nav item (5.55:1) */
+     for menu links. The Act now pill keeps the white label on the
+     --orange-dark fill from its base rule, so it gets no text-color or
+     hover override here: a dark-orange label on the orange fill measured
+     1.39:1 (header contrast fix, 2026-11-23). */
 
   .main-nav a { color: var(--teal-900); }
   .main-nav a:hover { background: var(--teal-100); color: var(--teal-900); }
-  .main-nav .nav-cta > a { color: var(--orange-dark); }
-  .main-nav .nav-cta > a:hover { background: var(--orange-dark); color: #fff; }
 }
 
 /* ---------- action banner (ledger row 5: very top of homepage) ----------
