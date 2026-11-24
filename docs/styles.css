@@ -894,33 +894,59 @@ blockquote {
 .skip-link:focus { left: 8px; }
 /* ---------- act-now action section (2026-11-24) -------------------------
 
-   Scoped to the Act now page's restructured action section; every selector
-   below names one of the three classes only that page carries
-   (`.callout--ask`, `.ask-island`, `.card-grid--act`) or its tile variant
-   (`.card--cta`), so no other page's rendering moves. The island is a
-   variant inside the existing callout + card grammar, not a new block: the
-   teal callout keeps its own rules and the island is a white card-like
-   panel inside it, so the featured ask reads from the contrast between the
-   two surfaces. The tiles are the existing `.card` with a fill variant: the
-   sketch drew them large, filled and centered, so they take the palette's
-   own teal-700 (white ink measures 5.42:1 on it) instead of a new colour,
-   keep the site's pill button via the existing `.btn--light` (no new button
-   variant), and center their text like the sketch drew them. The larger
-   margin under the callout is the gap acceptance item: the space between
-   the callout and the grid must be visibly larger than the 1.2em the base
-   callout carries. The tile focus-ring override follows the family's
-   existing dark-surface convention (`--cyan-soft`, measured 4.74:1 on
-   teal-700, above the 3:1 non-text floor), because the bare `.btn` ring's
-   teal-900 ink disappears on a teal-700 fill. */
+   Scoped to the Act now page's featured panel and its card grid; every
+   selector below names one of the classes only that page carries
+   (`.callout--ask`, `.ask-steps`, `.ask-step`, `.card-grid--act`) or its
+   glow variant (`.card--glow`), so no other page's rendering moves.
 
-.callout--ask { margin-bottom: 2.4em; }
+   The featured block is the green panel itself (2026-11-24 swap): the
+   campaign teal field takes the site's one dark-band precedent
+   (`.section--teal`, `--teal-900` fill, white ink, 11.5:1) and the white
+   island inside it is gone. The CTA keeps its orange `.btn--cta` fill
+   because that is the site's own dark-band button convention (the hero
+   card and the footer both put `.btn--cta` on dark teal, white on
+   `--orange-dark` measured 5.55:1), so the panel carries one control in
+   the family's measured treatment instead of inventing a second. The
+   panel's call to action holds two steps of equal weight: a two-column
+   grid at 720px and above, stacked below it, both steps in the same lede
+   type; the second step's action is attendance, not a control, so it
+   carries no button — a second button with no destination would compete
+   with the email action the panel exists to serve. The ring follows the
+   family's dark-surface convention (`--cyan-soft`, 13.16:1 on `--teal-900`)
+   because the bare ring's teal-900 ink would vanish on the panel's fill.
 
-.callout--ask .ask-island {
-  background: var(--paper);
-  border-radius: 10px;
-  padding: 16px 18px;
-  box-shadow: var(--shadow);
+   The card grid's four cards share one white card style; the two call-to-
+   action tiles are distinguished only by a faint blue glow — a 4px halo in
+   `--cyan-soft`, the palette's own lightest blue, under the site's standard
+   shadow token. No fill, no dark teal, no new colour. The glow marks
+   prominence; it never carries focus, so the 3:1 indicator bar stays with
+   the controls inside the cards, whose rings are measured separately. The
+   larger margin under the panel is the standing gap acceptance item: the
+   space between the panel and the grid must be visibly larger than the
+   1.2em the base callout carries. */
+
+.callout--ask {
+  background: var(--teal-900);
+  border-color: var(--teal-900);
+  color: #fff;
+  margin-bottom: 2.4em;
 }
+
+.callout--ask .btn { margin-bottom: 0; }
+
+.callout--ask .btn:focus-visible { outline-color: var(--cyan-soft); }
+
+.ask-steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+@media (min-width: 720px) {
+  .ask-steps { grid-template-columns: 1fr 1fr; }
+}
+
+.ask-step .lede { margin: 0; }
 
 .card-grid--act { grid-template-columns: 1fr; }
 
@@ -928,20 +954,4 @@ blockquote {
   .card-grid--act { grid-template-columns: 1fr 1fr; }
 }
 
-.card--cta {
-  background: var(--teal-700);
-  border: 0;
-  color: #fff;
-  text-align: center;
-  padding: 28px 22px 24px;
-}
-
-.card--cta h2.h3-look { color: #fff; font-size: 1.35rem; margin: 0 0 10px; }
-
-.card--cta p { color: #fff; }
-
-.card--cta p:last-child { margin-bottom: 0; }
-
-.card--cta .btn { margin-bottom: 0; }
-
-.card--cta .btn:focus-visible { outline-color: var(--cyan-soft); }
+.card--glow { box-shadow: 0 0 0 4px var(--cyan-soft), var(--shadow); }

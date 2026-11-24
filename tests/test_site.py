@@ -3221,11 +3221,12 @@ def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
     Census walked from the built pages (not a page list): each rendered
     variant on each surface it actually sits on must resolve a focus ring that
     clears the 3:1 non-text floor against the surface behind it. The
-    combinations the family renders today are `.btn.btn--cta` (on the light
-    island surface and the dark bands), `.btn.btn--ghost`, and — since the row
-    106 act-now restructure — `.btn.btn--light` on the teal tile fill; the
-    assertions below name them so a build that loses all buttons fails instead
-    of shrinking the census to an empty pass.
+    combinations the family renders today are `.btn.btn--cta` (on light pages,
+    on the dark teal featured panel since the row-109 swap, and on the dark
+    bands) and `.btn.btn--ghost`; `.btn--light` stays declared for a page that
+    adopts it. The assertions below name the rendered combinations so a build
+    that loses all buttons fails instead of shrinking the census to an empty
+    pass.
     """
     census = _button_census(docs)
     rendered = {variant for variant, _surface in census}
@@ -3940,16 +3941,19 @@ def test_act_now_action_links_are_the_cards(docs):
     cards are row 92's grounds, not row 88's.
 
     # 2026-11-24 (row 106, the restructure): the operator's sketch moved the
-    # Email the Council ask into a white island inside the teal callout and
-    # turned the grid's top row into two CTA tiles (Tell your story, Sign the
-    # petition), with Report an odor and Donate as the bottom row. The cards
-    # keep their content and their .card__more calls to action; the Sign now
-    # pill stopped being a free-standing control and became the petition
-    # tile's .btn--light action, so this page now renders .btn--cta and
-    # .btn--light members of the family. .btn--ghost keeps its class because
-    # five other pages still render it (index, our-campaigns, tank-farms,
-    # report-an-odor, share-your-story) — audited the way link-row--buttons
-    # was, and kept because its users are named.
+    # Email the Council ask into the teal callout and turned the grid's top
+    # row into two CTA tiles (Tell your story, Sign the petition), with Report
+    # an odor and Donate as the bottom row. The Sign now pill stopped being a
+    # free-standing control and moved into the petition tile; .btn--ghost
+    # keeps its class because five other pages still render it (index,
+    # our-campaigns, tank-farms, report-an-odor, share-your-story) — audited
+    # the way link-row--buttons was, and kept because its users are named.
+    #
+    # 2026-11-24 (row 109, the swap): the featured block inverts to the green
+    # panel (the island is gone), the grid's four cards share one white card
+    # style, and the two CTA tiles lose their .btn--light actions for the
+    # cards' own .card__more grammar, distinguished only by the glow. This
+    # page now renders exactly one family member: the panel's .btn--cta.
     """
     act = read(docs, "act-now.html")
     css = read(docs, "styles.css")
@@ -3959,21 +3963,21 @@ def test_act_now_action_links_are_the_cards(docs):
     assert '<a class="btn btn--ghost" href="donate.html">Donate</a>' not in act
     assert '<a class="btn btn--ghost" href="report-an-odor.html">Report an odor</a>' not in act
 
-    # both destinations survive, exactly once each in the page body, through
-    # the card grid's own call to action
+    # all four destinations survive, exactly once each in the page body,
+    # through the card grid's own calls to action
     body = act[act.index('<div class="prose">'):act.index("</section>")]
-    assert body.count('href="donate.html"') == 1, (
-        "Donate must have exactly one way through the page body now")
-    assert body.count('href="report-an-odor.html"') == 1, (
-        "Report an odor must have exactly one way through the page body now")
+    for href in ("donate.html", "report-an-odor.html", "share-your-story.html"):
+        assert body.count(f'href="{href}"') == 1, (
+            f"{href} must have exactly one way through the page body now")
+    assert body.count('href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform"') == 1
     assert '<a class="card__more" href="donate.html">DONATE →</a>' in body
     assert '<a class="card__more" href="report-an-odor.html">REPORT AN ODOR →</a>' in body
 
-    # the cards sit directly under the current-ask callout now, so the grid
-    # opens the prose column the callout closes (row 106: the grid carries
-    # the restructure's modifier, and the tiles are its first two children)
+    # the cards sit directly under the featured panel now, so the grid
+    # opens the prose column the panel closes (row 106: the grid carries
+    # the restructure's modifier, and the glowing cards are its first children)
     assert '<div class="prose">\n      <div class="card-grid card-grid--act">' in act
-    assert body.index('class="card--cta card"') < body.index('href="report-an-odor.html"')
+    assert body.index('class="card card--glow"') < body.index('href="report-an-odor.html"')
 
     # the pair's stylesheet scope had Act now as its only user, so it went with
     # the pair instead of being left dead: no rule and no modifier anywhere
@@ -3990,83 +3994,139 @@ def test_act_now_action_links_are_the_cards(docs):
                    if "petition-strip" in read(docs, name)]
     assert strip_users == [], f"the retired petition-strip modifier is still on {strip_users}"
 
-    # the family is still declared, because this page still renders two of its
-    # members: the Email the Council call to action is a .btn--cta and the two
-    # tile actions are .btn--light, both under the .btn rule. The retarget that
-    # removed the pair dropped the suite's only existence check on these blocks
-    # (ledger row 94 follow-up), so it lands back here rather than nowhere: a
-    # page that renders a family member with no family rule behind it is a
-    # broken button, and nothing else would go red. .btn--ghost is no longer
-    # rendered here but keeps its declaration for the five pages that use it.
+    # the family is still declared: this page renders the panel's .btn--cta;
+    # .btn--ghost's five users are other pages; .btn--light is declared but no
+    # page renders it today, and the family carries it ready (the row-95
+    # ring comment's position). The retarget that removed the pair dropped
+    # the suite's only existence check on these blocks (ledger row 94
+    # follow-up), so it lands back here rather than nowhere: a page that
+    # renders a family member with no family rule behind it is a broken
+    # button, and nothing else would go red.
     for cls in (".btn {", ".btn--cta {", ".btn--light {", ".btn--ghost {"):
         assert cls in css, f"the standard family must declare {cls}"
 
 
-def test_act_now_ask_island_carries_the_featured_action(docs):
-    """Row 106, sketch item 1: the teal callout keeps its frame and carries a
-    white island with the Email the Council ask, so the featured weight comes
-    from the island's contrast against the teal callout, not from a separate
-    band. The island is a scoped variant of the callout + card grammar, never
-    a new block. The hear-your-voice and petition copy moved out to the tiles,
-    so the callout holds the ask and nothing else."""
+def test_act_now_featured_panel_is_the_green_field(docs):
+    """Row 109, instruction 1: the featured block inverts to white-on-green.
+    The campaign teal field (the .section--teal precedent) carries the ask
+    paragraph, the Email the Council line and the CTA as white text on
+    --teal-900; the white island from the row-106 sketch is gone, and the
+    featured block IS the green panel itself, not a panel inside it. The
+    hear-your-voice and petition copy stay out in their cards."""
     act = read(docs, "act-now.html")
     css = read(docs, "styles.css")
     src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                             "site", "pages", "act-now.html"), encoding="utf-8").read()
     start = act.index('<div class="callout callout--ask">')
-    end = act.index("</div>", act.index("ask-island"))
-    callout = act[start:end]
-    assert '<div class="ask-island">' in callout
-    assert "Current ask:" in callout
-    assert "<strong>Email the Council</strong>" in callout
+    end = act.index('<div class="prose">')
+    panel = act[start:end]
+    assert "ask-island" not in act and "ask-island" not in css, (
+        "the white island is gone; the panel IS the green field")
+    assert "Current ask:" in panel
+    assert "<strong>Email the Council</strong>" in panel
+    assert "<strong>Wear green</strong>" in panel
     # the source page opts the CTA into the build's blockquote fill, and the
     # built page carries the populated body, so the mechanism found its
-    # blockquote after the move into the island
+    # blockquote after the inversion
     assert 'data-mailto-body="blockquote"' in src
-    assert "body=" in callout
-    # the copy that moved to the tiles is gone from the callout
-    assert "We want to hear your voice" not in callout
-    assert "Climate Resilience Petition" not in callout
-    assert "Sign now" not in callout
-    # the free-standing Sign now pill is gone from the page
-    assert '<a class="btn btn--ghost"' not in act
-    # the island's rules are scoped under the callout variant, and the variant
-    # carries the gap acceptance item: more space below the callout than the
-    # base 1.2em, so the grid visibly separates from it
-    assert ".callout--ask .ask-island {" in css
-    assert ".callout--ask { margin-bottom: 2.4em; }" in css
+    assert "body=" in panel
+    # the copy that lives in the cards stays out of the panel
+    assert "We want to hear your voice" not in panel
+    assert "Climate Resilience Petition" not in panel
+    # the panel is the teal field with white ink, the section--teal precedent,
+    # and it keeps the gap acceptance item: more space below the panel than
+    # the base callout's 1.2em, so the grid visibly separates from it
+    assert re.search(r"\.callout--ask \{[^}]*background: var\(--teal-900\)", css, re.S)
+    assert re.search(r"\.callout--ask \{[^}]*color: #fff", css, re.S)
+    assert re.search(r"\.callout--ask \{[^}]*margin-bottom: 2\.4em", css, re.S)
     assert re.search(r"\.callout \{[^}]*margin: 1\.2em 0", css, re.S), (
         "the base callout's 1.2em margin is the 'before' the gap is measured against")
+    # the CTA's ring follows the family's dark-surface convention on the panel
+    assert ".callout--ask .btn:focus-visible { outline-color: var(--cyan-soft); }" in css
+
+
+def test_act_now_primary_cta_holds_two_equal_steps(docs):
+    """Row 109, instruction 1: the primary CTA holds two steps of equal
+    weight — (1) Email the Council, (2) Wear green and come to the City
+    Council meeting — laid out side by side above 720px and stacked below,
+    both steps in the same lede type. The show-up step's copy is composed
+    from the banner facts and is agent-composed, flagged in the pull request."""
+    act = read(docs, "act-now.html")
+    css = read(docs, "styles.css")
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "site", "pages", "act-now.html"), encoding="utf-8").read()
+    start = act.index('<div class="ask-steps">')
+    end = act.index("</div>", act.index("ask-step", start + 20))
+    steps = act[start:act.index('<div class="prose">')]
+    assert steps.count('class="ask-step"') == 2
+    # step one: the email action, unchanged label and mechanism (the build
+    # consumes the marker and ships the populated body)
+    assert "<strong>Email the Council</strong>" in steps
+    assert 'data-mailto-body="blockquote"' in src
+    assert "body=" in steps
+    # step two: the show-up ask, composed from the banner facts
+    assert "<strong>Wear green</strong>" in steps
+    assert "come to the City Council meeting" in steps
+    assert "Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road" in steps
+    # equal weight: the two-column grid at 720px and above, one column below
+    assert re.search(r"\.ask-steps \{[^}]*grid-template-columns: 1fr", css, re.S)
+    assert re.search(r"@media \(min-width: 720px\) \{\s*\.ask-steps \{ grid-template-columns: 1fr 1fr; \}", css, re.S)
 
 
 def test_act_now_cta_tiles_lead_the_grid(docs):
-    """Row 106, sketch items 2 and 4: the grid's top row is two CTA tiles,
-    Tell your story left and Sign the petition right, visibly bigger and
-    bolder than the two text cards below; the bottom row is the existing
-    Report an odor and Donate text cards, unchanged in content. The
-    hear-your-voice copy became the story tile's body and the petition ask
-    and its Sign now action became the petition tile's body and CTA."""
+    """Row 109, instruction 1: the two CTA tiles become the SAME card style
+    as Report an odor and Donate — white cards, same geometry, same
+    head/body/action grammar — distinguished only by a faint blue glow built
+    from palette tokens, no fill, no dark teal. The bottom row is the
+    existing Report an odor and Donate text cards, unchanged in content."""
     act = read(docs, "act-now.html")
     css = read(docs, "styles.css")
     body = act[act.index('<div class="prose">'):act.index("</section>")]
 
-    story = body[body.index('class="card--cta card"'):body.index("Share your story</a>")]
+    story = body[body.index('class="card card--glow"'):body.index("SHARE YOUR STORY →</a>")]
     assert "Tell your story" in story
     assert "We want to hear your voice" in story
     assert 'href="share-your-story.html"' in story
 
-    petition = body[body.index("Sign the petition</h2>"):body.index("Sign now</a>")]
+    petition = body[body.index("Sign the petition</h2>"):body.index("SIGN THE PETITION →</a>")]
     assert "Climate Resilience Petition" in petition
     assert "share it with all your contacts in South Portland" in petition
     assert 'href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform"' in petition
 
-    # the tiles are the grid's first two children; the text cards follow
+    # the glowing cards are the grid's first two children; the text cards
+    # follow, and all four carry the same white .card style
+    assert body.count('class="card card--glow"') == 2
     assert body.index("Sign the petition</h2>") < body.index("Report an odor</h2>") < body.index("Donate</h2>")
-    # the tiles read as one filled variant of the card, centered, with the
-    # family's own pill button and the dark-surface ring convention
-    assert ".card--cta {" in css
-    assert "text-align: center" in css[css.index(".card--cta {"):]
-    assert ".card--cta .btn:focus-visible { outline-color: var(--cyan-soft); }" in css
+    # the tile actions are the cards' own card__more grammar, not buttons
+    assert 'btn--light' not in act
+    assert '<a class="card__more" href="share-your-story.html">SHARE YOUR STORY →</a>' in body
+    assert '<a class="card__more" href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform">SIGN THE PETITION →</a>' in body
+    # the glow is the only difference, and it is built from palette tokens
+    assert ".card--glow { box-shadow: 0 0 0 4px var(--cyan-soft), var(--shadow); }" in css
+    assert not re.search(r"\.card--glow \{[^}]*background", css, re.S), (
+        "the glow variant must not fill the card; the four cards share one style")
+
+
+def test_the_wear_green_ask_agrees_between_banner_and_act_now(docs):
+    """Row 109, consistency rule: the wearing-green ask and the banner are the
+    same fact in two places, so the wording stays consistent. The homepage
+    hero meta line (the block the operator calls the banner; renamed
+    hero__meta when the banner became the hero) and the featured panel's
+    show-up step must agree on the ask's verbs and every fact: the date, the
+    time and the venue (City Hall Council Chambers, 25 Cottage Road, ruling
+    dec_huccqekz7fjt). Any divergence is a named finding, not a style choice."""
+    act = read(docs, "act-now.html")
+    idx = read(docs, "index.html")
+    # the banner's composed ask, verbatim
+    assert "Wear green and come to the meeting." in idx
+    # the featured panel's show-up step carries the same verbs and all facts
+    assert "Wear green" in act and "come to the City Council meeting" in act
+    for fact in ("Tuesday, Dec. 1", "6:30 p.m.", "City Hall Council Chambers, 25 Cottage Road"):
+        assert fact in idx, fact
+        assert fact in act, fact
+    # act-now's own detailed paragraph keeps the same facts, so nothing on
+    # the page contradicts the ask
+    assert act.count("City Hall Council Chambers") >= 2
 
 
 def test_no_double_brace_stage_guidance_ships_anywhere(docs):
