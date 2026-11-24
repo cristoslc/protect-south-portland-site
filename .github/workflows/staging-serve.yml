@@ -19,6 +19,6 @@ jobs:
     if: vars.STAGING_SERVE_REPO == github.repository
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build, scan and push the staging-pages serve branch
         run: python3 tools/staging_serve.py --push
