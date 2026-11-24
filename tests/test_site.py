@@ -31,6 +31,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 from html.parser import HTMLParser
 
 import pytest
@@ -1682,6 +1683,123 @@ def test_act_now_workshop_is_past_tense(docs):
     assert "Make plans to come to the City Council workshop" not in act
     assert "Attend the City Council workshop" not in act
     assert "637 Highland Ave" not in act
+
+
+class _BlockquoteText(HTMLParser):
+    """Visible text of the first <blockquote> on a built page.
+
+    Deliberately independent of tools/build.py's converter: this walks the
+    markup with html.parser, the build walks it with regexes, and the two
+    readings are compared. If both sides shared one helper the pin would be
+    comparing the converter to itself.
+    """
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.depth = 0
+        self.in_p = 0
+        self.paras = []
+        self.buf = []
+        self.done = False
+
+    def handle_starttag(self, tag, attrs):
+        if self.done:
+            return
+        if tag == "blockquote":
+            self.depth += 1
+        elif self.depth and tag == "p":
+            self.in_p += 1
+            self.buf = []
+        elif self.depth and self.in_p and tag == "br":
+            self.buf.append("\n")
+
+    def handle_endtag(self, tag):
+        if self.done:
+            return
+        if tag == "blockquote" and self.depth:
+            self.depth -= 1
+            self.done = True
+        elif self.depth and tag == "p" and self.in_p:
+            self.in_p -= 1
+            self.paras.append("".join(self.buf).strip())
+
+    def handle_data(self, data):
+        if self.depth and self.in_p and not self.done:
+            self.buf.append(data)
+
+    def text(self):
+        return "\n\n".join(self.paras)
+
+
+def _act_now_cta_href(page):
+    """The mailto href on Act now's orange Email the Council button."""
+    m = re.search(
+        r'<a [^>]*class="btn btn--cta"[^>]*href="(?P<href>mailto:[^"]+)"', page)
+    assert m, "act-now.html no longer carries the Email the Council CTA"
+    return html.unescape(m.group("href"))
+
+
+def _mailto_param(href, name):
+    """Raw (still percent-encoded) value of one parameter of a mailto href.
+
+    Split by hand rather than through urllib.parse.parse_qs, which turns "+"
+    into a space; the body must compare byte for byte after a plain unquote.
+    """
+    query = href.split("?", 1)[1] if "?" in href else ""
+    for part in query.split("&"):
+        key, _, value = part.partition("=")
+        if key == name:
+            return value
+    return None
+
+
+def test_act_now_cta_body_decodes_to_the_blockquote(docs):
+    """The CTA's mailto body decodes back to exactly the blockquote text.
+
+    Ledger row 96, second operator instruction on 2026-11-24, verbatim: "can
+    we put the example message in the mailto body for the button?". One source
+    of truth: tools/build.py composes the body from the page's blockquote at
+    build time, so an edit to the letter cannot drift from the button. This
+    pin reads the rendered blockquote and the rendered href separately and
+    requires them to be the same letter, greeting and sign-off included.
+    """
+    page = read(docs, "act-now.html")
+    assert page.count("<blockquote>") == 1, "act-now.html should carry one letter"
+
+    body = _mailto_param(_act_now_cta_href(page), "body")
+    assert body is not None, "the CTA href carries no body parameter"
+    decoded = urllib.parse.unquote(body)
+
+    parser = _BlockquoteText()
+    parser.feed(page)
+    visible = parser.text()
+
+    assert visible.startswith("Dear Councilors,"), visible[:60]
+    assert visible.endswith("[Your name and street or neighborhood]"), visible[-60:]
+    assert decoded == visible
+    assert "\n\n" in decoded, "paragraphs must join with a blank line"
+    assert "\r" not in decoded
+
+
+def test_act_now_cta_body_is_populated_in_the_html(docs):
+    """The populated draft ships in the markup, so it works with scripting off.
+
+    Same ruling as the test above. The site's no-JS path rule means the href a
+    reader's browser receives must already carry the message; nothing may fill
+    it in at runtime, and the build's own marker must not survive into the
+    shipped page.
+    """
+    page = read(docs, "act-now.html")
+    href = _act_now_cta_href(page)
+
+    assert "body=" in href, "the shipped CTA href has no body parameter"
+    body = _mailto_param(href, "body")
+    assert body, "the body parameter is present but empty"
+    # 631 characters of letter, so a populated body is far past this floor;
+    # an empty or truncated one is not.
+    assert len(body) > 600, f"body is only {len(body)} encoded characters"
+    assert "data-mailto-body" not in page, "the build marker must not ship"
+    assert "Dear%20Councilors%2C" in href, "the greeting is not in the shipped href"
 
 
 def test_report_an_odor_page_dual_channel(docs):

@@ -12,10 +12,12 @@ deliberately boring: stdlib only, no dependencies. CI runs the tests and the
 build; publishing is the mirror pipeline (tools/publish.py, see AGENTS.md
 "Publishing to the public mirror").
 """
+import html
 import os
 import re
 import shutil
 import sys
+import urllib.parse
 
 import psp_public
 
@@ -191,6 +193,81 @@ SHELL = """<!DOCTYPE html>
 """
 
 
+# Ledger row 96, second operator instruction (2026-11-24, verbatim): "can we put
+# the example message in the mailto body for the button?". The letter a reader
+# reads in the blockquote and the draft the Email the Council button opens have
+# to be one string, or an edit to the letter leaves the button behind. The page
+# keeps the only copy, in the blockquote; this step runs at build time and
+# writes that same text into the CTA's mailto body, so the button opens a
+# populated draft with scripting off (the site's no-JS path rule) and no
+# runtime script has to know the letter. Scoped by a marker rather than by page
+# name: an anchor opts in with data-mailto-body="blockquote", every page that
+# carries one is filled, and a marker with no blockquote refuses the build
+# instead of shipping an empty draft. Deliberately not a templating system: one
+# attribute, one parameter, one letter, and no second copy to drift.
+MAILTO_BODY_MARKER = 'data-mailto-body="blockquote"'
+MARKED_ANCHOR_RE = re.compile(
+    r"<a\b[^>]*" + re.escape(MAILTO_BODY_MARKER) + r"[^>]*>", re.I)
+BLOCKQUOTE_RE = re.compile(r"<blockquote>(?P<inner>.*?)</blockquote>", re.S)
+PARAGRAPH_RE = re.compile(r"<p>(?P<inner>.*?)</p>", re.S)
+BR_RE = re.compile(r"<br\s*/?>", re.I)
+TAG_RE = re.compile(r"<[^>]+>")
+
+
+def blockquote_text(markup: str) -> str:
+    """Plain text of a page's blockquote: the visible letter, nothing else.
+
+    Conversion, fixed by the operator's instruction: each <p> is one
+    paragraph, paragraphs join with a blank line, <br> is a single newline,
+    tags are stripped before entities are unescaped (so a literal "&lt;p&gt;"
+    stays text and never becomes a tag), and the result is trimmed.
+    """
+    found = BLOCKQUOTE_RE.search(markup)
+    if not found:
+        raise ValueError(
+            f"a {MAILTO_BODY_MARKER} anchor needs a <blockquote> to fill from")
+    paragraphs = []
+    for para in PARAGRAPH_RE.finditer(found.group("inner")):
+        text = BR_RE.sub("\n", para.group("inner"))
+        text = TAG_RE.sub("", text)
+        paragraphs.append(html.unescape(text).strip())
+    return "\n\n".join(paragraphs)
+
+
+def apply_mailto_bodies(body: str) -> str:
+    """Fill every marked CTA's mailto body from the page's own blockquote.
+
+    The marker attribute is consumed here, so the shipped page carries the
+    populated href and no build plumbing. Fails loud rather than shipping a
+    half-built button: a marker on an anchor that is not a mailto, a href that
+    already declares a body (a hand-maintained second copy, which is exactly
+    what one source of truth forbids), and a marker that matches no anchor all
+    raise.
+    """
+    if MAILTO_BODY_MARKER not in body:
+        return body
+    encoded = urllib.parse.quote(blockquote_text(body), safe="")
+
+    def fill(match):
+        tag = match.group(0)
+        href_match = re.search(r'href="(?P<href>mailto:[^"]*)"', tag)
+        if not href_match:
+            raise ValueError(
+                f"a {MAILTO_BODY_MARKER} marker sits on an anchor with no mailto: href")
+        href = href_match.group("href")
+        if "body=" in href:
+            raise ValueError(
+                "a marked CTA already declares its own body; remove the hand-written copy")
+        joined = ("&amp;" if "?" in href else "?") + "body=" + encoded
+        tag = tag.replace(href_match.group(0), f'href="{href}{joined}"', 1)
+        return tag.replace(" " + MAILTO_BODY_MARKER, "", 1)
+
+    body, filled = MARKED_ANCHOR_RE.subn(fill, body)
+    if not filled:
+        raise ValueError(f"a {MAILTO_BODY_MARKER} marker matched no anchor")
+    return body
+
+
 def build(out_dir: str) -> list:
     """Assemble every page into out_dir; return the list of pages written."""
     os.makedirs(out_dir, exist_ok=True)
@@ -204,7 +281,7 @@ def build(out_dir: str) -> list:
             raise ValueError(f"{name}: first line must be the <!-- meta: ... --> comment")
         title = m.group("title")
         desc = m.group("desc")
-        body = raw[m.end():].strip()
+        body = apply_mailto_bodies(raw[m.end():].strip())
         nav = NAV_BODY
         if f'<a href="{name}">' in nav:
             nav = nav.replace(f'<a href="{name}">', f'<a href="{name}" aria-current="page">', 1)
