@@ -492,6 +492,13 @@ blockquote {
 
 .card h3 { margin: 0 0 8px; }
 
+/* A text card (grid, no photo) heads with the same h2.h3-look the photo cards
+   use. The base h3-look carries prose spacing (1.6em above), which is wrong
+   geometry inside a card, so a card pins it to the card's own 8px step. Same
+   value as the photo and report cards already declare, so neither of those
+   moves; this only gives the plain text card the geometry it never had. */
+.card h2.h3-look { margin: 0 0 8px; }
+
 .card p { color: var(--muted); flex: 1; }
 
 .card .card__more { font-weight: 800; text-decoration: none; }

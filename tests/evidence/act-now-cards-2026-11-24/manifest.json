@@ -1,0 +1,158 @@
+{
+  "row": 92,
+  "date": "2026-11-24",
+  "branch": "bb/act-now-cards",
+  "base_commit": "f1314d49630919649359788f2236fdb7290ae3cd",
+  "page": "act-now.html",
+  "instructed": "2026-11-24, after the operator reviewed staging",
+  "instruction": "I want the underlying template for the card format used in multiple places on the site. The actual content on Our Work is fine, I just want similar cards on Act Now for Donate and Report an Odor.",
+
+  "template_identification": {
+    "method": "read in place in every page that renders a card, then measured in headless Chrome",
+    "uses": [
+      {
+        "page": "our-campaigns.html",
+        "count": 2,
+        "skeleton": "div.card-grid > div.card.card--photo > img.card__img + div.card__body > h2.h3-look + p + a.card__more",
+        "heading": "h2.h3-look",
+        "cta": "a.card__more"
+      },
+      {
+        "page": "past-work.html",
+        "count": 3,
+        "skeleton": "div.card-grid > div.card.card--photo > img.card__img + div.card__body > h3 + p + a.card__more",
+        "heading": "h3",
+        "cta": "a.card__more"
+      },
+      {
+        "page": "report-an-odor.html",
+        "count": 2,
+        "skeleton": "div.report-actions > div.card.report-actions__card > h2.h3-look + p + p > a.btn.btn--ghost",
+        "heading": "h2.h3-look",
+        "cta": "a.btn inside a p (drifted)"
+      }
+    ],
+    "common_skeleton": "a grid wrapper, then .card blocks whose .card__body holds a heading, a <p>, and an .card__more call-to-action link",
+    "photo_flavour": ".card.card--photo with <img class=\"card__img\"> before the body",
+    "canonical_form_transplanted": "card-grid > card > card__body > h2.h3-look > p > a.card__more",
+    "why_that_form": "the two-use majority (our-campaigns and report-an-odor both head with h2.h3-look); past-work's plain h3 is the single other shape. h2 is also required structurally here: act-now is an h1 followed by h2s, so an h3 at this position would jump the outline and fail test_heading_order_is_sequential."
+  },
+
+  "drift": {
+    "where": "report-an-odor.html",
+    "what": "class=\"card report-actions__card\" with NO .card__body wrapper, closing with a .btn.btn--ghost inside a <p> where the other two uses put an a.card__more",
+    "consequence": ".card__body carries padding only under .card--photo (.card--photo .card__body { padding: 16px 20px 12px }), so a text card's body is unstyled there; the variant re-declares its own head margin and its own p colour and bottom-margin to compensate",
+    "reading": "this is the drifted use, not the reference one",
+    "action_taken": "reported, not copied, and not repaired: report-an-odor.html is out of scope by instruction and stays byte-untouched"
+  },
+
+  "drift_shadow_found_and_fixed": {
+    "finding": "the canonical text card had never actually rendered anywhere, because both existing text cards are the drifted .report-actions__card variant, which supplies its own h2.h3-look margin. A plain .card text card inherits the base h2.h3-look { margin: 1.6em 0 0.5em } (prose spacing), which is wrong card geometry against the photo cards' 0 0 8px.",
+    "fix": "one additive rule, .card h2.h3-look { margin: 0 0 8px }, generalising the margin the photo and drifted variants already declare. Not a new class, not a new colour, not a new variant.",
+    "why_it_cannot_regress_the_out_of_scope_pages": ".card--photo h2.h3-look and .report-actions__card h2.h3-look already declare the identical value, and past-work heads with h3, which the existing .card h3 rule already covers. Verified in the build: the only two files that changed in docs/ are act-now.html and styles.css; every other built page is byte-identical to origin/main.",
+    "measured": "heading margin on the new cards reads 0px 0px 8px at all three widths, matching the photo cards"
+  },
+
+  "text_only_deviation": {
+    "what": "the two new cards ship without .card--photo and without .card__img",
+    "reason": "neither target page owns a photograph, and the site has exactly one photo-card set (the campaign teasers); inventing images would either mislead a reader about the target page or add a fourth treatment",
+    "precedent": "the template already supports a text card; report-an-odor.html renders two of them, which is why this is a departure from the photo letter of the template rather than from its markup",
+    "reversible": "one word from the operator adds or swaps photos later"
+  },
+
+  "composed_copy": {
+    "status": "AGENT-COMPOSED. This is the one place new prose appears in this change and is flagged for the reviewer to read as copy, not as quoted campaign material.",
+    "cards": [
+      {
+        "heading": "Donate",
+        "paragraph": "Fund the fight for clean air in South Portland. Give by check through the mail, or online with PayPal.",
+        "cta": "DONATE \u2192",
+        "href": "donate.html",
+        "drawn_from": "donate.html's own h1 (supporting the work for clean air) and its two giving headings, Give by mail and Give online (PayPal)"
+      },
+      {
+        "heading": "Report an odor",
+        "paragraph": "Report every odor, every time. Log it in the Smell My City app, which shows results publicly in real time, and file the City\u2019s own odor report.",
+        "cta": "REPORT AN ODOR \u2192",
+        "href": "report-an-odor.html",
+        "drawn_from": "report-an-odor.html's own h1 (two ways) and its two channels: the Smell My City app, described there as public and real time, and the City\u2019s Odor Report form"
+      }
+    ],
+    "guardrail_check": "the copy avoids every pinned phrase: it does not use 'before the workshop' (test_act_now_past_tense_and_one_email_action pins its absence) and does not repeat 'The City Council workshop was held on Oct. 27' (test_act_now_workshop_is_past_tense pins that count at exactly 2)"
+  },
+
+  "placement": {
+    "where": "inside .prose, directly below the current-ask callout and immediately after the existing .link-row--buttons pair, before the email-the-Council lede and CTA",
+    "rationale": "the pair and the cards describe the same two destinations, so keeping them adjacent makes one step (quick button, then fuller description) under the current ask, instead of splitting that cluster around the page's primary email call to action",
+    "pair_unchanged": "the .link-row--buttons pair keeps its markup, its classes and its position, and the cards are purely additive"
+  },
+
+  "captures": {
+    "dir": "tests/evidence/act-now-cards-2026-11-24/",
+    "mechanism": "bb browser-automation, headless Chrome, full-page, served from a local http.server over the built docs/ (the same engine tools/visual_check.sh and tools/uat_snapshots.py use)",
+    "files": {
+      "full_page": [
+        "act-now-cards-412.png",
+        "act-now-cards-768.png",
+        "act-now-cards-1440.png"
+      ],
+      "card_band_crops": [
+        "cardband-412.png",
+        "cardband-768.png",
+        "cardband-1440.png"
+      ],
+      "measurements": [
+        "measure-412.json",
+        "measure-768.json",
+        "measure-1440.json"
+      ]
+    },
+    "full_page_dimensions": {
+      "412": "412x6690",
+      "768": "768x4665",
+      "1440": "1440x3944"
+    }
+  },
+
+  "geometry_as_measured": {
+    "412": {
+      "grid_columns": "372px (one column)",
+      "same_row": false,
+      "card_heights": [205, 235],
+      "horizontal_overflow": false,
+      "reading": "both cards stack full width; no orphan card and no horizontal scroll"
+    },
+    "768": {
+      "grid_columns": "355px 355px",
+      "same_row": true,
+      "card_heights": [235, 235],
+      "horizontal_overflow": false,
+      "reading": "the row holds two equal-height cards side by side; it does not collapse at the middle width"
+    },
+    "1440": {
+      "grid_columns": "521px 521px 0px",
+      "same_row": true,
+      "card_heights": [205, 205],
+      "horizontal_overflow": false,
+      "reading": "two equal cards side by side inside the 1100px wrap; the trailing 0px is auto-fit's empty track"
+    },
+    "card_padding": "20px 20px 16px (from the base .card rule, unchanged)",
+    "card_body_padding": "0px (expected: .card__body only pads under .card--photo; the card's own padding provides the inset), heading_margin 0px 0px 8px, card__more font-weight 800 and no underline"
+  },
+
+  "template_faithfulness_note": {
+    "observed": "the two new cards' card__more links sit 20px and 49px above their card bottoms rather than on one shared baseline, because the copy lengths differ",
+    "is_this_a_regression": "no. The template behaves this way everywhere: measured on the existing pages at 1440, our-campaigns ships a 17px vs 136px split, past-work ships 17px vs 47px vs 47px, and only the drifted report card lands even (24px/24px) because its variant sets p:last-child { margin: auto 0 0 } on a flex column. The new page's 20/49 sits inside the range the template already ships.",
+    "why_not_fixed": "aligning the links would be new CSS behaviour, i.e. the fourth treatment the brief forbids; the faithful result is the inherited one",
+    "note_on_p_flex": ".card p { flex: 1 } is declared but has no effect, because .card__body is a plain block and the flex child of .card is the body div, not the paragraph. That is true of the existing uses too, and it is reported here rather than changed."
+  },
+
+  "verification": {
+    "suite": "191 passed, 1 skipped (the repo venv, tests/)",
+    "scanner": "psp_public.scan_tree('docs') returns []",
+    "build": "clean",
+    "changed_files": ["site/pages/act-now.html", "site/styles.css", "docs/act-now.html", "docs/styles.css"],
+    "unchanged_by_instruction": ["site/pages/our-campaigns.html", "site/pages/past-work.html", "site/pages/report-an-odor.html"],
+    "other_built_pages": "all byte-identical to origin/main"
+  }
+}

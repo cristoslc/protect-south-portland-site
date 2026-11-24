@@ -1,0 +1,51 @@
+{
+  "viewport": {
+    "w": 412,
+    "h": 900
+  },
+  "grid": {
+    "rect": {
+      "x": 20,
+      "y": 1296,
+      "w": 372,
+      "h": 458
+    },
+    "columns": "372px",
+    "gap": "18px",
+    "display": "grid"
+  },
+  "card_count": 2,
+  "cards": [
+    {
+      "rect": {
+        "x": 20,
+        "y": 1296,
+        "w": 372,
+        "h": 205
+      },
+      "heading": "Donate",
+      "more": "DONATE \u2192"
+    },
+    {
+      "rect": {
+        "x": 20,
+        "y": 1520,
+        "w": 372,
+        "h": 235
+      },
+      "heading": "Report an odor",
+      "more": "REPORT AN ODOR \u2192"
+    }
+  ],
+  "same_row": false,
+  "heading_margin": "0px 0px 8px",
+  "heading_font": "18px",
+  "body_padding": "0px",
+  "card_padding": "20px 20px 16px",
+  "more_style": {
+    "fontWeight": "800",
+    "textDecoration": "none"
+  },
+  "page_scroll_width": 412,
+  "has_horizontal_overflow": false
+}
