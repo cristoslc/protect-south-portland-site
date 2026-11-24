@@ -71,9 +71,76 @@
       <blockquote>
         <p>Protect South Portland<br>15 Cottage Road, Suite 2154<br>South Portland, ME 04116</p>
       </blockquote>
-      <p class="callout">
-        Subscribe to our <a href="newsletter.html">newsletter</a>.
-      </p>
+      <p>Subscribe to our <a href="newsletter.html">newsletter</a>.</p>
+      <div class="signup signup--reduced">
+        <label for="signup-email">Your email address</label>
+        <div class="signup__row">
+          <input type="email" id="signup-email" name="email" autocomplete="email" inputmode="email" spellcheck="false">
+          <button type="button" class="btn btn--cta" id="signup-open">Open my email app</button>
+        </div>
+        <p class="signup__note">The button opens your own email app with the message ready to send. This does not subscribe you and it stores nothing: your address reaches the campaign when you press send in that app.</p>
+        <p class="signup__status" role="status" aria-live="polite"></p>
+      </div>
+
+      <p class="signup__fallback">Writing by hand? Email <a href="mailto:protectsouthportland@gmail.com?subject=Subscribe%20to%20the%20newsletter">protectsouthportland@gmail.com</a> with &ldquo;Subscribe&rdquo; in the subject line.</p>
+
+      <noscript>
+        <p>The button above needs JavaScript. The email address in the line above works without it.</p>
+      </noscript>
+
+      <script>
+/* Newsletter signup, one shared component (see tools/build.py): every
+   .signup box on the page is wired by this one script. The button builds a
+   mailto: from the typed address and hands it to the visitor's mail app. No
+   backend, no third-party form service, nothing stored, no analytics.
+
+   Two habits are deliberate. The typed value is trimmed and its shape is
+   checked before anything is built, so an empty field never opens a blank
+   message and a typo gets a sentence instead of a silent nothing. And the
+   value travels encoded: encodeURIComponent for the subject and the body, so
+   a quote, an ampersand or a line break cannot break the URL or smuggle a
+   second recipient in. Nothing a visitor types is ever parsed as markup: the
+   status line is written with textContent, so typed markup stays text. */
+(function () {
+  var ADDRESS = "protectsouthportland@gmail.com";
+  var SUBJECT = "Subscribe to the newsletter";
+  var boxes = document.querySelectorAll(".signup");
+  for (var i = 0; i < boxes.length; i++) { wire(boxes[i]); }
+  function wire(box) {
+    var field = box.querySelector("input[type=email]");
+    var button = box.querySelector("button");
+    var status = box.querySelector(".signup__status");
+    function say(message) {
+      status.textContent = message;
+    }
+    function open() {
+      var typed = field.value.trim();
+      if (!typed) {
+        say("Add your email address above first, or write to " + ADDRESS + ".");
+        field.focus();
+        return;
+      }
+      if (!field.checkValidity()) {
+        say("That does not look like an email address. Check it, or write to " + ADDRESS + ".");
+        field.focus();
+        return;
+      }
+      var body = "Please add this address to the Protect South Portland newsletter:\n\n" + typed + "\n";
+      window.location.href = "mailto:" + ADDRESS +
+        "?subject=" + encodeURIComponent(SUBJECT) +
+        "&body=" + encodeURIComponent(body);
+      say("Opening your email app. If nothing opens, write to " + ADDRESS + ".");
+    }
+    button.addEventListener("click", open);
+    field.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        open();
+      }
+    });
+  }
+})();
+</script>
     </div>
   </div>
 </section>

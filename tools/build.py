@@ -234,6 +234,115 @@ def blockquote_text(markup: str) -> str:
     return "\n\n".join(paragraphs)
 
 
+NEWSLETTER_SIGNUP_MARKER_RE = re.compile(
+    r'<div\s+data-newsletter-signup="(full|reduced)"\s*>\s*</div>')
+
+# The newsletter signup, one source of truth (ledger row 115). The label, the
+# email field, the button, the honest note, the status line, the hand-writing
+# fallback and the noscript explanation are assembled here at build time and
+# injected wherever a page declares the marker, so no page carries its own
+# copy of the block. The `variant` parameter carries the emphasis: "full"
+# renders the callout panel the newsletter page shipped (row 91), "reduced"
+# renders the same structure with no panel of its own, so the component
+# matches the text around it where the ask is not the page's whole point.
+# The guarantees are row 91's, carried unchanged: a real <label>, the typed
+# value checked and encoded before anything is built, the status line written
+# with textContent, and the plain address in the prose outside <noscript>.
+NEWSLETTER_SIGNUP_SCRIPT = '''<script>
+/* Newsletter signup, one shared component (see tools/build.py): every
+   .signup box on the page is wired by this one script. The button builds a
+   mailto: from the typed address and hands it to the visitor's mail app. No
+   backend, no third-party form service, nothing stored, no analytics.
+
+   Two habits are deliberate. The typed value is trimmed and its shape is
+   checked before anything is built, so an empty field never opens a blank
+   message and a typo gets a sentence instead of a silent nothing. And the
+   value travels encoded: encodeURIComponent for the subject and the body, so
+   a quote, an ampersand or a line break cannot break the URL or smuggle a
+   second recipient in. Nothing a visitor types is ever parsed as markup: the
+   status line is written with textContent, so typed markup stays text. */
+(function () {
+  var ADDRESS = "protectsouthportland@gmail.com";
+  var SUBJECT = "Subscribe to the newsletter";
+  var boxes = document.querySelectorAll(".signup");
+  for (var i = 0; i < boxes.length; i++) { wire(boxes[i]); }
+  function wire(box) {
+    var field = box.querySelector("input[type=email]");
+    var button = box.querySelector("button");
+    var status = box.querySelector(".signup__status");
+    function say(message) {
+      status.textContent = message;
+    }
+    function open() {
+      var typed = field.value.trim();
+      if (!typed) {
+        say("Add your email address above first, or write to " + ADDRESS + ".");
+        field.focus();
+        return;
+      }
+      if (!field.checkValidity()) {
+        say("That does not look like an email address. Check it, or write to " + ADDRESS + ".");
+        field.focus();
+        return;
+      }
+      var body = "Please add this address to the Protect South Portland newsletter:\\n\\n" + typed + "\\n";
+      window.location.href = "mailto:" + ADDRESS +
+        "?subject=" + encodeURIComponent(SUBJECT) +
+        "&body=" + encodeURIComponent(body);
+      say("Opening your email app. If nothing opens, write to " + ADDRESS + ".");
+    }
+    button.addEventListener("click", open);
+    field.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        open();
+      }
+    });
+  }
+})();
+</script>'''
+
+
+def newsletter_signup_html(variant: str, uid: str, with_script: bool) -> str:
+    """One rendered signup instance; the script rides only on the page's
+    first instance and wires every .signup box on the page."""
+    root = "callout signup" if variant == "full" else "signup signup--reduced"
+    block = f'''<div class="{root}">
+        <label for="signup-email{uid}">Your email address</label>
+        <div class="signup__row">
+          <input type="email" id="signup-email{uid}" name="email" autocomplete="email" inputmode="email" spellcheck="false">
+          <button type="button" class="btn btn--cta" id="signup-open{uid}">Open my email app</button>
+        </div>
+        <p class="signup__note">The button opens your own email app with the message ready to send. This does not subscribe you and it stores nothing: your address reaches the campaign when you press send in that app.</p>
+        <p class="signup__status" role="status" aria-live="polite"></p>
+      </div>
+
+      <p class="signup__fallback">Writing by hand? Email <a href="mailto:protectsouthportland@gmail.com?subject=Subscribe%20to%20the%20newsletter">protectsouthportland@gmail.com</a> with &ldquo;Subscribe&rdquo; in the subject line.</p>
+
+      <noscript>
+        <p>The button above needs JavaScript. The email address in the line above works without it.</p>
+      </noscript>'''
+    return block + ("\n\n      " + NEWSLETTER_SIGNUP_SCRIPT if with_script else "")
+
+
+def apply_newsletter_signups(body: str, name: str) -> str:
+    """Replace every declared marker with the rendered component, failing
+    loud on an unknown variant. The script is emitted once per page, riding
+    on the first instance."""
+    matches = list(NEWSLETTER_SIGNUP_MARKER_RE.finditer(body))
+    if not matches:
+        return body
+    out, last = [], 0
+    for i, match in enumerate(matches):
+        out.append(body[last:match.start()])
+        out.append(newsletter_signup_html(
+            match.group(1), "" if i == 0 else "-" + match.group(1),
+            with_script=(i == 0)))
+        last = match.end()
+    out.append(body[last:])
+    return "".join(out)
+
+
 def apply_mailto_bodies(body: str) -> str:
     """Fill every marked CTA's mailto body from the page's own blockquote.
 
@@ -282,7 +391,11 @@ def build(out_dir: str) -> list:
         title = m.group("title")
         desc = m.group("desc")
         try:
-            body = apply_mailto_bodies(raw[m.end():].strip())
+            body = apply_newsletter_signups(raw[m.end():].strip(), name)
+        except ValueError as exc:
+            raise ValueError(f"{name}: {exc}") from exc
+        try:
+            body = apply_mailto_bodies(body)
         except ValueError as exc:
             # The mailto refusals below describe the condition; on a 20+ page
             # build the traceback also has to say which page hit it, so the

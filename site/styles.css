@@ -521,6 +521,18 @@ img { max-width: 100%; height: auto; }
 .signup__note { font-size: 0.95rem; color: var(--muted); margin: 0.9rem 0 0; }
 
 .signup__status { font-size: 0.95rem; color: var(--teal-900); font-weight: 700; margin: 0.5rem 0 0; }
+
+/* ---------- newsletter signup, reduced variant (2026-11-24) ----------
+
+   The component's second emphasis: the same structure with no panel of its
+   own, for the places that ask in passing rather than making the ask the
+   page's whole point. The full variant's box comes from `.callout`, which
+   the reduced root simply does not carry, so the only new rule is the
+   spacing that seats the component in the text around it. No new colour, no
+   new control styling: the label, field, button, note and status are the
+   original signup rules unchanged. */
+
+.signup--reduced { margin: 0.6rem 0 1.4rem; }
 .signup__status:empty { display: none; }
 
 /* No media query here on purpose: the field's 18rem basis plus the button is

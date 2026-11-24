@@ -1,0 +1,28 @@
+{
+  "leg": "The newsletter signup becomes one reusable component with two emphasis levels (ledger row 115)",
+  "date": "2026-11-24",
+  "branch": "bb/newsletter-component-thr_p257b4jc9k",
+  "base": "f5aec14 (origin/main)",
+  "operator_words_verbatim": "I wanted a newsletter *component* like this, to be used (with less emphasis / matching style around it) anywhere that we currently ask to subscribe to the newsletter.",
+  "mechanism": "Build-time partial in tools/build.py, the site's no-JS-build rule and the same pattern as the mailto-body injection: a source page declares <div data-newsletter-signup=\"full|reduced\"></div>, and the build renders the label, email field, button, honest note, status line, hand-writing fallback and noscript explanation from one template, then emits the wiring script once per page riding on the first instance, where it drives every .signup box on the page via querySelectorAll. An unknown variant refuses the build loud, and the build consumes the declaration markers so no page ships the plumbing or a second source of truth.",
+  "sweep_asks_vs_references": {
+    "asks": [
+      "newsletter.html: the page's whole point is the ask; keeps the FULL variant, rendered byte-for-byte as the row-91 block shipped (same ids, same panel)",
+      "contact.html: 'Subscribe to our newsletter.' — a real ask; the sentence drops its one-line callout dressing for plain flow and the REDUCED variant sits beneath it"
+    ],
+    "references_untouched": [
+      "the footer's Newsletter link (navigation, not an ask)",
+      "share-your-story.html's consent-callout mention ('We will let you know, through the Protect South Portland newsletter') — a link about where contributions are announced, exactly the link-not-signup case the operator's framing names; it stays a link",
+      "contact.html's 'newsletter items' phrase (an invitation to send content, not to subscribe)"
+    ]
+  },
+  "variant_styling": "The full variant is the row-91 callout panel unchanged. The reduced variant is the same structure with no panel of its own: its root carries .signup without .callout, so the box, border and shadow simply never apply, and the only new rule is one spacing declaration (.signup--reduced margin) seating the component in the surrounding text. The button keeps .btn--cta because it is the component's one action and the family's measured treatment; the emphasis reduction lives in the wrapper, and no new colour enters the palette (the reduced block adds none, pinned by the existing no-colour rule's territory).",
+  "guarantees_carried": "Real <label> (never a placeholder); the typed value trimmed, validated and encoded (encodeURIComponent for subject and body) before anything is built; the empty field refused with a sentence before the mailto exists; the status line written with textContent only; the plain address in the prose outside <noscript>; no form element; the note states the component does not subscribe and stores nothing. The row-91 pin moved to the component: same assertions, now reading the rendered instances, extended with the reduced instance and the marker-consumption checks.",
+  "uat_payload_answer": "findings [] across every built page after placement; newsletter.html and contact.html each carry zero pairs — the component's fallback mailto links are address links (the address as link text, no body), which the rule reads as addresses, not transmitting controls",
+  "checks": {
+    "suite": "252 passed, 1 skipped",
+    "scanner": "psp_public.scan_tree('docs') == []"
+  },
+  "captures": "both variants at 412 and 768, the component pinned at the same scroll offset in each, read before reporting",
+  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}

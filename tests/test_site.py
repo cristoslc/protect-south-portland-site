@@ -2240,20 +2240,28 @@ def test_newsletter_archive_demoted(docs):
 
 
 def test_newsletter_signup_component(docs):
-    """Ledger row 91: the header stopped carrying Newsletter, so the
-    subscription moved onto `newsletter.html` as a mailto component.
+    """Ledger row 91, moved to the component by row 115: the subscription is
+    a mailto component assembled at build time from one source of truth in
+    tools/build.py, and this pin reads its rendered instances rather than any
+    page's hand-written copy.
 
     What it is: a labelled email field and a button in the .btn family that
     hands the visitor's own mail app a message carrying the typed address.
     What it is not: a subscription. Nothing is posted, nothing is stored, and
     no request leaves the browser until the visitor presses send in that app,
-    so the page says so in words.
+    so the component says so in words.
 
     Four things are pinned rather than assumed: an empty field never opens a
     blank message; a value that does not parse as an email is named as a
     problem instead of vanishing; the typed value is encoded and only ever
     written as text, never parsed as markup; and a reader with scripting off
     still has the plain address, in the prose, outside `<noscript>`.
+
+    Row 115 adds the component contract: the full variant renders on the
+    newsletter page exactly as the row-91 block shipped; the reduced variant
+    (same structure, no panel) renders at the contact page's ask; the build
+    consumes the declaration markers so no page carries two sources; and the
+    wiring script appears once per page and drives every `.signup` box on it.
     """
     page = read(docs, "newsletter.html")
 
@@ -2296,6 +2304,30 @@ def test_newsletter_signup_component(docs):
     assert 'href="mailto:protectsouthportland@gmail.com' in without_noscript, (
         "a reader with scripting off needs a plain address outside <noscript>")
     assert "<noscript>" in page, "the button's JS dependency is explained"
+
+    # row 115: the full variant keeps the callout panel it shipped
+    assert '<div class="callout signup">' in page
+    # the build consumed the declaration marker: one source of truth, no
+    # page ships the plumbing
+    assert "data-newsletter-signup" not in page
+
+    # the reduced variant at the contact page's ask: same structure, no
+    # panel, and the same guarantees. Instance ids are unique per document
+    # (one instance on this page takes the base ids; a second instance on
+    # the same page would take the variant-suffixed ones).
+    contact = read(docs, "contact.html")
+    assert '<div class="signup signup--reduced">' in contact
+    assert '<label for="signup-email">Your email address</label>' in contact
+    assert '<input type="email" id="signup-email"' in contact
+    assert '<button type="button" class="btn btn--cta" id="signup-open">' in contact
+    assert "does not subscribe you" in contact
+    assert "data-newsletter-signup" not in contact
+    # one wiring script per page, driving every .signup box on it
+    assert contact.count('var ADDRESS = "protectsouthportland@gmail.com";') == 1
+    assert "querySelectorAll" in contact
+    # scripting off on the contact page too: the plain address outside <noscript>
+    c_without_noscript = re.sub(r"<noscript>.*?</noscript>", "", contact, flags=re.S)
+    assert 'href="mailto:protectsouthportland@gmail.com' in c_without_noscript
 
 
 def test_newsletter_signup_css_adds_no_colour():
