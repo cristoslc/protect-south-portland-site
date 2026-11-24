@@ -997,7 +997,10 @@ def test_report_an_odor_page_dual_channel(docs):
     SMC download paragraph inside the same section.
 
     2026-11-24: the section became page report-an-odor.html (the copy
-    document's Report an Odor child), moved byte-for-byte."""
+    document's Report an Odor child), moved byte-for-byte. Every assertion
+    below is the one get-involved.html carried, copied unchanged; only the
+    closing boundary moved, because the section that used to follow on that
+    page now lives on act-now.html."""
     gi = read(docs, "report-an-odor.html")
     assert "https://www.southportland.gov/FormCenter/Air-Quality-9/City-of-South-Portland-Odor-Report-Form-60" in gi
     assert ">Odor Report form</a>" in gi
@@ -1005,7 +1008,7 @@ def test_report_an_odor_page_dual_channel(docs):
     assert "preferred method" in gi
     assert "not publicly available in real-time" in gi
     smc = gi.index("Download the Smell My City app")
-    form = gi.index(">Odor Report form</a>")
+    form = gi.index("Odor Report form")
     next_section = gi.index("File the report form")
     assert smc < form < next_section, "form paragraphs must land under the SMC copy"
 
