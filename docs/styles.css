@@ -361,6 +361,12 @@ h3 { color: var(--teal-700); margin: 1.6em 0 0.5em; }
 
 h2.h3-look { font-size: 1em; color: var(--teal-700); margin: 1.6em 0 0.5em; }
 
+/* 2026-11-24 bold-emphasis pass: a bold line under an h3 that was acting as a
+   subhead (the HEM-3 map title on tank-farms) is an h4 in the outline, and
+   keeps the same 1em teal look the retired bold paragraph carried. */
+
+h4.h3-look { font-size: 1em; color: var(--teal-700); margin: 1.6em 0 0.5em; }
+
 .card--photo h2.h3-look { margin: 0 0 8px; }
 
 p { margin: 0 0 1em; }

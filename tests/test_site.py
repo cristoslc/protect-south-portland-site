@@ -111,6 +111,15 @@ def read(docs, name):
     return open(os.path.join(docs, name), encoding="utf-8").read()
 
 
+def reading_text(markup):
+    """Tag-stripped, whitespace-normalized text of a built page.
+
+    Copy pins (ledger rulings on wording) assert against this, not raw markup,
+    so an emphasis-only edit (2026-11-24 bold pass) cannot break a copy rule.
+    """
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", markup)).split())
+
+
 def html_files(docs):
     return sorted(n for n in os.listdir(docs) if n.endswith(".html"))
 
@@ -517,19 +526,23 @@ def test_row33_oct15_meeting_copy_published(docs):
     directed the past-tense conversion on 2026-11-05 (the meeting happened).
     It stays as history above the workshop bullet, without the event links."""
     idx = read(docs, "index.html")
-    bullet = ('<li><strong>Neighbors met on Thursday, Oct. 15 for a community meeting to '
-              "share ideas, concerns, and stories:</strong> 5:30 p.m. food and "
+    # 2026-11-24: the copy pin reads the tag-stripped text, because the bold
+    # pass moved emphasis inside this bullet; what row 33 rules on is the
+    # sentence, not where the <strong> sits.
+    idx_text = reading_text(idx)
+    bullet = ("Neighbors met on Thursday, Oct. 15 for a community meeting to "
+              "share ideas, concerns, and stories: 5:30 p.m. food and "
               "community; 6-7 p.m. discussion, at First Congregational Church "
-              "UCC, 301 Cottage Road. Kids were welcome.</li>")
-    assert bullet in idx, "the past-tense meeting bullet must ship"
+              "UCC, 301 Cottage Road. Kids were welcome.")
+    assert bullet in idx_text, "the past-tense meeting bullet must ship"
     assert "Join neighbors on Thursday, Oct. 15" not in idx, "the invitation form is retired"
     assert 'href="assets/files/tank-talk-flyer.pdf"' not in idx, "the event-only flyer link is dropped"
     flyer = os.path.join(ROOT, "docs", "assets", "files", "tank-talk-flyer.pdf")
     assert os.path.exists(flyer), "the Tank Talk flyer stays archived in the built tree"
     # meeting bullet sits above the workshop bullet (operator placement)
-    callout_pos = idx.index("Now is the time to act")
-    assert idx.index("Neighbors met on Thursday, Oct. 15", callout_pos) < \
-        idx.index("The City Council took no vote at its Oct. 27 workshop", callout_pos)
+    callout_pos = idx_text.index("Now is the time to act")
+    assert idx_text.index("Neighbors met on Thursday, Oct. 15", callout_pos) < \
+        idx_text.index("The City Council took no vote at its Oct. 27 workshop", callout_pos)
     # the scan ban is retired: no event markers remain to reject it
     assert tuple(FORBIDDEN_EVENT_MARKERS) == ()
 
@@ -2109,7 +2122,9 @@ def test_act_now_past_tense_and_one_email_action(docs):
     # date describes a past event. What must be gone is every invitation to
     # attend it. Never pin the date string's absence.
     act = read(docs, "act-now.html")
-    assert "The City Council workshop was held on Oct. 27" in act
+    # 2026-11-24: read the tag-stripped text, so emphasis markup can move
+    # inside the sentence without the ruling pin breaking on a <strong>.
+    assert "The City Council workshop was held on Oct. 27" in reading_text(act)
     assert "took no vote" in act
     # 2026-11-20: a date now exists, so the opener states the outcome: the
     # options the Council asked for return at the planned Dec. 1 workshop.
@@ -2158,14 +2173,18 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
                     "at 6:30 p.m.")
     past_state = ("The City Council took no vote at its Oct. 27 workshop")
     idx = read(docs, "index.html")
-    assert banner in idx
-    assert bullet_state in idx
-    assert past_state in idx
+    tank = read(docs, "tank-farms.html")
+    # 2026-11-24: copy pins read tag-stripped text, so the bold pass can move
+    # emphasis inside these sentences without weakening the ruling they pin.
+    idx_text = reading_text(idx)
+    tank_text = reading_text(tank)
+    assert banner in idx_text
+    assert bullet_state in idx_text
+    assert past_state in idx_text
     assert "require better technology at the tank farms" in idx
     assert "make public what special counsel advises" in idx
     assert "637 Highland Ave" not in idx
-    tank = read(docs, "tank-farms.html")
-    assert bullet_state in tank
+    assert bullet_state in tank_text
     assert "require better technology at the tank farms" in tank
     assert "make public what special counsel advises" in tank
     assert "637 Highland Ave" not in tank
@@ -2346,3 +2365,153 @@ def test_no_stacked_callouts(docs):
     assert not violations, (
         "adjacent callouts split the emphasis they are meant to give; merge "
         "them into one box or demote one to plain prose\n" + "\n".join(violations))
+
+
+# ---- bold emphasis guard -------------------------------------------------
+
+_BOLD_BLOCK_TAGS = frozenset({"p", "li"})
+_BOLD_TAGS = frozenset({"strong", "b"})
+# A nested box starts its own reading unit, so its words never count toward
+# the enclosing paragraph or list item (a sub-list inside an <li>, say).
+_BOLD_NESTED_BOXES = frozenset({
+    "p", "li", "ul", "ol", "div", "section", "article", "aside", "header",
+    "footer", "main", "nav", "figure", "figcaption", "blockquote", "table",
+    "tr", "td", "th", "dl", "dt", "dd", "h1", "h2", "h3", "h4", "h5", "h6",
+})
+
+BOLD_BLOCK_MIN_WORDS = 10
+BOLD_RUN_MAX_WORDS = 8
+BOLD_SHARE_MAX = 0.25
+
+
+class _BoldTree(HTMLParser):
+    """An element tree with text leaves: enough to measure bold in a block."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.root = {"tag": "(document)", "children": []}
+        self._open = [self.root]
+
+    def handle_starttag(self, tag, attrs):
+        node = {"tag": tag, "children": []}
+        self._open[-1]["children"].append(node)
+        if tag not in _VOID_TAGS:
+            self._open.append(node)
+
+    def handle_startendtag(self, tag, attrs):
+        self._open[-1]["children"].append({"tag": tag, "children": []})
+
+    def handle_endtag(self, tag):
+        if tag in _VOID_TAGS:
+            return
+        for depth in range(len(self._open) - 1, 0, -1):
+            if self._open[depth]["tag"] == tag:
+                del self._open[depth:]
+                return
+
+    def handle_data(self, data):
+        self._open[-1]["children"].append(data)
+
+
+def _bold_text(node, stop_at_box=False):
+    """Text under a node; with stop_at_box, a nested block's words are skipped."""
+    pieces = []
+    for child in node["children"]:
+        if isinstance(child, str):
+            pieces.append(child)
+        elif child["tag"] == "br":
+            pieces.append(" ")
+        elif stop_at_box and child["tag"] in _BOLD_NESTED_BOXES:
+            continue
+        else:
+            pieces.append(_bold_text(child, stop_at_box))
+    return "".join(pieces)
+
+
+def _bold_words(text):
+    """Whitespace-separated tokens that carry a letter or digit (not a dash)."""
+    return [token for token in re.split(r"\s+", html.unescape(text))
+            if re.search(r"[0-9A-Za-z]", token)]
+
+
+def _bold_runs(node):
+    """One entry per <strong>/<b> element: a run is an element, not its pieces."""
+    runs = []
+
+    def walk(current):
+        for child in current["children"]:
+            if isinstance(child, str):
+                continue
+            if child["tag"] in _BOLD_TAGS:
+                runs.append(_bold_words(_bold_text(child, stop_at_box=True)))
+            else:
+                walk(child)
+
+    walk(node)
+    return runs
+
+
+def _bold_blocks(node):
+    blocks = []
+
+    def walk(current):
+        for child in current["children"]:
+            if isinstance(child, str):
+                continue
+            if child["tag"] in _BOLD_BLOCK_TAGS:
+                blocks.append(child)
+            walk(child)
+
+    walk(node)
+    return blocks
+
+
+def test_bold_marks_a_phrase_not_a_sentence(docs):
+    """Bold marks a phrase, not a sentence (2026-11-24).
+
+    The operator raised this with a screenshot of the tank-farms callout, where
+    bold covered most of the paragraph across five separate runs. Bold that
+    wide no longer points at anything: the reader sees a wall of black and the
+    emphasis is gone.
+
+    So, for every built page and every <p>/<li> of at least 10 words:
+
+    - no single <strong>/<b> run may hold 8 words or more, because that is a
+      sentence wearing emphasis, and
+    - bold may not cover more than 25 percent of the block's own words, and
+    - a block that is 100 percent bold is a heading written as bold text, which
+      must become a real heading with the page's heading classes.
+
+    The failure names the page, the block's word count, its bold share, its
+    longest run and the text, so the sentence to fix is visible in the report.
+    """
+    violations = []
+    for name in html_files(docs):
+        tree = _BoldTree()
+        tree.feed(read(docs, name))
+        tree.close()
+        for block in _bold_blocks(tree.root):
+            text = " ".join(html.unescape(
+                _bold_text(block, stop_at_box=True)).split())
+            words = _bold_words(text)
+            if len(words) < BOLD_BLOCK_MIN_WORDS:
+                continue
+            runs = _bold_runs(block)
+            bold_count = sum(len(run) for run in runs)
+            longest = max(runs, key=len, default=[])
+            share = bold_count / len(words)
+            all_bold = bold_count == len(words)
+            if (len(longest) >= BOLD_RUN_MAX_WORDS
+                    or share > BOLD_SHARE_MAX or all_bold):
+                violations.append(
+                    '{}: <{}> {} words, {} bold ({:.0%}), longest run {} words{}: '
+                    '"{}"'.format(
+                        name, block["tag"], len(words), bold_count, share,
+                        len(longest), ", all bold" if all_bold else "", text))
+    assert not violations, (
+        "bold must mark a phrase, not a sentence: keep 2-5 words of the point "
+        "and unbold the rest, or make a bold line a real heading. For any "
+        "<p>/<li> of 10+ words: no <strong>/<b> run may reach "
+        f"{BOLD_RUN_MAX_WORDS} words, bold may cover at most "
+        f"{BOLD_SHARE_MAX:.0%} of the block, and an all-bold block is a heading "
+        "written as text\n" + "\n".join(violations))
