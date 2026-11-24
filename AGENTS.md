@@ -35,6 +35,22 @@ Redwork means any execution that changes bytes or state: builds, publishes, work
 
 Bluework means rulings, review, planning, briefs, PR evaluation and the low-risk merges the exception allows.
 
+## Reports must match the tree (operator directive, 2026-11-24)
+
+**After any dispatch or merge an agent MUST [RFC 2119] either drive that work to its next surface — review, merge, publish — in the same turn, or state plainly in the report that the work is waiting and on what.** A report MUST NOT [RFC 2119] imply motion the tree does not show. Before reporting work as running or done, verify the tree itself: the branch, the commit, the PR state, the worktree. Intent is not evidence; a dispatched child is not a running child, and a follow-up queued to a stopped session is not a resume.
+
+The operator's correction, verbatim (2026-11-24):
+
+> **The stall pattern is now three for three tonight** — the cards sat unreviewed, the newsletter sat unmerged, and the phantom resume reported motion the tree did not show. The standing correction I gave the lane is the only real fix: after any dispatch or merge, either drive the work to publish in the same turn or state plainly in the report that it is waiting and on what. A report that implies motion while the tree stands still is worse than no report.
+
+The three failures on the night of 2026-11-24, one line each:
+
+- The cards leg: PR #72 sat open with no reviewer dispatched while a report implied it was in review; it merged later as `c08eda4`.
+- The newsletter leg: PR #74 sat open and unmerged until the orchestrator merged it as `85e63aa`.
+- The phantom resume: a follow-up sent to a stopped session was reported as running in parallel, while the worktree stayed at `f1314d4` with no commits, no PR and no active child.
+
+A report that implies motion while the tree stands still is worse than no report.
+
 ## Staging audit — non-blocking, automated (2026-10-15)
 
 `tools/staging_audit.py` audits the staging mirror on a schedule and files one digest issue per run on this repo, labeled `staging-audit` + `accessibility` (create-if-absent). Schedule: weekday mornings ~13:15 UTC plus manual `workflow_dispatch`, via `.github/workflows/staging-audit.yml`. Per run it checks every public page for HTTP 200, runs Lighthouse accessibility (desktop) on all pages plus a mobile pass on `index.html`, re-checks the typography floor against the `styles.css` staging actually serves (root `112.5%` + body `1rem` — the same contract `test_typography_older_visitor_floor` pins on the source file), and diffs its findings against the previous run's digest, read from the machine JSON block inside the last `staging-audit` issue.
