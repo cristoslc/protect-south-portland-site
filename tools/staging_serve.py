@@ -195,6 +195,9 @@ def push_serve_branch(tree_dir, branch, cwd, base_sha):
     ok, sha = _git("rev-parse", "HEAD", cwd=cwd)
     if not ok:
         raise SystemExit("cannot read the serve commit")
+    ok, why = _git("push", "origin", branch, cwd=cwd)
+    if not ok:
+        raise SystemExit(f"cannot push the serve branch {branch}: {why}")
     return sha
 
 

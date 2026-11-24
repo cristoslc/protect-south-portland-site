@@ -93,15 +93,53 @@ def _git(repo, *cmd):
                    capture_output=True, text=True)
 
 
-def test_pushes_append_and_never_force(tmp_path):
-    repo = tmp_path / "repo"
+def _repo_with_origin(path):
+    """A repo with an `origin` remote, the CI shape.
+
+    On the fork's runner the remote is the repository itself, configured
+    by actions/checkout; in tests a bare repo stands in for it. The seed
+    commit gives the branch_exists fetch a main to hold and the push a
+    fast-forward base.
+    """
+    origin = path / "origin.git"
+    subprocess.run(["git", "init", "--bare", "-b", "main", str(origin)],
+                   check=True, capture_output=True, text=True)
+    repo = path / "repo"
     repo.mkdir()
     _git(repo, "init", "-b", "main")
-    _git(repo, "config", "user.email", "test@example.invalid")
-    _git(repo, "config", "user.name", "test")
+    _git(repo, "remote", "add", "origin", str(origin))
     (repo / "seed.txt").write_text("base")
     _git(repo, "add", "-A")
     _git(repo, "commit", "-m", "base")
+    _git(repo, "push", "origin", "main")
+    return repo
+
+
+def test_the_push_lands_on_the_remote(tmp_path):
+    """A green serve run must leave staging-pages on origin.
+
+    The fork's second serve run (45436048653, 2026-11-24) committed the
+    serve tree, printed success naming `staging-pages`, and left nothing
+    on the remote: the tool never ran `git push`. The branch lived only
+    in the runner's workspace and died with it, while the run's own
+    summary line asserted a landing that did not happen.
+    """
+    repo = _repo_with_origin(tmp_path)
+    tree = _serve_tree(tmp_path / "serve", "pushed serve")
+    sha = staging_serve.push_serve_branch(
+        str(tree), "staging-pages", str(repo), "0" * 40)
+    remote = subprocess.run(
+        ["git", "--git-dir", str(tmp_path / "origin.git"),
+         "rev-parse", "refs/heads/staging-pages"],
+        capture_output=True, text=True)
+    assert remote.returncode == 0, "staging-pages must exist on origin"
+    assert remote.stdout.strip() == sha
+
+
+def test_pushes_append_and_never_force(tmp_path):
+    repo = _repo_with_origin(tmp_path)
+    _git(repo, "config", "user.email", "test@example.invalid")
+    _git(repo, "config", "user.name", "test")
 
     tree_one = _serve_tree(tmp_path / "one", "first serve")
     sha_one = staging_serve.push_serve_branch(
@@ -123,6 +161,12 @@ def test_pushes_append_and_never_force(tmp_path):
         ["git", "log", "-1", "--format=%an", "staging-pages"],
         cwd=repo, capture_output=True, text=True).stdout.strip()
     assert author == "test", "a configured identity must never be overridden"
+    remote = subprocess.run(
+        ["git", "--git-dir", str(tmp_path / "origin.git"),
+         "rev-parse", "refs/heads/staging-pages"],
+        capture_output=True, text=True)
+    assert remote.stdout.strip() == sha_two, (
+        "origin must hold the newest serve, fast-forwarded, never replaced")
 
 
 def test_push_supplies_identity_on_a_bare_runner(tmp_path, monkeypatch):
@@ -136,14 +180,9 @@ def test_push_supplies_identity_on_a_bare_runner(tmp_path, monkeypatch):
     """
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
     monkeypatch.setenv("GIT_CONFIG_SYSTEM", os.devnull)
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    _git(repo, "init", "-b", "main")
+    repo = _repo_with_origin(tmp_path)
     _git(repo, "config", "user.email", "seed@example.invalid")
     _git(repo, "config", "user.name", "seed")
-    (repo / "seed.txt").write_text("base")
-    _git(repo, "add", "-A")
-    _git(repo, "commit", "-m", "base")
     _git(repo, "config", "--unset", "user.email")
     _git(repo, "config", "--unset", "user.name")
     # a bare runner cannot fall back to an auto-fabricated ident either
