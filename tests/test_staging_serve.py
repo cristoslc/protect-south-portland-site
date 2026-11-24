@@ -119,6 +119,44 @@ def test_pushes_append_and_never_force(tmp_path):
         cwd=repo, capture_output=True, text=True).stdout.splitlines()
     assert log[0].startswith("Serve 000000000000")
     assert (repo / "index.html").read_text() == "<html><head></head>second serve</html>"
+    author = subprocess.run(
+        ["git", "log", "-1", "--format=%an", "staging-pages"],
+        cwd=repo, capture_output=True, text=True).stdout.strip()
+    assert author == "test", "a configured identity must never be overridden"
+
+
+def test_push_supplies_identity_on_a_bare_runner(tmp_path, monkeypatch):
+    """A repo with no git identity still takes the serve commit.
+
+    A clean Actions runner has no user.name, no user.email, no global
+    config. The fork's first serve run (run 45431398640, 2026-11-24)
+    died at "cannot commit the serve tree" for exactly this reason, so
+    the tool must supply its own machine identity when none resolves —
+    and never override one that does.
+    """
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
+    monkeypatch.setenv("GIT_CONFIG_SYSTEM", os.devnull)
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-b", "main")
+    _git(repo, "config", "user.email", "seed@example.invalid")
+    _git(repo, "config", "user.name", "seed")
+    (repo / "seed.txt").write_text("base")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "base")
+    _git(repo, "config", "--unset", "user.email")
+    _git(repo, "config", "--unset", "user.name")
+    # a bare runner cannot fall back to an auto-fabricated ident either
+    _git(repo, "config", "user.useConfigOnly", "true")
+    # identity-free from here, exactly like the runner
+    tree = _serve_tree(tmp_path / "serve", "identity-free serve")
+    sha = staging_serve.push_serve_branch(
+        str(tree), "staging-pages", str(repo), "0" * 40)
+    assert sha
+    author = subprocess.run(
+        ["git", "log", "-1", "--format=%an <%ae>", "staging-pages"],
+        cwd=repo, capture_output=True, text=True).stdout.strip()
+    assert author == staging_serve.SERVE_COMMITTER, author
 
 
 def test_cli_prepare_only_run_stands_up_end_to_end():
