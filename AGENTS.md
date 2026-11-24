@@ -75,3 +75,21 @@ The `CNAME` stays in the site repo, staged for the domain flip; when the operato
 ## Editing flow
 
 Edit `site/pages/*.html` (each file carries its title/description in the first-line `<!-- meta: ... -->` comment), run `python3 tools/build.py`, run the tests, commit, push to `origin/main` (CI runs the tests and a build smoke check only — it deploys nothing), then follow the deployment policy above before anything reaches a public mirror. After any layout/nav change, run the multi-viewport pass (`tools/visual_check.sh`) before reporting — 412/768/1440 screenshots of homepage + campaign page (top band + footer region); the harness defaults to a local http server over fresh `docs/` (explicit baseUrl overrides), waits for network idle, and runs validity guards (200 preflight, differential checksums, non-uniform crops), so a blank capture can never exit 0. Old merged pages (`oil-tank-emissions.html`, `vocs.html`) live on as redirect stubs written by `tools/build.py` REDIRECTS.
+
+## Operator edits in the shared checkout (standing instruction, 2026-11-24)
+
+The operator edits pages by hand in the root checkout, in their own words: "I will continue also making edits to pages directly in /Users/cristos/Documents/projects/protect-south-portland/protect-south-portland-site/site/pages". An agent MUST NOT [RFC 2119] discard, stash, revert, `git clean`, or otherwise tidy away uncommitted changes in that checkout. A dirty root does not mean a mistake was made; it most likely means the operator is mid-edit, and their bytes are authoritative until they are captured. This outranks ordinary preflight hygiene. It does not weaken the read-only-root rule in `docs/incidents/2026-11-24-stale-rebase-shared-checkout.md`: an agent still MUST NOT write to the root checkout. That rule says where an agent's own edits go, this one says what an agent must never destroy.
+
+When the operator says an edit is ready, or asks for a check, the edit is captured exactly as it stands:
+
+1. Take the diff verbatim. Nothing is rewritten, reflowed, or adjusted to suit a test.
+2. Commit it on a branch off `main`, with a message naming it the operator's manual edit.
+3. Rebuild `docs/` in the same change.
+4. Run the suite and the scanner.
+5. Return the root checkout to clean by committing their bytes, never by discarding them.
+
+If anything is red, stop and report rather than adjusting their copy. The gate report records that page as `rounds: 0`, operator-authored, with no review round and that fact stated in the scope note, the way `2026-11-24-9` did.
+
+If a leg in flight holds the page the operator is editing, either capture their edit first and rebase the leg, or hold the capture, whichever loses less work, and say which order was chosen in the pull request so the order is on the record.
+
+The changelog entry for such a page says the change was made by hand, not by an agent, so the digest never attributes the operator's words to an automated pass.
