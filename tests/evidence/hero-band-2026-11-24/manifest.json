@@ -1,6 +1,7 @@
 {
   "date": "2026-11-24",
   "finding": "homepage hero band showed the tanks (tanks-27-28.jpg) under a banner about tank-farm pollution; replaced with hero-coast.jpg (Bug Light, schooner, park lawn)",
+  "reverses": "ledger row 31 (2026-10-14) took this same coast photo out of this same placement when the operator swapped in their own Pixel 8 Pro photo of tanks 27 and 28; ledger row 76 (2026-11-24) records this swap as that reversal. Row 31 keeps its own record and its photo stays on disk",
   "page": "index.html",
   "region": ".hero-band.hero-band--low",
   "source_image": {
@@ -21,10 +22,11 @@
   },
   "verdict": {
     "reader": "read directly from the four captures above",
-    "412": "lighthouse, schooner and lawn all whole; nobody cut in half; the band reads as a shoreline at dusk",
+    "412": "lighthouse, schooner and lawn all whole; the lawn stays populated, with figures walking across it, a seated group in folding chairs under the right-hand sail and a dog at the water's edge; nobody cut in half",
     "768": "the widest view of the scene: lawn, crowd, both masts and the full tower, horizon band behind",
     "1440": "lantern and finial intact, deck rail at the bottom edge, both sails whole down to the boom; only the hull sits below the crop",
     "seam_1440": "dark green sign-off block meets the photo's pale haze at a clean hard edge; the warm tones start below the seam, so the two do not fight",
-    "why_not_40": "the shared center 40% left the 1440 band mostly empty sky and cut the lantern base and both sails at the waterline"
+    "why_not_40": "the shared center 40% left the 1440 band mostly empty sky and cut the lantern base and both sails at the waterline",
+    "phone_people_rule": "the people are why this photo works in this band, so the 412 crop was read for them specifically: the lawn stays populated at 190px tall. No tower-tightening rule was added, because none was needed"
   }
 }
