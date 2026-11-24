@@ -3036,6 +3036,13 @@ _BOLD_NESTED_BOXES = frozenset({
 BOLD_BLOCK_MIN_WORDS = 10
 BOLD_RUN_MAX_WORDS = 8
 BOLD_SHARE_MAX = 0.25
+# Run count, added 2026-11-24 after the share and length limits passed a
+# paragraph that still read heavy: five short runs in a long paragraph clear
+# both thresholds and still read as a wall of emphasis. A paragraph carries at
+# most two runs; a callout, list item or heading carries one.
+BOLD_RUNS_PARAGRAPH_MAX = 2
+BOLD_RUNS_TIGHT_MAX = 1
+_BOLD_HEADING_TAGS = frozenset({"h1", "h2", "h3", "h4", "h5", "h6"})
 
 
 class _BoldTree(HTMLParser):
@@ -3047,13 +3054,14 @@ class _BoldTree(HTMLParser):
         self._open = [self.root]
 
     def handle_starttag(self, tag, attrs):
-        node = {"tag": tag, "children": []}
+        node = {"tag": tag, "children": [], "attrs": dict(attrs)}
         self._open[-1]["children"].append(node)
         if tag not in _VOID_TAGS:
             self._open.append(node)
 
     def handle_startendtag(self, tag, attrs):
-        self._open[-1]["children"].append({"tag": tag, "children": []})
+        self._open[-1]["children"].append(
+            {"tag": tag, "children": [], "attrs": dict(attrs)})
 
     def handle_endtag(self, tag):
         if tag in _VOID_TAGS:
@@ -3106,18 +3114,37 @@ def _bold_runs(node):
 
 
 def _bold_blocks(node):
+    """Every <p>/<li>, with whether it sits inside a callout box."""
     blocks = []
+
+    def walk(current, in_callout):
+        for child in current["children"]:
+            if isinstance(child, str):
+                continue
+            callout = in_callout or "callout" in (
+                child.get("attrs", {}).get("class") or "")
+            if child["tag"] in _BOLD_BLOCK_TAGS:
+                blocks.append({"tag": child["tag"], "node": child,
+                               "in_callout": callout})
+            walk(child, callout)
+
+    walk(node, False)
+    return blocks
+
+
+def _bold_headings(node):
+    found = []
 
     def walk(current):
         for child in current["children"]:
             if isinstance(child, str):
                 continue
-            if child["tag"] in _BOLD_BLOCK_TAGS:
-                blocks.append(child)
+            if child["tag"] in _BOLD_HEADING_TAGS:
+                found.append(child)
             walk(child)
 
     walk(node)
-    return blocks
+    return found
 
 
 def test_bold_marks_a_phrase_not_a_sentence(docs):
@@ -3136,8 +3163,15 @@ def test_bold_marks_a_phrase_not_a_sentence(docs):
     - a block that is 100 percent bold is a heading written as bold text, which
       must become a real heading with the page's heading classes.
 
+    Run count (2026-11-24, after the share limit passed a paragraph that still
+    read heavy): a paragraph carries at most two bold runs, and a callout, list
+    item or heading carries one. Share and run length cannot see the case this
+    catches, because five short runs in a long paragraph clear both and still
+    read as a wall of emphasis.
+
     The failure names the page, the block's word count, its bold share, its
-    longest run and the text, so the sentence to fix is visible in the report.
+    longest run, its run count and the text, so the sentence to fix is visible
+    in the report.
     """
     violations = []
     for name in html_files(docs):
@@ -3145,12 +3179,22 @@ def test_bold_marks_a_phrase_not_a_sentence(docs):
         tree.feed(read(docs, name))
         tree.close()
         for block in _bold_blocks(tree.root):
+            node = block["node"]
             text = " ".join(html.unescape(
-                _bold_text(block, stop_at_box=True)).split())
+                _bold_text(node, stop_at_box=True)).split())
             words = _bold_words(text)
+            runs = _bold_runs(node)
+            limit = (BOLD_RUNS_TIGHT_MAX
+                     if block["in_callout"] or block["tag"] == "li"
+                     else BOLD_RUNS_PARAGRAPH_MAX)
+            if len(runs) > limit:
+                violations.append(
+                    '{}: <{}>{} {} bold runs, limit {}: "{}"'.format(
+                        name, block["tag"],
+                        " in a callout" if block["in_callout"] else "",
+                        len(runs), limit, text))
             if len(words) < BOLD_BLOCK_MIN_WORDS:
                 continue
-            runs = _bold_runs(block)
             bold_count = sum(len(run) for run in runs)
             longest = max(runs, key=len, default=[])
             share = bold_count / len(words)
@@ -3162,10 +3206,41 @@ def test_bold_marks_a_phrase_not_a_sentence(docs):
                     '"{}"'.format(
                         name, block["tag"], len(words), bold_count, share,
                         len(longest), ", all bold" if all_bold else "", text))
+        for heading in _bold_headings(tree.root):
+            runs = _bold_runs(heading)
+            if len(runs) > BOLD_RUNS_TIGHT_MAX:
+                violations.append(
+                    '{}: <{}> {} bold runs, limit {}: "{}"'.format(
+                        name, heading["tag"], len(runs),
+                        BOLD_RUNS_TIGHT_MAX,
+                        " ".join(html.unescape(_bold_text(heading)).split())))
     assert not violations, (
         "bold must mark a phrase, not a sentence: keep 2-5 words of the point "
         "and unbold the rest, or make a bold line a real heading. For any "
         "<p>/<li> of 10+ words: no <strong>/<b> run may reach "
         f"{BOLD_RUN_MAX_WORDS} words, bold may cover at most "
         f"{BOLD_SHARE_MAX:.0%} of the block, and an all-bold block is a heading "
-        "written as text\n" + "\n".join(violations))
+        "written as text. Run count: at most "
+        f"{BOLD_RUNS_PARAGRAPH_MAX} runs in a paragraph and "
+        f"{BOLD_RUNS_TIGHT_MAX} in a callout, list item or heading\n"
+        + "\n".join(violations))
+
+def test_index_benzene_paragraph_keeps_two_bold_runs(docs):
+    """The homepage benzene paragraph keeps two bold runs: the facility names.
+
+    Operator, 2026-11-24: the paragraph still read heavy at five runs even
+    though it cleared the share and run-length limits. The two facility names
+    are what the sentence is about, and "worst readings in Maine are here" only
+    lands if the reader can find the places, so those keep the emphasis and the
+    other three runs come off. A later pass that puts one back fails here by
+    name.
+    """
+    page = read(docs, "index.html")
+    start = page.index("Concerning readings were collected near all the tanks")
+    paragraph = page[start:page.index("</p>", start)]
+    runs = re.findall(r"<strong>(.*?)</strong>", paragraph, re.S)
+    assert len(runs) == 2, (
+        "the benzene paragraph carries exactly two bold runs, the two facility "
+        f"names; found {len(runs)}: {runs}")
+    assert runs == ["South Portland Terminal", "Citgo on Mechanic Street"], (
+        f"bold belongs on the facility names only, found {runs}")
