@@ -1730,7 +1730,23 @@ def test_act_now_current_ask_and_relocation(docs):
     act = read(docs, "act-now.html")
     assert "Oct. 27" in act
     assert PETITION_URL in act
-    assert "pressherald.com/contact/" in act
+    # 2026-11-24 (ledger row 113): the operator ruled "we should provide the
+    # emails for all of these, like `see the Sentry's website for the
+    # submissions address`", so the letter-to-the-editor block carries the
+    # submission addresses directly instead of the contact-page hop this pin
+    # used to assert. The retarget pins the direct addresses the newsrooms'
+    # own pages name (see the row-113 PR for each citation): the shared
+    # Maine Trust for Local News letters desk for the Sentry and the
+    # Forecaster, the Press Herald's own letters address, and the submission
+    # form all three route to.
+    assert "letters@metln.org" in act
+    assert "letterstotheeditor@pressherald.com" in act
+    assert "https://www.pressherald.com/reader-services/letters-editor/" in act
+    # the indirection the operator ruled against never returns
+    assert "submissions address" not in act
+    # the non-indirection facts stay
+    assert "350 words" in act and "300 words" in act
+    assert "The deadline is Monday at noon" in act
 
 
 def test_act_now_workshop_is_past_tense(docs):

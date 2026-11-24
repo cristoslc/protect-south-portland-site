@@ -1,0 +1,36 @@
+{
+  "leg": "Submission emails carried directly in the letters-to-the-editor block (ledger row 113)",
+  "date": "2026-11-24",
+  "branch": "bb/submission-emails-thr_p257b4jc9k",
+  "base": "d04d8b2 (origin/main)",
+  "operator_words_verbatim": "we should provide the emails for all of these, like `see the Sentry's website for the submissions address`",
+  "sweep_hits": [
+    "act-now.html Sentry paragraph: 'Email the Editor; see the Sentry's website for the submissions address.'",
+    "act-now.html Forecaster paragraph: 'Email the Editor; see the Forecaster's website for the submissions address.'",
+    "act-now.html Portland Press Herald paragraph (same hop class): 'Email the Editor' linking the pressherald.com contact page instead of carrying the address",
+    "no other built page carries the class: toolkit.html has no submissions guidance; donate.html's 'contact page' link is the site's own page; all other grep hits are ordinary prose"
+  ],
+  "addresses": {
+    "Sentry": {
+      "carried": "letters@metln.org + https://www.pressherald.com/reader-services/letters-editor/",
+      "source": "the Sentry's own website (sentry.mainelymediallc.com) links 'How to send a Letter to the editor' to pressherald.com/reader-services/letters-editor/, which names the email letters@metln.org (decoded from the page's own address-protection markup) beside its submission form and postal box"
+    },
+    "Forecaster": {
+      "carried": "letters@metln.org + https://www.pressherald.com/reader-services/letters-editor/",
+      "source": "theforecaster.net now serves from pressherald.com/forecaster/ with the shared contact links and no Forecaster-specific email, so the verified current route is the desk its own website routes to; the Forecaster's own 2023 notices name editor@theforecaster.net (pre-consolidation, named in the PR for the operator, not shipped as primary)"
+    },
+    "Portland Press Herald": {
+      "carried": "letterstotheeditor@pressherald.com + https://www.pressherald.com/reader-services/letters-editor/",
+      "source": "pressherald.com/contact/, 'Letters to the Editor' section, read 2026-11-24 (email decoded from the page's own address-protection markup)"
+    }
+  },
+  "facts_kept": "word limits (350/300/300), Monday-at-noon deadlines, name/address/phone requirements, and the Press Herald mailing address are byte-for-byte unchanged",
+  "doc_note": "protect_south_portland_website_copy (act-now tab) carries the same two indirection sentences verbatim, so the site is righter than the doc; the doc's open comment threads cover other blocks and none covers the letters block; the read-only service account cannot post the lane note, so it lives in the PR and ledger row 113",
+  "pins": "one pin asserted the old hop (pressherald.com/contact/ in test_act_now_current_ask_and_relocation); retargeted as a recorded correction with the operator's words in its docstring, now pinning letters@metln.org, letterstotheeditor@pressherald.com, the submission form, the absence of the indirection text, and the kept facts",
+  "uat_payload_answer": "sweep findings [] across every built page; act-now still has exactly one clean pair (Email the Council against Example message); the new mailto links are bare address links (no query), which the rule reads as addresses, not transmitting controls",
+  "checks": {
+    "suite": "251 passed, 1 skipped",
+    "scanner": "psp_public.scan_tree('docs') == []"
+  },
+  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}
