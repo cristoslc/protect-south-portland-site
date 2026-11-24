@@ -144,7 +144,7 @@ img { max-width: 100%; height: auto; }
 
 .main-nav .submenu a:hover { background: var(--teal-100); color: var(--teal-900); }
 
-/* row 40 (2026-10-15): one "Our work" item; the Past work flyout expands
+/* One "Our work" item (2026-10-15); the Past work flyout expands
    IN-PANEL (no right-edge clipping at narrow desktop widths), reusing the
    mobile submenu's indented visual language. It opens on hover or
    focus-within exactly like the top panel; the @media block below already
@@ -233,9 +233,9 @@ img { max-width: 100%; height: auto; }
   .main-nav a:hover { background: var(--teal-100); color: var(--teal-900); }
 }
 
-/* ---------- action banner (ledger row 5: very top of homepage) ----------
-   Single-hero composition 2026-10-14: the who-we-are mission line (ledger
-   row 27) folds into the banner as a quiet sign-off under the CTA instead
+/* ---------- action banner (very top of homepage) ------------------------
+   Single-hero composition 2026-10-14: the who-we-are mission line folds
+   into the banner as a quiet sign-off under the CTA instead
    of stacking a second hero block above the hero photo. */
 
 .banner {
@@ -411,7 +411,7 @@ blockquote {
 
 .action-band .btn { margin-bottom: 0; }
 
-/* ---------- tank-farms map section (ledger rows 1, 3, 7) ---------- */
+/* ---------- tank-farms map section --------------------------------- */
 
 .map-frame {
   max-width: 980px;
@@ -458,7 +458,7 @@ blockquote {
 
 .card .card__more { font-weight: 800; text-decoration: none; }
 
-/* ---------- row 48: odor-report dual channel (get-involved) ---------- */
+/* ---------- odor-report dual channel (get-involved) ---------------- */
 
 /* The two reporting mechanisms read as peer actions: one grid, side by side
    above 720px and stacked below it. No fixed widths, so nothing overflows

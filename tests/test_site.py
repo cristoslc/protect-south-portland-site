@@ -81,6 +81,7 @@ EXTERNAL_ALLOWLIST = (
     "scientificamerican.com",
     "beyondpesticides.org",
     "plantcatalyst.com",
+    "extension.umaine.edu",
     "paypal.com",
     "facebook.com",
     "twitter.com",
@@ -499,6 +500,50 @@ def test_no_draft_language_anywhere(docs):
         page = read(docs, name)
         for p in patterns:
             assert p not in page, f"{name}: draft language leaked: {p}"
+
+
+# ---- retired claims: phrases the site may never publish again --------------
+#
+# One entry per retired claim: the phrase, matched case-insensitively against
+# every built page, and why it was retired. Adding the next retirement is one
+# dict entry here; the guard below reads the whole map, so no new test is
+# needed when another claim is retired.
+RETIRED_CLAIMS = {
+    "state standards": (
+        "2026-11-23: Maine publishes ambient air guidelines, not standards, so "
+        "the campaign retired the 'exceeded state standards' framing"),
+    "12 times": (
+        "2026-11-23: the single '12 times higher' reading went with the "
+        "standards framing; the benchmark is four and a half times the "
+        "guideline"),
+}
+
+
+def test_no_retired_benzene_claim(docs):
+    """No built page may carry a retired claim; the first entries are the
+    benzene restatement retired on 2026-11-23.
+
+    That day a single-file `git checkout --` reverted the homepage rewrite of
+    the benzene numbers along with an unrelated pinned bullet. The commit that
+    followed shipped three corrected pages and one wrong one, and nothing
+    noticed for a day, because the release gate checks content hashes and prose
+    quality and never a list of claims the campaign has retired.
+
+    This test is that list. Every page under docs/ is scanned for each phrase
+    in RETIRED_CLAIMS, matched case-insensitively, and a hit fails loudly with
+    the page, the phrase and the text around it.
+    """
+    for phrase, reason in RETIRED_CLAIMS.items():
+        needle = phrase.lower()
+        for name in html_files(docs):
+            page = read(docs, name)
+            at = page.lower().find(needle)
+            if at == -1:
+                continue
+            context = " ".join(page[max(0, at - 80):at + len(phrase) + 80].split())
+            raise AssertionError(
+                f"{name}: retired claim {phrase!r} is still published "
+                f"({reason}); context: ...{context}...")
 
 
 def test_row1_no_private_links_anywhere(docs):
@@ -1098,7 +1143,10 @@ def test_about_tense_fixes(docs):
     assert "docket" not in ab
     assert "12 coordinators" not in ab
     assert "core group of coordinators" in ab
-    assert "13th year" in ab
+    # 2026-11-24: "Now in its 13th year" counted from the 2013 founding and had
+    # drifted, so the page states the span without a count.
+    assert "13th year" not in ab
+    assert "More than a decade on" in ab
     assert "What we're doing now" in ab
 
 
