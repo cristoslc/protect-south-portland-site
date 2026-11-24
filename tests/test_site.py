@@ -1379,8 +1379,10 @@ def test_homepage_who_we_are_block(docs):
     homepage pass): the mission line and the About-PSP paragraph sit verbatim
     on the homepage — the mission folds into the banner as its sign-off and
     the About paragraph sits in a compact strip between the hero photo and
-    the issue section (2026-10-14 single-hero design pass), with Our Story
-    linking about.html and an Act now link to act-now.html (the doc's action
+    the issue section (2026-10-14 single-hero design pass), with the Read
+    more link (labelled "Our Story" by row 27, relabelled "Our Work" by the
+    operator by hand on 2026-11-24) linking about.html
+    and an Act now link to act-now.html (the doc's action
     section renamed page on 2026-11-24) — after
     the 2026-10-14 design round 2 both read as list items in a two-item link
     row (page-structure patch): prose, not buttons; the banner Act now is the
@@ -1394,8 +1396,15 @@ def test_homepage_who_we_are_block(docs):
     assert "South Portland&rsquo;s precedent-setting Clear Skies Ordinance" in idx
     assert "a ban on synthetic pesticide" in idx, "grammar quirk must stay verbatim"
     assert "tar sands oils" in idx, "grammar quirk must stay verbatim"
-    assert "Read more: Our Story" in idx
-    assert 'href="about.html"' in idx, "Our Story must link to about.html"
+    assert "Read more: Our Work" in idx
+    # 2026-11-24: the operator rewrote this label by hand from "Read more:
+    # Our Story" to "Read more: Our Work" while capturing their manual edit
+    # (ledger row 89). The target did not move, so the pin moves to their
+    # words and the destination guard below is untouched. Same move the lane
+    # made for row 33's Oct. 15 pin, row 86's brace pin and row 82's button
+    # pin: a pin that encodes a sentence the operator has replaced follows
+    # their sentence, and the guard the pin exists for stays.
+    assert 'href="about.html"' in idx, "the Read more link must reach about.html"
     # 2026-11-24 page-set revision: the doc renamed its action section Act Now,
     # so the link row names the destination the site now has.
     assert "Act now" in idx
@@ -1410,7 +1419,7 @@ def test_homepage_who_we_are_block(docs):
     assert "meaningful actions.</p>" in idx and "Our Story</a> <a" not in idx, "strip ends at its own period"
     row_pos = idx.index('<ul class="link-row">')
     row = idx[row_pos:idx.index("</ul>", row_pos)]
-    assert row.count('<li><a href="about.html">Read more: Our Story</a></li>') == 1
+    assert row.count('<li><a href="about.html">Read more: Our Work</a></li>') == 1
     assert row.count('<li><a href="act-now.html">Act now</a></li>') == 1
     # heading order (fix 3): the banner headline is the page's single h1
     assert idx.count("<h1") == 1 and '<h1 class="banner__headline">' in idx
@@ -2856,7 +2865,11 @@ def test_act_now_past_tense_and_one_email_action(docs):
     # 2026-11-20: a date now exists, so the opener states the outcome: the
     # options the Council asked for return at the planned Dec. 1 workshop.
     # "another workshop" was retired by the reviewer as a doubled sentence.
-    assert "the options it asked for return" in act
+    # 2026-11-24 (ledger row 89): the operator rewrote the sentence by hand,
+    # so the pin follows their wording. The substance the pin exists for is
+    # unchanged and still asserted: the opener states the Oct. 27 outcome,
+    # the Council asked for options, and the workshop it named is Dec. 1.
+    assert "It asked for options to discuss at the planned workshop" in act
     assert "Dec. 1" in act
     assert "no date has been set" not in act
     assert "require better technology at the tank farms" in act
