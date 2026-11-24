@@ -1,0 +1,18 @@
+{
+  "leg": "Share-your-story structure: How to share leaves the callout, the consent callout retitled (ledger row 114)",
+  "date": "2026-11-24",
+  "branch": "bb/share-story-structure-thr_p257b4jc9k",
+  "base": "f5aec14 (origin/main; the direct-emails leg, row 113, already merged, so this is its own PR off main, not a shared vehicle)",
+  "operator_words_verbatim": "let's pull the top section out of the blue callout (no blue callout there, regular paragraph w/ header) and leave the callout for 'What you agree we can do with your recording'",
+  "before": "Three callouts on the page. Top callout: h2.h3-look 'How to share' + call instruction + the Call (207) 370-2160 button inside one box. Middle callout: 'What we will do with your recording' + the consent paragraph. Bottom callout: 'Questions?' + the email/workshop signpost.",
+  "after": "The top section is regular flow: a plain <h2>How to share</h2>, the call instruction as a plain paragraph, and the Call (207) 370-2160 button in the page's normal flow, no box. The Google Voice three-minute paragraph stays a regular paragraph between them. The permission callout keeps its box under the renamed title 'What you agree we can do with your recording' (the operator quoted the title, so the rename from 'What we will do with your recording' is part of the instruction: consent framing on a consent statement). The consent text itself is byte-for-byte unchanged.",
+  "named_discrepancy": "The instruction and its framing name two callouts; the page carries a third (the bottom 'Questions?' box), which neither the operator's words nor the restructuring items address. It is left untouched, and this discrepancy is named in the PR for the operator to rule on rather than resolved silently. With it counted, the permission callout is not literally the page's only callout; within the restructured recording flow it is.",
+  "pins": "No existing pin asserted the old structure or the old title (checked before editing). One new pin, test_share_your_story_how_to_share_leaves_the_callout, carries the operator's words verbatim in its docstring and pins: the plain heading, no callout between it and the consent callout, the button in flow, the three-minute paragraph between, the new title present and the old title gone. The consent sentence's verbatim pin (test_share_your_story_page) is untouched and still passes.",
+  "captures": "before and after at 412 and 768, the restructured area pinned at the same scroll position (the How to share heading 100px below the viewport top)",
+  "checks": {
+    "suite": "252 passed, 1 skipped (251 at the base plus this leg's one new pin)",
+    "scanner": "psp_public.scan_tree('docs') == []",
+    "release_check": "committed docs/ fresh and publication-clean"
+  },
+  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}

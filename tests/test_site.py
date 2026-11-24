@@ -312,6 +312,32 @@ def test_share_your_story_page(docs):
         "the page's action is live; the nav must offer it")
 
 
+def test_share_your_story_how_to_share_leaves_the_callout(docs):
+    """Ledger row 114 (2026-11-24). The operator, verbatim: "let's pull the top
+    section out of the blue callout (no blue callout there, regular paragraph
+    w/ header) and leave the callout for 'What you agree we can do with your
+    recording'". "How to share" becomes a real heading with the call
+    instruction and its button in the page's normal flow, the three-minute
+    paragraph stays a regular paragraph between them, and the permission
+    callout keeps its box under the consent framing the operator quoted."""
+    page = read(docs, "share-your-story.html")
+    # the how-to section is regular flow: a real heading, no box around it
+    assert "<h2>How to share</h2>" in page
+    start = page.index("<h2>How to share</h2>")
+    consent_callout = page.index('<div class="callout">', start)
+    between = page[start:consent_callout]
+    assert 'class="callout"' not in between, (
+        "no callout may sit between the How to share heading and the consent callout")
+    # the call instruction and its button are in the normal flow
+    assert "Call our Google Voice number and leave us a message:" in between
+    assert 'href="tel:+12073702160"' in between
+    # the shorter-messages paragraph stays a regular paragraph between the two
+    assert "Google Voice caps messages at three minutes" in between
+    # the consent callout is retitled to the operator's quoted framing
+    assert "What you agree we can do with your recording" in page
+    assert "What we will do with your recording" not in page
+
+
 def test_toolkit_reference_page(docs):
     """Ruling on `dec_inuqu6bhpw6r`, option one-page ("One reference page,
     durable chapters only"), ledger row 78: `toolkit.html` carries four
