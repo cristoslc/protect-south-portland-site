@@ -700,9 +700,8 @@ def body_edit(text, old, new):
 
 def test_row79_index_check_refuses_one_body_character_with_the_fallback_live(
         tmp_path, docs):
-    # the fallback is left exactly as production has it. A staged index with one
-    # character changed in the body must still fail, banner line and all,
-    # because an injected tree never falls through to the banner test.
+    # the fallback is gone entirely, so this is now the simplest case: a staged
+    # index with one character changed in the body fails, banner line and all.
     tree = injected_tree(tmp_path, docs, "index-body")
     served = open(os.path.join(tree, "index.html"), encoding="utf-8").read()
     built_path = os.path.join(str(docs), "index.html")
@@ -1966,12 +1965,14 @@ def test_publish_index_matches_built(tmp_path):
     index = tmp_path / "index.html"
     index.write_text(f"<p>{BANNER_TEXT}</p>", encoding="utf-8")
     assert publish.index_matches_built(f"<p>{BANNER_TEXT}</p>", str(index))
-    assert publish.index_matches_built(f"prose {BANNER_TEXT} prose", str(index))
-    # The banner fallback: the served page carries the banner even where the
-    # local file read differs.
+    # Strict equality, no fallback anywhere: carrying the banner line is not
+    # enough when the served bytes differ from the build. Before 2026-11-24
+    # these two passed on the banner branch, which is how a stamped page came
+    # to look verified.
+    assert not publish.index_matches_built(f"prose {BANNER_TEXT} prose",
+                                           str(index))
     index.write_text("<p>unrelated</p>", encoding="utf-8")
-    assert publish.index_matches_built(BANNER_TEXT, str(index))
-    # Neither branch: a text with no banner, against a differing local file.
+    assert not publish.index_matches_built(BANNER_TEXT, str(index))
     assert not publish.index_matches_built("<p>different text only</p>",
                                            str(index))
     assert not publish.index_matches_built(BANNER_TEXT, str(index) + "-gone")

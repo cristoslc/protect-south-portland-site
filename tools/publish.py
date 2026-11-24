@@ -884,34 +884,32 @@ def tls_cert_subject(host, timeout=20):
 
 def index_matches_built(text, index_path):
     """The served index equals the freshly built one once the publish-time
-    injections come off, or at least carries the verbatim banner line
-    (ledger row 5).
+    injections come off. Strict: equal, or the leg stops.
 
-    Three steps, in this order:
+    A staging index serves the row-42 gate block and the row-79 stamp, so a
+    raw byte comparison would fail every time, and a check that fails every
+    time gets waived. Stripping both regions first makes the comparison pass
+    because the bytes match, not because the comparison was loosened.
 
-    1. STRIP BOTH SIDES, THEN COMPARE. A staging index serves the row-42 gate
-       block and the row-79 stamp, so a raw byte comparison would fail every
-       time, and a check that fails every time gets waived. Stripping both
-       regions first makes the comparison pass because the bytes match.
-    2. A TREE THAT CARRIES AN INJECTION AND STILL DIFFERS IS A REAL
-       DIFFERENCE. The banner fallback exists for a serve that is legitimately
-       not the built file (ledger row 5, the domain-flip check). It must never
-       wave through a staged tree: if a marker is present, the fallback is
-       skipped and the comparison fails. That is what keeps this check able to
-       catch a wrong tree being served; without it the stamp would have
-       silently downgraded every staging leg to the banner test.
-    3. THE BANNER LINE stays the fallback it always was, for texts that carry
-       no publish-time injection at all.
+    There is deliberately NO fallback, and this is a decision rather than an
+    omission. Until 2026-11-24 this function also passed when the served page
+    merely carried the banner line (ledger row 5). That branch is how a
+    stamped page came to look verified: strict equality failed, the fallback
+    turned the failure into a pass, and the leg printed success. With the
+    strip in place the fallback has no legitimate caller left, and any future
+    injection or template tweak would fail equality again with the fallback
+    waiting to hide it. A served index that differs from the build after the
+    strip is a wrong tree, and the leg must stop.
+
+    BEHAVIOUR CHANGE, named here so nobody is surprised: a `--domain` publish
+    whose host serves a page that is not byte-identical to this build (an
+    older cached build, for instance) now stops instead of passing on the
+    banner line. Re-run the leg when the host is serving the current build.
     """
     if not os.path.exists(index_path):
         return False
-    stripped = strip_injected_blocks(text)
     built = open(index_path, encoding="utf-8").read()
-    if stripped == strip_injected_blocks(built):
-        return True
-    if any(marker in text for marker in INJECTED_BLOCK_MARKERS):
-        return False
-    return psp_public.BANNER_TEXT in text
+    return strip_injected_blocks(text) == strip_injected_blocks(built)
 
 
 def verify_custom_domain(domain, index_path, minutes=8):
@@ -928,8 +926,10 @@ def verify_custom_domain(domain, index_path, minutes=8):
         text = resp.read().decode("utf-8", errors="replace")
     if not index_matches_built(text, index_path):
         raise SystemExit(
-            f"https://{domain}/: the served index matches neither the "
-            f"built index ({index_path}) nor the banner line")
+            f"https://{domain}/: the served index does not match the "
+            f"built index ({index_path}) once the publish-time injections "
+            f"are stripped; the tree being served is not the tree that "
+            f"was built")
     return f"TLS commonName {common!r} (notAfter {not_after})"
 
 
@@ -1145,8 +1145,8 @@ def main():
             print(f"site: https://{domain}/")
             print(f"map: https://{domain}/map/map.html")
             print(f"tls: {cert_note}")
-            print("index: the served index matches the built index "
-                  "(or carries the banner line)")
+            print("index: the served index matches the built index once "
+                  "the publish-time injections are stripped")
             if wait_https:
                 print("https: enforced — polled the Pages API for the "
                       "certificate, then set https_enforced=true")
