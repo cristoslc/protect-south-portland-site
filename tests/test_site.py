@@ -1393,11 +1393,16 @@ def test_strip_back_to_doc_pages(docs):
     # keeps the figure out of every other page, which is what the press-kit
     # ruling was for.
     #
-    # 2026-11-24 (ruling `dec_wousd5kpjj8r`): a figure that ships twice has to
-    # say the same thing in both places, and it did not. The document says
-    # "approximately 600 tons" on two tabs and "more than 600 tons" on the FAQ
-    # tab, so both surfaces now read "approximately 600 tons" and the two
-    # disagreeing forms are banned outright.
+    # 2026-11-24 (ruling held on `dec_wousd5kpjj8r`): a figure that ships twice
+    # has to say the same thing in both places, and it did not. The site says
+    # "almost", the toolkit FAQ tab says "more than", and the document's own
+    # VOC table decides it: the Petroleum Facilities Total row is 581.5 tons
+    # per year, under 600, while the table's 619 total adds Diodes/ON
+    # Semiconductor and Texas Instruments, which are not tank farms. So
+    # "almost" is the arithmetic and "more than" is wrong. Both surfaces read
+    # "almost 600 tons" now, and the wrong direction is banned outright. If
+    # the operator rules "approximately" the two surfaces move together in
+    # one change, so a reader never meets a third variant.
     assert sum(t.count("600 tons") for t in built) == 2, (
         "the verbatim 600-ton figure survives in exactly two places: the "
         "archived record and the carried toolkit FAQ answer")
@@ -1406,12 +1411,11 @@ def test_strip_back_to_doc_pages(docs):
         "the toolkit FAQ answer keeps the document's figure")
     for name in html_files(docs):
         page = read(docs, name)
-        for disagreed in ("more than 600 tons", "almost 600 tons"):
-            assert disagreed not in page, (
-                f"{name}: the document disagrees with itself on this figure; "
-                f"both surfaces read 'approximately 600 tons' ({disagreed!r})")
-    assert "approximately 600 tons of volatile organic compounds" in tank
-    assert "approximately 600 tons of VOCs" in read(docs, "toolkit.html")
+        assert "more than 600 tons" not in page, (
+            f"{name}: 581.5 tons is under 600, so 'more than' is the wrong "
+            "direction; both surfaces read 'almost 600 tons'")
+    assert "almost 600 tons of volatile organic compounds" in tank
+    assert "almost 600 tons of VOCs" in read(docs, "toolkit.html")
     for name in html_files(docs):
         if name in REDIRECT_PAGES or name in ("tank-farms.html", "toolkit.html"):
             continue
