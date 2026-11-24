@@ -3130,18 +3130,31 @@ def test_act_now_action_links_are_the_cards(docs):
     odor stopped carrying their own border, fill, colour, padding, type and
     underline reset and became members of the standard .btn family, keeping
     only the local layout, the square corners the operator asked for on row 82,
-    the shared 14rem width floor and the focus ring. That leg kept the pair on
-    purpose: quick action belonged in the pair, the fuller description in the
-    cards below it.
+    the shared 14rem width floor and the focus ring. Consolidation was that
+    leg's whole ground, and no card existed on this page when it merged, so it
+    neither created nor endorsed any pair-plus-cards split: it moved the pair
+    into the family and left it where it stood.
 
-    2026-11-24 (row 94, the removal): row 92's card grid then carried both
+    2026-11-24 (row 92, the cards): the operator then asked for the card
+    template used elsewhere on the site, "I want the underlying template for
+    the card format used in multiple places on the site. The actual content on
+    Our Work is fine, I just want similar cards on Act Now for Donate and
+    Report an Odor." That leg added the cards BELOW the pair rather than
+    replacing it, and row 92's own ledger record is where the split is first
+    stated: the upgrade keeps the pair "so the same two destinations get a
+    quick button and a fuller description rather than the buttons being
+    replaced". The quick action in the pair and the richer description in the
+    cards are row 92's grounds, not row 88's.
+
+    2026-11-24 (row 94, the removal): row 92's card grid carried both
     destinations one above the other, so the operator said "ah, they're there
     now but you didn't remove the earlier buttons" and the pair came out. That
-    is a recorded reversal of the consolidation ruling above, not drift. This
-    is the same pin retargeted rather than deleted, and it is not loosened: it
-    asserts the exact card links the page now carries, the exact anchors that
-    are gone, that neither destination lost its only way through the page body,
-    and that the pair's now-unused stylesheet scope went with it.
+    is a recorded reversal of the pair's survival, not drift. This is the same
+    pin retargeted rather than deleted, and it is not loosened: it asserts the
+    exact card links the page now carries, the exact anchors that are gone,
+    that neither destination lost its only way through the page body, that the
+    pair's now-unused stylesheet scope went with it, and that the family blocks
+    the page's remaining two buttons rely on still exist.
     """
     act = read(docs, "act-now.html")
     css = read(docs, "styles.css")
@@ -3171,6 +3184,16 @@ def test_act_now_action_links_are_the_cards(docs):
     users = [name for name in html_files(docs)
              if "link-row--buttons" in read(docs, name)]
     assert users == [], f"the removed button modifier is still on {users}"
+
+    # the family the pair joined is still declared, because this page still
+    # renders two of its members: the Sign now pill is a .btn--ghost and the
+    # Email the Council call to action is a .btn--cta, both under the .btn rule.
+    # The retarget that removed the pair dropped the suite's only existence
+    # check on these three blocks (ledger row 94 follow-up), so it lands back
+    # here rather than nowhere: a page that renders a family member with no
+    # family rule behind it is a broken button, and nothing else would go red.
+    for cls in (".btn {", ".btn--cta {", ".btn--ghost {"):
+        assert cls in css, f"the standard family must declare {cls}"
 
 
 def test_act_now_past_tense_and_one_email_action(docs):

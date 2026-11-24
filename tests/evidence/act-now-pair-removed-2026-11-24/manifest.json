@@ -33,14 +33,15 @@
     "old_name": "test_act_now_child_links_are_square_buttons",
     "new_name": "test_act_now_action_links_are_the_cards",
     "same_pin": "retargeted, not deleted and not loosened",
-    "docstring_records": "both rulings in order: row 88's consolidation (the pair joined the standard .btn family deliberately, quick action in the pair and the fuller description in the cards) and the operator's 2026-11-24 removal once the cards carried both destinations",
+    "docstring_records": "three rulings in order: row 88's consolidation (the pair joined the standard .btn family on consolidation grounds only, keeping row 82's square corners, and no card existed on the page then), row 92's cards (added BELOW the pair rather than replacing it, which is where quick action in the pair and the fuller description in the cards first existed), and the operator's 2026-11-24 removal once the cards carried both destinations",
     "assertions_now": [
       "the pair's block is absent: '<ul class=\"link-row link-row--buttons\">' not in act",
       "both old anchors are absent, exact strings: '<a class=\"btn btn--ghost\" href=\"donate.html\">Donate</a>' and '<a class=\"btn btn--ghost\" href=\"report-an-odor.html\">Report an odor</a>'",
       "each destination survives exactly once inside the page body: body.count('href=\"donate.html\"') == 1 and body.count('href=\"report-an-odor.html\"') == 1",
       "the exact card links the page carries: '<a class=\"card__more\" href=\"donate.html\">DONATE →</a>' and '<a class=\"card__more\" href=\"report-an-odor.html\">REPORT AN ODOR →</a>'",
       "the adjacency the removal created: '<div class=\"prose\">\\n      <div class=\"card-grid\">' in act",
-      "the dead scope is gone: 'link-row--buttons' not in css, and no built page carries the modifier"
+      "the dead scope is gone: 'link-row--buttons' not in css, and no built page carries the modifier",
+      "the family blocks the page's remaining buttons rely on are still declared: '.btn {', '.btn--cta {' and '.btn--ghost {' all in css, because the Sign now pill is .btn--ghost and the Email the Council call to action is .btn--cta (ledger row 94 follow-up: the retarget had dropped the suite's only existence check on these three blocks)"
     ],
     "no_other_pin_asserted_the_pair": "grepped tests/ for link-row, btn--ghost, donate.html and report-an-odor.html: the only other hits are the homepage strip test (a different .link-row), the footer donate strip, and the action-strip test that asserts href=\"report-an-odor.html\" is on the page at all, which the card still satisfies"
   },
@@ -101,7 +102,15 @@
     "files_changed": ["site/pages/act-now.html", "site/styles.css", "docs/act-now.html", "docs/styles.css", "tests/test_site.py", "tests/evidence/act-now-pair-removed-2026-11-24/"]
   },
 
-  "reversal_record": "This is a recorded reversal of the consolidation decision made earlier the same day (row 88, which deliberately kept this pair as a quick-action row while adding the cards under it in row 92). The operator removed the pair on 2026-11-24 once the cards carried both destinations: it is a ruling, not drift.",
+  "reversal_record": "This is a recorded reversal of the pair's survival, not drift. Row 88 (the consolidation) kept the pair because it was consolidating button variants, not because a quick action belonged there: it merged before any card existed on the page. Row 92 (the cards) then added the card grid BELOW the pair rather than replacing it, and that leg's record is where the quick-action-in-the-pair and richer-description-in-the-cards split is first stated. The operator removed the pair on 2026-11-24 once the cards carried both destinations: it is a ruling, not drift.",
+
+  "review_record_fix": {
+    "finding": "the full-class review of row 94 returned two low findings, both about the record and coverage and neither about the page",
+    "reattribution": "the docstring, the manifest strings above and ledger row 94 attributed the keep-the-pair-with-a-quick-action motive to row 88. It belongs to row 92: row 88's own ledger grounds are consolidation only plus row 82's square corners, and no card existed when row 88 merged, so nothing could be paired with one. Row 92's record states the split itself, 'so the same two destinations get a quick button and a fuller description rather than the buttons being replaced'.",
+    "restored_assertion": "the retarget dropped the suite's only existence check on the '.btn {', '.btn--cta {' and '.btn--ghost {' blocks while the page still renders a .btn--ghost Sign now pill and a .btn--cta Email the Council call to action. It is folded back into the same retargeted pin, test_act_now_action_links_are_the_cards, and it was proved load-bearing before being committed: with the .btn--ghost block deleted from site/styles.css that pin fails naming the missing block, and no other pin in the suite catches it.",
+    "branch": "bb/act-now-pair-record-fix",
+    "no_page_change": "no byte of site/pages/, site/styles.css or docs/ changes in this fix; the page, its build and the captures above stand exactly as reviewed"
+  },
 
   "not_done": ["no publish", "no merge", "no change to any other page's buttons", "no change to the current-ask callout, the cards or the Email the Council block"]
 }
