@@ -102,6 +102,7 @@ FOOTER_BODY = """
         <li><a href="about.html">About</a></li>
         <li><a href="our-campaigns.html">Our work</a></li>
         <li><a href="tank-farms.html">Tank farms</a></li>
+        <li><a href="toolkit.html">Tank farms toolkit</a></li>
         <li><a href="fertilizer-ban.html">Fertilizer ban</a></li>
         <li><a href="coastal-flooding.html">Coastal flooding</a></li>
         <li><a href="past-work.html">Past work</a></li>

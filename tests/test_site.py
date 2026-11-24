@@ -87,6 +87,12 @@ EXTERNAL_ALLOWLIST = (
     "twitter.com",
     "x.com",
     "themainemonitor.org",
+    # 2026-11-24 (toolkit reference page): hosts the carried toolkit chapters
+    # cite. Pulitzer Center reported on South Portland's role as the state's
+    # petroleum hub; the Conservation Law Foundation posts the tank-farm
+    # closures the FAQ answer points at.
+    "pulitzercenter.org",
+    "clf.org",
     "cascobayestuary.org",
     "digital.sierramagazine.org",
     "edition.pagesuite.com",
@@ -186,6 +192,8 @@ def test_expected_pages_built(docs):
         "clear-skies.html", "fertilizer-ban.html", "pesticides.html", "vocs.html",
         "newsletter.html", "get-involved.html", "donate.html", "contact.html",
         "404.html", "past-work.html", "tank-farms.html", "share-your-story.html",
+        # 2026-11-24 ruling (one reference page, durable chapters only)
+        "toolkit.html",
     ):
         assert expected in names, expected
     assert "styles.css" in os.listdir(docs)
@@ -296,6 +304,131 @@ def test_share_your_story_page(docs):
                     read(docs, "index.html"), re.S).group(0)
     assert 'href="share-your-story.html"' in nav, (
         "the page's action is live; the nav must offer it")
+
+
+def test_toolkit_reference_page(docs):
+    """Ruling on `dec_inuqu6bhpw6r`, option one-page ("One reference page,
+    durable chapters only"), ledger row 78: `toolkit.html` carries four
+    chapters of the campaign's 2026 South Portland Tanks Toolkit — the tank
+    timeline, the fenceline findings, the Oct. 15 community-meeting FAQs, and
+    the letter-to-the-editor guidance.
+
+    The copy is carried from that document, not rewritten, so the only words a
+    writer composed here are the chapter headings, the anchor labels, one
+    orientation line and the pointer back to the live document. This pins the
+    document's own opening lines, the artifacts that must never ship, the
+    chapters the ruling left behind, the two places that reach the page, and
+    the header staying at five items.
+    """
+    page = read(docs, "toolkit.html")
+
+    # 1. the four chapters, each a heading with an anchor the jump row reaches
+    chapters = (
+        ("timeline", "Timeline of the tanks"),
+        ("fenceline-findings", "Fenceline findings, point by point"),
+        ("faqs", "FAQs from the Oct. 15 community meeting"),
+        ("letter-to-the-editor", "Letter to the editor guidance"),
+    )
+    for anchor, heading in chapters:
+        assert f'id="{anchor}"' in page, anchor
+        assert f"<h2>{heading}</h2>" in page, heading
+        assert f'href="#{anchor}"' in page, f"the jump row must reach {anchor}"
+
+    # the copy is the document's, not a paraphrase: each chapter's own first
+    # line, plus the sentences a reader would check it by
+    for carried in (
+        "The Troubled History of Tank Farms in South Portland",
+        "The first tank farms were built in South Portland in the 1940s to "
+        "support fuel movement during World War II",
+        "10 of the 11 facilities statewide had at least one fenceline "
+        "monitoring location",
+        "Questions posed by community members at the community meeting on "
+        "October 15, 2026.",
+        "Letters to the Editor - Points for Writing - 150 words maximum",
+        "Why the hell is this taking so long?",
+        "What residents can do: Read the Tank Farms Toolkit",
+    ):
+        assert carried in page, f"carried copy missing: {carried[:60]}"
+
+    # the benzene correction (tier-two, row-74 class): the document still says
+    # "state standards"; the page carries it in the site's framing instead
+    assert ("regularly and dramatically exceeds Maine&rsquo;s ambient air "
+            "guideline for long-term exposure") in page
+    assert "guideline" in page and "state standards" not in page
+
+    # 2. the two places that reach the page, and neither is the header. The
+    # copy pins read tag-stripped text (2026-11-24 bold pass), and the href
+    # pins the target, so an emphasis edit cannot break the placement rule.
+    act = read(docs, "act-now.html")
+    act_text = reading_text(act)
+    assert "read the tank farms toolkit" in act_text, (
+        "the Act now block must link the toolkit page")
+    assert '<a href="toolkit.html">read the tank farms toolkit</a>' in act
+    act_tail = act[act.index("get plugged into local tank farm efforts"):]
+    assert "toolkit.html" in act_tail, (
+        "the toolkit block belongs at the end of the page")
+    footer = read(docs, "index.html")
+    footer = footer[footer.index('class="footer"'):]
+    assert '<a href="toolkit.html">Tank farms toolkit</a>' in footer
+
+    # 3. no sixth navigation item: five items plus the Act now pill
+    nav = re.search(r'<nav class="main-nav".*?</nav>',
+                    read(docs, "index.html"), re.S).group(0)
+    collector = _TopNavLinks()
+    collector.feed(nav)
+    assert collector.hrefs == [
+        "our-campaigns.html", "about.html", "share-your-story.html",
+        "newsletter.html", "contact.html", "act-now.html",
+    ], collector.hrefs
+    assert nav.count('class="nav-cta"') == 1, "one pill, the Act now link"
+    assert "toolkit.html" not in nav, "the toolkit page is not a nav item"
+
+    # 4. draft artifacts and unpublished answers never ship
+    banned = (
+        # the two tabs outside this page's four: never carried at all
+        "UPDATES IN PROGRESS", "TO BE UPDATED",
+        # the unanswered FAQ items and the note that followed them
+        "****",
+        "To sit on my deck",
+        "As toxins seep into the ground water",
+        "Is there a way to test our residential land",
+        "These are great questions to ask at the city council meeting",
+    )
+    for needle in banned:
+        assert needle not in page, f"toolkit.html ships a draft artifact: {needle}"
+
+    # 5. the chapters the ruling left in the live document
+    for excluded in (
+        "Glossary", "Health Impacts of Benzene", "VOC and HAP",
+        "mi from fenceline", "Demand for action",
+    ):
+        assert excluded not in page, (
+            f"toolkit.html smuggles in an excluded chapter: {excluded}")
+    # the live document is linked instead, because its goals chapter is
+    # rewritten after every meeting
+    assert ("https://docs.google.com/document/d/"
+            "1O8EaHEJALZtTCUBoxFAwR_1ySOY08xbmvub4wx5FFLc/edit") in page
+
+
+class _TopNavLinks(HTMLParser):
+    """Top-level hrefs of the main navigation: one per item, submenus excluded."""
+
+    def __init__(self):
+        super().__init__()
+        self.depth = 0
+        self.hrefs = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "ul":
+            self.depth += 1
+        elif tag == "a" and self.depth == 1:
+            href = dict(attrs).get("href")
+            if href:
+                self.hrefs.append(href)
+
+    def handle_endtag(self, tag):
+        if tag == "ul":
+            self.depth -= 1
 
 
 def test_nav_structure_after_split(docs):
@@ -1253,8 +1386,23 @@ def test_strip_back_to_doc_pages(docs):
             if fname.endswith(".html"):
                 with open(os.path.join(root, fname), encoding="utf-8") as f:
                     built.append(f.read())
-    assert sum(t.count("600 tons") for t in built) == 1, (
-        "the verbatim 600-ton figure must survive exactly once")
+    # 2026-11-24 (toolkit reference page): the figure now ships twice, and
+    # both counts are named. One is the archived record on the campaign page.
+    # The other is the toolkit page's FAQ answer ("cumulatively licensed to
+    # emit more than 600 tons of VOCs"), which is the campaign document's own
+    # sentence carried forward, not new agent copy. The pin keeps the figure
+    # out of every other page, which is what the press-kit ruling was for.
+    assert sum(t.count("600 tons") for t in built) == 2, (
+        "the verbatim 600-ton figure survives in exactly two places: the "
+        "archived record and the carried toolkit FAQ answer")
+    assert tank.count("600 tons") == 1, "the archived record keeps its figure"
+    assert read(docs, "toolkit.html").count("600 tons") == 1, (
+        "the toolkit FAQ answer keeps the document's figure")
+    for name in html_files(docs):
+        if name in REDIRECT_PAGES or name in ("tank-farms.html", "toolkit.html"):
+            continue
+        assert "600 tons" not in read(docs, name), (
+            f"{name}: the 600-ton figure belongs to the record and the doc")
     # the press-kit cap ruling survives the retirement, scoped as ruled: the
     # 600-ton VOC / 104-ton HAP cap stays off pages an agent authors. The
     # archived LD 163 paragraph keeps its original figures verbatim (the
@@ -2127,7 +2275,7 @@ PAST_MARKER = re.compile(
     re.I)
 
 
-def past_event_invitations(page):
+def past_event_invitations(page, carried=()):
     """Sentences that invite attendance at an event that already happened.
 
     Rule-based, not a phrase list. Two shapes flag: any past-dated event that
@@ -2135,12 +2283,19 @@ def past_event_invitations(page):
     invitation or a deadline. A sentence with a past or open marker
     ("met", "was held", "took no vote", "has not set", "no date") reports the
     record and never flags. The rule fails toward catching too much.
+
+    `carried` names sentences the page copies from a campaign document rather
+    than writes; each entry is matched as a lowercase substring of the
+    sentence, so an edit to the sentence stops the exemption and the rule
+    applies again. Callers pass only what a page actually carries.
     """
     text = html.unescape(re.sub(r"<[^>]+>", " ", page))
     text = re.sub(r"\s+", " ", text)
     hits = []
     for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z])", text):
         low = sentence.lower()
+        if any(fragment in low for fragment in carried):
+            continue
         dated = DATE_TOKEN.search(low)
         invite = INVITE_VERB.search(low)
         past = PAST_MARKER.search(low)
@@ -2155,6 +2310,18 @@ def past_event_invitations(page):
     return hits
 
 
+# 2026-11-24 (toolkit reference page): one invitation on the page is carried,
+# not written. The campaign document's letter guidance tells residents what
+# they can do — "Read the Tank Farms Toolkit, attend the Dec. 1 workshop and
+# other public meetings, submit public comments, and share your own story" —
+# and the workshop is still ahead of the page (Dec. 1, after a Nov. 24 build).
+# The exemption names the sentence's opening, so a rewrite stops matching and
+# the rule applies to it again.
+CARRIED_INVITATIONS = {
+    "toolkit.html": ("what residents can do: read the tank farms toolkit",),
+}
+
+
 def test_no_past_event_invitations(docs):
     # No page may invite anyone to an event that already happened. Rule-based
     # so a new verb, a new event name or a date-first phrasing cannot slip past
@@ -2162,7 +2329,8 @@ def test_no_past_event_invitations(docs):
     for name in html_files(docs):
         if name in REDIRECT_PAGES:
             continue
-        hits = past_event_invitations(read(docs, name))
+        hits = past_event_invitations(
+            read(docs, name), CARRIED_INVITATIONS.get(name, ()))
         assert not hits, f"{name}: past-event invitation: {hits}"
 
 
