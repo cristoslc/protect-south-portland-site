@@ -281,7 +281,13 @@ def build(out_dir: str) -> list:
             raise ValueError(f"{name}: first line must be the <!-- meta: ... --> comment")
         title = m.group("title")
         desc = m.group("desc")
-        body = apply_mailto_bodies(raw[m.end():].strip())
+        try:
+            body = apply_mailto_bodies(raw[m.end():].strip())
+        except ValueError as exc:
+            # The mailto refusals below describe the condition; on a 20+ page
+            # build the traceback also has to say which page hit it, so the
+            # name leads the message, the way the meta-line refusal above does.
+            raise ValueError(f"{name}: {exc}") from exc
         nav = NAV_BODY
         if f'<a href="{name}">' in nav:
             nav = nav.replace(f'<a href="{name}">', f'<a href="{name}" aria-current="page">', 1)

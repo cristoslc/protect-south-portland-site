@@ -40,6 +40,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(ROOT, "tools", "build.py")
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
+import build
 import gate_report
 import psp_public
 import publish
@@ -1798,11 +1799,43 @@ def test_act_now_cta_body_is_populated_in_the_html(docs):
     assert "body=" in href, "the shipped CTA href has no body parameter"
     body = _mailto_param(href, "body")
     assert body, "the body parameter is present but empty"
-    # 631 characters of letter, so a populated body is far past this floor;
-    # an empty or truncated one is not.
+    # The letter is 632 decoded characters and encodes to 892, so a populated
+    # body is far past this floor; an empty or truncated one is not.
     assert len(body) > 600, f"body is only {len(body)} encoded characters"
     assert "data-mailto-body" not in page, "the build marker must not ship"
     assert "Dear%20Councilors%2C" in href, "the greeting is not in the shipped href"
+
+
+def test_mailto_body_refusal_names_the_page(tmp_path, monkeypatch):
+    """Every mailto-body refusal says which page failed, not only what failed.
+
+    Full-class review of PR #78, finding verbatim: "All four refusals exist,
+    raise ValueError, and abort the build, but none of the mailto error
+    messages names the page, unlike the build loop's own meta-line error that
+    does; a failed 20+ page build yields a traceback with no page name."
+
+    The condition here is a marked anchor with no blockquote to fill from; on a
+    20+ page build the page carrying it is the one thing the traceback has to
+    name for the failure to be actionable. The message must keep saying what
+    was wrong as well, so the page name is added, not swapped in.
+    """
+    pages = tmp_path / "pages"
+    pages.mkdir()
+    (pages / "broken-page.html").write_text(
+        '<!-- meta: title="Broken" | desc="A synthetic page for the refusal." -->\n'
+        '<main>\n'
+        '<a class="btn btn--cta" href="mailto:council@example.gov" '
+        'data-mailto-body="blockquote">Email the Council</a>\n'
+        '</main>\n',
+        encoding="utf-8")
+    monkeypatch.setattr(build, "PAGES", str(pages))
+
+    with pytest.raises(ValueError) as refused:
+        build.build(str(tmp_path / "out"))
+
+    message = str(refused.value)
+    assert "broken-page.html" in message, message
+    assert "blockquote" in message, message
 
 
 def test_report_an_odor_page_dual_channel(docs):
