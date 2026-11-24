@@ -23,6 +23,10 @@ WHAT COUNTS AS SENDABLE COPY (so an ordinary paragraph never does):
     cue, and is the precise way to designate new copy a page intends to send).
   An ordinary paragraph, a pull-quote and a mailing-address blockquote (headed
   "Mailing address" / "Give by mail") never qualify: their labels carry no cue.
+  THE OPT-IN IS HOW PROSE JOINS THE RULE: a letter restyled into ordinary
+  paragraphs under a cue heading is outside the rule by construction, so rather
+  than pass silently it is NOTED by name (see the note rule below), and marking
+  that element `data-sendable-copy` is what brings it into the comparison.
 
 WHAT COUNTS AS A TRANSMITTING CONTROL (so an address link never does):
   * a `mailto:`/`sms:`/share href whose query carries a payload parameter
@@ -51,11 +55,29 @@ action grid, where ordinary headings now legitimately sit between it and
 "Example message". A control without a payload, or with a payload that differs,
 still needs the fence.
 
+A CONTROL THAT CARRIES NO PAYLOAD OF ITS OWN PAIRS ONLY WHEN IT PROMISES TO
+SEND. A subject-only `mailto:` is an ordinary "write to us" convenience, and a
+letter's own section routinely ends with one ("Questions? email us"); pairing it
+with the letter would report a blank payload the page never promised. So a
+control with no payload parameter pairs only when it is button-styled AND its
+own label carries a send cue ("Email ...", "Send ...", "Write ...", "Submit
+..."), exactly the test the queryless CTA already passes, or when the block
+itself opts in with `data-sendable-copy`, which is the page saying "this copy
+is what that control sends". A control that carries a `body=`/`text=`/`quote=`
+payload pairs either way, because it is transmitting something regardless of
+its label.
+
 WHAT THE RULE DOES NOT DO: it does not judge prose, does not require a page to
 offer a send mechanism at all (displayed copy with no nearby control is
 reported as an unpaired note, not a failure), and does not compare a subject
-line. It reads FETCHED HTML (http, https or file:) so the same rule runs
-against a live host by URL, which is the shape the UAT ladder checks.
+line. Every sendable block that produced no pair gets its own note, on a page
+with pairs and on a page without, so an orphan is never silent. A cue heading
+followed by prose rather than a blockquote when the prose is long enough to be a
+message is noted the same way: the rule declined to read it, and it says so. It
+reads FETCHED HTML (http, https or file:) so the same rule runs against a live
+host by URL, which is the shape the UAT ladder checks, and its default
+discovery walks the tree recursively, so a nested page (`map/map.html`) is
+swept rather than silently skipped.
 
 Ledger row 97.
 """
@@ -80,6 +102,25 @@ SEND_CUES = frozenset({
 
 # A control's own label, when it is button-styled and has no payload at all.
 CTA_SEND_CUES = frozenset({"email", "send", "write", "submit"})
+
+# A cue heading that promises sample copy. Narrower than SEND_CUES on purpose:
+# a cue-headed section is only NOTED as declined prose (never failed) when its
+# heading reads like a sample message and the prose under it is letter-length,
+# so "Write to City Councilors" never produces a note on a clean tree.
+PROSE_COPY_CUES = frozenset({
+    "message", "messages", "letter", "letters", "petition", "template",
+    "sample", "example", "script",
+})
+# A heading that names the copy itself rather than describing it ("Example
+# message", "Sample comment", "Petition text"), or prose that is unmistakably a
+# letter being sent: either is what makes declined prose worth a note.
+SAMPLE_COPY_CUES = frozenset({"example", "sample", "template", "script",
+                              "petition", "testimony"})
+MESSAGE_MARKERS = ("Dear ", "Sincerely", "Respectfully", "[Your name",
+                   "Your name and")
+# A letter, not a one-line blurb: below this the prose is too short to be the
+# copy a page would ask a reader to send.
+PROSE_MIN_CHARS = 150
 
 PAYLOAD_PARAMS = ("body", "text", "quote")
 SUBJECT_PARAMS = ("subject",)
@@ -218,6 +259,10 @@ def _control_payload(control):
     return "", False, "subject" in params
 
 
+def _is_button_styled(control):
+    return "btn" in control["attrs"].get("class", "").split()
+
+
 def _is_transmitting(control):
     """True when this element is a mechanism that sends the displayed copy."""
     if control["kind"] == "form":
@@ -233,8 +278,7 @@ def _is_transmitting(control):
         if "subject" in params:
             return True
         # A button-styled mailto with no query at all: the blank case.
-        css = control["attrs"].get("class", "")
-        return (scheme in ("mailto", "sms") and "btn" in css.split()
+        return (scheme in ("mailto", "sms") and _is_button_styled(control)
                 and _has_cue(control["label"], CTA_SEND_CUES))
     return False
 
@@ -249,6 +293,23 @@ def _is_sendable(block, headings):
         return True
     gov = _governing_heading(block, headings)
     return bool(gov) and _has_cue(gov["text"], SEND_CUES)
+
+
+def _silent_control_pairs(control, label, block):
+    """May a control carrying no payload of its own pair with this block?
+
+    A subject-only `mailto:` is the ordinary "write to us" link a letter's own
+    section ends with ("Questions? email us"), not a promise to send the
+    displayed copy, so pairing it would report a missing payload the page never
+    claimed. It pairs only when it is shaped like the CTA that promises to send
+    — button-styled, with a send cue in its own label, the same test the
+    queryless CTA passes — or when the block opts in explicitly with
+    `data-sendable-copy`, which is the page's own statement that this copy is
+    what that control sends.
+    """
+    if "data-sendable-copy" in block["attrs"]:
+        return True
+    return _is_button_styled(control) and _has_cue(label, CTA_SEND_CUES)
 
 
 def _region_ok(block, control, governing, headings, blocks):
@@ -271,11 +332,8 @@ def _region_ok(block, control, governing, headings, blocks):
     return True
 
 
-def sendable_blocks(markup):
-    """Every block on the page the rule reads as copy a reader would send."""
-    scan = _Scan(markup)
-    scan.feed(markup)
-    scan.close()
+def _read_blocks(scan):
+    """Every block the rule reads as copy a reader would send, labelled."""
     found = []
     for block in scan.blocks:
         if not _is_sendable(block, scan.headings):
@@ -288,10 +346,76 @@ def sendable_blocks(markup):
     return found
 
 
+def _scan(markup):
+    scan = _Scan(markup)
+    scan.feed(markup)
+    scan.close()
+    return scan
+
+
+def _analyse(markup):
+    """One scan, every pair, every sendable block, and who paired.
+
+    Returned as (pairs, blocks, paired, scan): `paired` holds the id() of each
+    block at least one control joined with, so a caller can say which displayed
+    copy went unpaired without re-deriving the pairing. Keeping this in one
+    place is what makes the per-block note (and the unit pins) read the same
+    pairing the rule does.
+    """
+    scan = _scan(markup)
+    blocks = _read_blocks(scan)
+    controls = [control for control in scan.controls if _is_transmitting(control)]
+
+    pairs, paired = [], set()
+    for block in blocks:
+        for control in controls:
+            # Content-proven pairing first (see the module docstring): a
+            # control whose payload equals the block's copy has proven which
+            # copy it sends, so the heading fence does not apply to it. A
+            # control without a payload, or with a differing one, still needs
+            # the fence.
+            payload, has_param, _subject = _control_payload(control)
+            content_proven = (
+                control["kind"] != "form"
+                and has_param and payload
+                and canonical(payload) == canonical(block["text"]))
+            if not content_proven and not _region_ok(
+                    block, control, block["governing"],
+                    scan.headings, blocks):
+                continue
+            label = (control.get("label") or control["attrs"].get("value")
+                     or control["attrs"].get("action", ""))
+            if control["kind"] == "form":
+                pairs.append({"control": label, "copy_label": block["label"],
+                              "mechanism": "form", "copy": canonical(block["text"]),
+                              "payload": None, "has_payload_param": False})
+                paired.add(id(block))
+                continue
+            if not has_param and not _silent_control_pairs(control, label, block):
+                continue
+            mechanism = urllib.parse.urlsplit(
+                control["attrs"].get("href", "")).scheme.casefold() or "link"
+            pairs.append({"control": label, "copy_label": block["label"],
+                          "mechanism": mechanism, "copy": canonical(block["text"]),
+                          "payload": canonical(payload),
+                          "has_payload_param": has_param})
+            paired.add(id(block))
+    return pairs, blocks, paired, scan
+
+
+def sendable_blocks(markup):
+    """Every block on the page the rule reads as copy a reader would send."""
+    return _analyse(markup)[1]
+
+
 def divergence(expected, actual):
     if len(actual) < len(expected) and expected.startswith(actual):
         return (f"payload stops after {len(actual)} of {len(expected)} "
                 "characters")
+    if len(actual) > len(expected) and actual.startswith(expected):
+        extra = actual[len(expected):]
+        return (f"payload runs {len(extra)} characters past the displayed copy: "
+                f"{extra[:60]!r}")
     index = 0
     for left, right in zip(expected, actual):
         if left != right:
@@ -307,6 +431,41 @@ def format_finding(page, kind, control_label, block_label, detail):
             f"beside displayed copy {block_label!r} — {detail}")
 
 
+def _declined_prose_notes(page, scan, blocks):
+    """Cue-headed prose the rule declines to read, said out loud.
+
+    A letter restyled into ordinary paragraphs under "Example message" is
+    neither compared nor failed, because only a blockquote (or an element
+    marked `data-sendable-copy`) counts as sendable copy. Silence there would
+    read as a pass, so cue-headed prose that is letter-length and either names
+    the copy in its heading ("Example message", "Sample comment") or reads as a
+    message being sent (a salutation, a closing, a name placeholder) gets a note
+    naming it and the fix. A note is never a failure, and a guidance section
+    that merely mentions letters stays quiet.
+    """
+    governed = {id(block["governing"]) for block in blocks if block["governing"]}
+    notes = []
+    for index, heading in enumerate(scan.headings):
+        if id(heading) in governed:
+            continue
+        if not _has_cue(heading["text"], PROSE_COPY_CUES):
+            continue
+        section_end = (scan.headings[index + 1]["start"]
+                       if index + 1 < len(scan.headings) else len(scan.markup))
+        prose = _plain(scan.markup[heading["end"]:section_end])
+        if len(prose) < PROSE_MIN_CHARS:
+            continue
+        if not (_has_cue(heading["text"], SAMPLE_COPY_CUES)
+                or any(marker in prose for marker in MESSAGE_MARKERS)):
+            continue
+        notes.append(
+            f"{page}: cue-headed prose {heading['text']!r} carries "
+            f"{len(prose)} characters but is not a <blockquote>, so it is not "
+            "compared — wrap it in a blockquote or mark it "
+            "data-sendable-copy to have its payload checked (not a failure)")
+    return notes
+
+
 def copy_payload_pairs(markup):
     """Every displayed-copy/transmitting-control pair on a page, both sides.
 
@@ -315,47 +474,7 @@ def copy_payload_pairs(markup):
     mechanism, and the two canonical strings the rule compares (`copy` and
     `payload`). A form pair carries no `payload`: the reader types the copy.
     """
-    scan = _Scan(markup)
-    scan.feed(markup)
-    scan.close()
-    blocks = [block for block in scan.blocks if _is_sendable(block, scan.headings)]
-    for block in blocks:
-        gov = _governing_heading(block, scan.headings)
-        block["label"] = (gov["text"] if gov else
-                          block["attrs"].get("aria-label", ""))
-        block["governing"] = gov
-    controls = [control for control in scan.controls if _is_transmitting(control)]
-
-    pairs = []
-    for block in blocks:
-        for control in controls:
-            # Content-proven pairing first (see the module docstring): a
-            # control whose payload equals the block's copy has proven which
-            # copy it sends, so the heading fence does not apply to it. A
-            # control without a payload, or with a differing one, still needs
-            # the fence.
-            payload, has_param, _subject = _control_payload(control)
-            content_proven = (
-                control["kind"] != "form"
-                and has_param and payload
-                and canonical(payload) == canonical(block["text"]))
-            if not content_proven and not _region_ok(
-                    block, control, block["governing"], scan.headings, blocks):
-                continue
-            label = (control.get("label") or control["attrs"].get("value")
-                     or control["attrs"].get("action", ""))
-            if control["kind"] == "form":
-                pairs.append({"control": label, "copy_label": block["label"],
-                              "mechanism": "form", "copy": canonical(block["text"]),
-                              "payload": None, "has_payload_param": False})
-                continue
-            mechanism = urllib.parse.urlsplit(
-                control["attrs"].get("href", "")).scheme.casefold() or "link"
-            pairs.append({"control": label, "copy_label": block["label"],
-                          "mechanism": mechanism, "copy": canonical(block["text"]),
-                          "payload": canonical(payload),
-                          "has_payload_param": has_param})
-    return pairs
+    return _analyse(markup)[0]
 
 
 def inspect_page(markup, page):
@@ -363,9 +482,11 @@ def inspect_page(markup, page):
 
     A finding is a formatted string naming the page, the control, and what
     diverged; a pair is one comparison the rule actually made, so a test can
-    prove the rule was not vacuous on a page.
+    prove the rule was not vacuous on a page. Every sendable block that no
+    control paired with gets its own note, whether or not the page has other
+    pairs, and so does cue-headed prose the rule declined to read.
     """
-    pairs = copy_payload_pairs(markup)
+    pairs, blocks, paired, scan = _analyse(markup)
     findings, notes = [], []
     for pair in pairs:
         label, copy_label = pair["control"], pair["copy_label"]
@@ -384,10 +505,12 @@ def inspect_page(markup, page):
             findings.append(format_finding(
                 page, "payload-mismatch", label, copy_label,
                 divergence(pair["copy"], pair["payload"])))
-    if not pairs:
-        for block in sendable_blocks(markup):
-            notes.append(f"{page}: displayed copy {block['label']!r} has no "
-                         "transmitting control in its region (not a failure)")
+    for block in blocks:
+        if id(block) in paired:
+            continue
+        notes.append(f"{page}: displayed copy {block['label']!r} has no "
+                     "transmitting control in its region (not a failure)")
+    notes.extend(_declined_prose_notes(page, scan, blocks))
     return {"findings": findings, "pairs": pairs, "notes": notes}
 
 
@@ -440,6 +563,24 @@ def sweep(base, pages, fetcher=fetch_html):
     return findings, reports
 
 
+def discovered_pages(root):
+    """Every page under a built tree, relative to it, nested ones included.
+
+    A flat `os.listdir` silently skipped `map/embed.html` and `map/map.html`,
+    so a sweep could report a clean tree while never reading a quarter of the
+    site's markup. Walking the tree means the titles of these functions and the
+    ladder's own counts match what was actually read.
+    """
+    pages = []
+    for base_dir, _dirs, names in os.walk(root):
+        for name in names:
+            if not name.endswith(".html"):
+                continue
+            relative = os.path.relpath(os.path.join(base_dir, name), root)
+            pages.append(relative.replace(os.sep, "/"))
+    return sorted(pages)
+
+
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(
@@ -448,15 +589,15 @@ def main(argv=None):
     parser.add_argument("--url", required=True,
                         help="base URL or file: path of the built index")
     parser.add_argument("--pages", nargs="+", default=None,
-                        help="page names (default: every .html in the base)")
+                        help="page names (default: every .html under the base, "
+                             "nested pages as map/map.html included)")
     args = parser.parse_args(argv)
     if args.pages:
         pages = args.pages
     elif args.url.startswith("file:"):
         root = args.url[len("file:"):]
         root = os.path.dirname(root) if root.endswith(".html") else root
-        pages = sorted(name for name in os.listdir(root)
-                       if name.endswith(".html"))
+        pages = discovered_pages(root)
     else:
         parser.error("--pages is required for an http(s) base")
     findings, reports = sweep(args.url, pages)

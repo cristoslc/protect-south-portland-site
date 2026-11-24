@@ -4676,6 +4676,17 @@ def test_act_now_cta_mailto_body_carries_the_example_message(docs):
     which is exactly what the operator saw. Whitespace runs collapse on both
     sides (tools/uat_payload.canonical), so a paragraph separator cannot fail
     the pin while any word, punctuation mark or missing tail still does.
+
+    WHAT THIS PIN CAN AND CANNOT PROVE, stated so no reader over-reads it:
+    both sides of the comparison come from ONE authored source. The source
+    anchor carries `data-mailto-body="blockquote"`, and the row-96 build step
+    composes the mailto body from that same blockquote, so the pin guards the
+    COMPOSER — that the letter reaches the draft whole, with no truncation, no
+    dropped tail and nothing left blank. It cannot catch AUTHOR DRIFT: an
+    author who pastes a different letter into the page's own copy would move
+    both sides together. That case is held instead by the build refusing a
+    marked CTA that already declares its own body, and by the review gate on
+    the copy itself.
     """
     markup = read(docs, "act-now.html")
     pairs = [pair for pair in uat_payload.copy_payload_pairs(markup)
@@ -4700,16 +4711,27 @@ def test_uat_payload_rule_is_clean_across_every_built_page(docs):
     """The rule over the whole tree, through the same fetched-HTML path the
     UAT ladder uses, so this pin also proves the sweep works by URL.
 
+    It walks `docs/` recursively, the same discovery the standalone tool
+    defaults to (tools/uat_payload.discovered_pages), so the nested map pages
+    are swept whenever the build produced them rather than skipped by a flat
+    listing while this pin's title claims every page. A build with no map
+    source carries no nested page, and then there is nothing extra to sweep.
+
     It must come back with zero findings, and it must not be vacuous: the
     Act now CTA is compared and carries a real payload. Every other page in
     the tree carries contact addresses, subject-only newsletter and workshop
     links, and mailing-address blockquotes, and none of those may fail.
     """
-    pages = html_files(docs)
+    pages = uat_payload.discovered_pages(str(docs))
     base = "file:" + os.path.join(str(docs), "index.html")
     findings, reports = uat_payload.sweep(base, pages)
     assert findings == [], "\n".join(findings)
     assert set(reports) == set(pages)
+    if psp_public.find_map_source_docs() is not None:
+        nested = [page for page in pages if "/" in page]
+        assert nested, (
+            "the build shipped map pages but the sweep read none of them: "
+            f"{pages}")
     act = reports["act-now.html"]
     assert [pair["control"] for pair in act["pairs"]] == ["Email the Council"]
     assert len(act["pairs"][0]["payload"]) == len(act["pairs"][0]["copy"])
@@ -4957,3 +4979,181 @@ def test_base_heading_margins_are_top_heavy(docs):
     assert not missing, (
         f"the walk found no margin-bearing base rule for {sorted(missing)}; "
         "the pin is blind if the base heading margin rules disappear")
+# --- Ledger row 101: the six findings on the row-97 rule's own review --------
+#
+# Full-class review of PR #82, six findings (four medium, two low), fixed here
+# rather than filed. Each pin below was written against the pre-fix tool and
+# failed there; the red proof is in the pull request body.
+
+_LETTER = (
+    "Dear Councilors,\n\n"
+    "New state fence-line data shows benzene above Maine\u2019s ambient air "
+    "guideline at ten of the eleven terminals.\n\n"
+    "Sincerely,\n[Your name and street or neighborhood]"
+)
+
+
+def _cta_with_letter(heading="Example message"):
+    """The clean shape: a CTA that carries the whole letter, above it."""
+    body = urllib.parse.quote(uat_payload.canonical(_LETTER))
+    return (f'<p><a class="btn btn--cta" '
+            f'href="mailto:citycouncil@example.org?subject=Ask&body={body}">'
+            f'Email the Council</a></p>\n'
+            f'<h2>{heading}</h2>\n'
+            f'<blockquote><p>{html.escape(_LETTER)}</p></blockquote>')
+
+
+def test_uat_payload_rule_ignores_a_subject_link_inside_a_letter():
+    """Finding 1, medium: a subject-carrying "email us" link inside a letter's
+    own region is not a promise to send the letter.
+
+    The reviewer's probe, verbatim in shape: a "Questions? email us" link after
+    the displayed letter with no heading between them paired with the letter and
+    fired `missing-payload`, because a subject-only control was transmitting by
+    definition. The real tree swept clean only because a heading happened to sit
+    between every subject link and every letter.
+    """
+    page = (f"<html><body>\n{_cta_with_letter()}\n"
+            '<p>Questions? <a href="mailto:hello@example.org?'
+            'subject=Question%20about%20the%20example%20message">email us</a>.'
+            "</p>\n</body></html>")
+    report = uat_payload.inspect_page(page, "act-now.html")
+    assert report["findings"] == [], report["findings"]
+    assert [pair["control"] for pair in report["pairs"]] == ["Email the Council"]
+
+    # The opt-in is the way back in: a page that designates the copy as what
+    # its control sends gets the blank payload reported, whatever the control's
+    # label looks like.
+    opted_in = page.replace("<blockquote>", "<blockquote data-sendable-copy>")
+    findings = uat_payload.check_page(opted_in, "act-now.html")
+    assert len(findings) == 1, findings
+    assert "control 'email us'" in findings[0], findings[0]
+    assert findings[0].startswith("sendable-payload:missing-payload"), findings[0]
+
+
+def test_uat_payload_rule_notes_an_orphan_beside_a_paired_block():
+    """Finding 2, medium: an unpaired sendable block is noted even when the
+    page has a pair somewhere else.
+
+    The module doc and the row-97 pull request both promise displayed copy with
+    no control is noted rather than failed, but the note was emitted only under
+    `if not pairs`, so a page with one paired letter and one orphan said nothing
+    about the orphan.
+    """
+    page = (f"<html><body>\n{_cta_with_letter()}\n"
+            '<h2>Sample comment</h2>\n'
+            "<blockquote><p>I support the fence-line monitoring rule because "
+            "the readings are the whole argument.</p></blockquote>\n"
+            "</body></html>")
+    report = uat_payload.inspect_page(page, "act-now.html")
+    assert report["findings"] == [], report["findings"]
+    assert len(report["pairs"]) == 1, report["pairs"]
+    assert len(report["notes"]) == 1, report["notes"]
+    assert "'Sample comment'" in report["notes"][0], report["notes"][0]
+    assert "no transmitting control" in report["notes"][0], report["notes"][0]
+
+
+def test_uat_payload_pin_states_its_shared_source_scope():
+    """Finding 3, medium: the unit pin says what it can and cannot prove.
+
+    The pin compares the built page's mailto body with the blockquote beside
+    it, but the row-96 build step writes that body from that very blockquote, so
+    both sides of the comparison come from one authored source. The pin guards
+    the composer — that the letter is copied whole, with no truncation and no
+    dropped tail — and it cannot catch an author who pastes a different letter
+    into a hand-written body. That limit belongs on the record, not in a
+    reader's assumption.
+    """
+    doc = test_act_now_cta_mailto_body_carries_the_example_message.__doc__
+    assert doc, "the pin lost its docstring"
+    doc = doc.lower()
+    assert "composer" in doc, doc
+    assert "author drift" in doc, doc
+    assert "data-mailto-body" in doc, doc
+
+
+def test_uat_payload_default_discovery_walks_nested_pages(tmp_path, capsys):
+    """Finding 4, medium: nested pages are swept, not silently skipped.
+
+    The default discovery used a flat `os.listdir`, so `map/embed.html` and
+    `map/map.html` were never read, while the tree-wide pin's title said every
+    built page. A blank payload on a nested page must stop the tool and be named
+    by its relative path.
+    """
+    root = tmp_path / "built"
+    (root / "map").mkdir(parents=True)
+    (root / "index.html").write_text(
+        "<html><body><p>Home</p></body></html>", encoding="utf-8")
+    (root / "map" / "inner.html").write_text(
+        _sendable_fixture("mailto:citycouncil@example.org?subject=Ask"),
+        encoding="utf-8")
+
+    code = uat_payload.main(["--url", "file:" + str(root / "index.html")])
+    printed = capsys.readouterr().out
+    assert code == 1, printed
+    assert "FAIL: sendable-payload:missing-payload map/inner.html" in printed, \
+        printed
+    assert "payload sweep: 2 pages" in printed, printed
+
+    assert uat_payload.discovered_pages(str(root)) == [
+        "index.html", "map/inner.html"]
+
+
+def test_uat_payload_rule_notes_cue_headed_prose_it_declines():
+    """Finding 5, low: a letter restyled into paragraphs says so.
+
+    Only a blockquote or a `data-sendable-copy` element counts as sendable copy,
+    so a letter written out as ordinary paragraphs under "Example message" was
+    neither checked nor noted — the silent decline the reviewer named. It is now
+    noted by name, and the note carries the fix.
+    """
+    page = ("<html><body>\n<h2>Example message</h2>\n"
+            + "".join(f"<p>{chunk}</p>"
+                      for chunk in html.escape(_LETTER).split("\n\n"))
+            + "\n</body></html>")
+    report = uat_payload.inspect_page(page, "act-now.html")
+    assert report["findings"] == [], report["findings"]
+    assert report["pairs"] == [], report["pairs"]
+    assert len(report["notes"]) == 1, report["notes"]
+    note = report["notes"][0]
+    assert "'Example message'" in note, note
+    assert "not a <blockquote>" in note, note
+    assert "data-sendable-copy" in note, note
+    assert "(not a failure)" in note, note
+
+    # Precision: a guidance section that merely mentions letters, with no
+    # salutation and no sample cue in its heading, stays quiet. This is the
+    # shape toolkit.html carries on the real tree.
+    guidance = ("<html><body>\n<h2>Letter to the editor guidance</h2>\n<p>"
+                + "Points for writing, one hundred and fifty words maximum, "
+                "the council plans a workshop on options like licensing fees. "
+                * 3 + "</p>\n</body></html>")
+    assert uat_payload.inspect_page(guidance, "toolkit.html")["notes"] == []
+
+
+def test_uat_payload_divergence_names_a_payload_that_runs_past_the_copy():
+    """Finding 6, low: a payload longer than the displayed copy said nothing.
+
+    `divergence()` sliced both strings at the same index, so when the payload
+    merely continued past the copy it printed "the page displays ''", which
+    reads like a broken message rather than a finding. The payload's extra
+    characters are what the reader needs named.
+    """
+    detail = uat_payload.divergence("Dear Councilors, please act.",
+                                    "Dear Councilors, please act. Also, now.")
+    assert "runs 11 characters past the displayed copy" in detail, detail
+    assert "' Also, now.'" in detail, detail
+    assert "the page displays ''" not in detail, detail
+
+    # End to end: the extra-text payload is a payload-mismatch finding, worded
+    # the same way.
+    copy = uat_payload.canonical(_LETTER)
+    extra = " And one more demand."
+    href = ("mailto:citycouncil@example.org?subject=Ask&body="
+            + urllib.parse.quote(copy + extra))
+    findings = uat_payload.check_page(_sendable_fixture(href), "act-now.html")
+    assert len(findings) == 1, findings
+    assert findings[0].startswith("sendable-payload:payload-mismatch"), findings[0]
+    assert f"runs {len(extra)} characters past the displayed copy" in findings[0], \
+        findings[0]
+
