@@ -131,8 +131,8 @@ img { max-width: 100%; height: auto; }
 }
 
 /* dropdown links sit on a white panel; the masthead's pale ink fails there,
-   so the menu text contrast fix gives the panel its own dark ink (2026-10-14
-   page-structure review, fix 1) */
+   so the menu text contrast fix gives the panel its own dark ink
+   (2026-10-14). */
 
 .submenu a { padding: 8px 12px; font-size: 0.9rem; color: var(--teal-900); }
 
@@ -178,11 +178,11 @@ img { max-width: 100%; height: auto; }
 @media (max-width: 1120px) {
   .nav-toggle-label { display: block; }
 
-  /* fix 6 (page-structure review): the toggle checkbox is visually hidden
-     but keyboard-focusable — Space on it opens the menu, and the
-     :focus-visible outline lands on the MENU label. Desktop keeps it
-     display:none: there the plain nav links are already in the tab order,
-     and a focusable invisible checkbox would be an unindicated tab stop. */
+  /* The toggle checkbox is visually hidden but keyboard-focusable:
+     Space on it opens the menu, and the :focus-visible outline lands on
+     the MENU label. Desktop keeps it display:none, where the plain nav
+     links are already in the tab order and a focusable invisible
+     checkbox would be an unindicated tab stop. */
   .nav-toggle {
     display: block;
     position: absolute;
@@ -223,11 +223,11 @@ img { max-width: 100%; height: auto; }
     margin: 2px 0 6px;
   }
 
-  /* fix 1 (page-structure review): the phone menu panel is white; dark ink
-     for menu links. The Act now pill keeps the white label on the
-     --orange-dark fill from its base rule, so it gets no text-color or
-     hover override here: a dark-orange label on the orange fill measured
-     1.39:1 (header contrast fix, 2026-11-23). */
+  /* The phone menu panel is white, so the menu links take dark ink. The
+     Act now pill keeps the white label on the --orange-dark fill from its
+     base rule, so it gets no text-color or hover override here: a
+     dark-orange label on the orange fill measured 1.39:1 (header
+     contrast fix, 2026-11-23). */
 
   .main-nav a { color: var(--teal-900); }
   .main-nav a:hover { background: var(--teal-100); color: var(--teal-900); }
@@ -298,8 +298,8 @@ img { max-width: 100%; height: auto; }
   cursor: pointer;
 }
 
-/* fix 5 (page-structure review): white on --orange is 3.98:1; white on
-   --orange-dark is 5.55:1, and the hover steps darker still */
+/* White on --orange is 3.98:1; white on --orange-dark is 5.55:1, and
+   the hover steps darker still */
 
 .btn--cta { background: var(--orange-dark); color: #fff; }
 .btn--cta:hover { background: var(--orange-darker); }
@@ -324,8 +324,8 @@ img { max-width: 100%; height: auto; }
 
 .prose--intro p { color: var(--muted); }
 
-/* fix 2 (page-structure review): the strip's links read as a two-item link
-   row after the paragraph, not a run-on inside the sentence flow */
+/* The strip's links read as a two-item link row after the paragraph,
+   not a run-on inside the sentence flow */
 
 .link-row { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 26px; margin: 10px 0 0; padding: 0; font-weight: 700; font-size: 0.95rem; }
 
@@ -353,11 +353,11 @@ h2 { color: var(--teal-900); font-size: clamp(1.4rem, 3vw, 1.9rem); line-height:
 
 h3 { color: var(--teal-700); margin: 1.6em 0 0.5em; }
 
-/* heading-order fix (2026-10-15 staging audit, digest #4): pages that held
-   h3s directly under their h1 retag them to h2 so the outline runs
-   sequential; this class carries the retired h3's exact look (size, color,
-   margins) so no copy or design changes ride along. tank-farms.html keeps
-   its prose margins; the card--photo override matches .card--photo h3. */
+/* Heading-order fix (2026-10-15): pages that held h3s directly under
+   their h1 retag them to h2 so the outline runs sequential; this class
+   carries the retired h3's exact look (size, color, margins) so no copy or
+   design changes ride along. tank-farms.html keeps its prose margins; the
+   card--photo override matches .card--photo h3. */
 
 h2.h3-look { font-size: 1em; color: var(--teal-700); margin: 1.6em 0 0.5em; }
 

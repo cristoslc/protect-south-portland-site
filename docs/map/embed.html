@@ -61,7 +61,7 @@ const icons = {school:L.divIcon({className:'',html:'<div style="width:14px;heigh
  childcare:L.divIcon({className:'',html:'<div style="width:12px;height:12px;background:#d62828;transform:rotate(45deg);border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></div>',iconSize:[12,12],iconAnchor:[6,6]}),
  senior:L.divIcon({className:'',html:'<div style="width:13px;height:13px;background:#7b2cbf;border:1.5px solid #fff;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.4)"></div>',iconSize:[13,13],iconAnchor:[6,6]})};
 
-/* a11y (staging audit issue #4, Lighthouse aria-command-name): Leaflet marks
+/* a11y (Lighthouse aria-command-name): Leaflet marks
    marker icons role=button, so an icon div with no text is a nameless
    interactive button. Every interactive marker is named from the data it
    already shows, right after addTo (the icon element exists then). Name/

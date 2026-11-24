@@ -11,7 +11,6 @@ sanitizing.
 """
 import os
 import re
-import shutil
 
 # Links, labels and names belonging to the private research surface. The
 # private repo's NAME and its github.io host are banned too: once that repo
@@ -86,6 +85,14 @@ INTERNAL_REFERENCE_PATTERNS = (
     re.compile(r"gate-reports?/", re.IGNORECASE),        # gate-report dir
     re.compile(r"\b\d{4}-\d{2}-\d{2}-\d+\.json\b"),      # 2026-11-24-1.json
     re.compile(r"/Users/"),                              # absolute local path
+    # 2026-11-24, second pass: the copied map pages carried audit-cycle
+    # citations in their marker a11y comments ("staging audit issue #4") and
+    # the stylesheet cited "page-structure review, fix N" and a "staging
+    # audit, digest #4". The audit cycle is internal bookkeeping. The bare
+    # "digest #"/"issue #" forms are deliberately NOT patterns: a newsletter
+    # issue number is legitimate public copy, and both leaks sit inside the
+    # "staging audit" phrase, which this entry covers whole.
+    re.compile(r"staging audit", re.IGNORECASE),
 )
 
 # Nothing whose path smells like internal material is ever copied into a
@@ -133,6 +140,28 @@ SIDEBAR_LINKS_RE = re.compile(
 
 # Only the root README.md is published; any other .md in the tree is a leak.
 PUBLISHED_MD_ALLOWLIST = ("README.md",)
+
+
+# Internal provenance in the copied map pages (2026-11-24): the standalone
+# map pages carried their audit-cycle citations in the marker a11y comments
+# ("staging audit issue #4"). That is internal bookkeeping, not part of the
+# page, so the copy step drops the citation and keeps the rest of the note.
+# The sibling repo cleaned its own copies too, but this rail is what keeps a
+# future copy from shipping one: the map pages are regenerated from that
+# checkout, so editing docs/map/ alone would not survive the next build. The
+# marker scan after the strip is the hard gate.
+INTERNAL_PROVENANCE_RE = re.compile(
+    r"\s*(?:PSP\s+)?staging audit(?:,?\s+(?:issue|digest)\s*#?\s*\d+)?[:,]?\s*",
+    re.IGNORECASE)
+
+
+def strip_internal_provenance(text):
+    """Drop audit-cycle citations from a copied page, keep the note around it.
+
+    Cutting only, never rewriting content: an unmatched shape stays put and
+    the post-copy scan fails loud on it.
+    """
+    return INTERNAL_PROVENANCE_RE.sub("", text)
 
 
 def strip_research_chrome(html):
@@ -246,16 +275,23 @@ def assert_clean(violations, what):
 
 
 def copy_map_pages(out_dir, src_docs):
-    """Copy embed.html/styles.css verbatim and a stripped map.html into
-    out_dir/map/. Fails loud if anything private survives anywhere."""
+    """Copy the map pages into out_dir/map/, strip their research chrome and
+    internal provenance, and fail loud if anything private survives.
+
+    The copies are cut, never rewritten: research header/sidebar links come
+    off map.html, audit-cycle citations come off every file's comments, and
+    the marker scan on the result is the hard gate.
+    """
     map_out = os.path.join(out_dir, MAP_DIRNAME)
     os.makedirs(map_out, exist_ok=True)
     written = []
     for name in ("embed.html", "styles.css"):
-        shutil.copy2(os.path.join(src_docs, name), os.path.join(map_out, name))
+        text = open(os.path.join(src_docs, name), encoding="utf-8").read()
+        open(os.path.join(map_out, name), "w", encoding="utf-8").write(
+            strip_internal_provenance(text))
         written.append(f"map/{name}")
-    stripped = strip_research_chrome(
-        open(os.path.join(src_docs, "map.html"), encoding="utf-8").read())
+    stripped = strip_internal_provenance(strip_research_chrome(
+        open(os.path.join(src_docs, "map.html"), encoding="utf-8").read()))
     open(os.path.join(map_out, "map.html"), "w", encoding="utf-8").write(stripped)
     written.append("map/map.html")
     assert_clean([violation for name in MAP_FILES

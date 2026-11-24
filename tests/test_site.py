@@ -944,7 +944,7 @@ def test_get_involved_odor_report_dual_channel(docs):
     assert "Smell My City App" in gi
     assert "preferred method" in gi
     assert "not publicly available in real-time" in gi
-    smc = gi.index("Click here to download")
+    smc = gi.index("Download the Smell My City app")
     form = gi.index("Odor Report form")
     next_section = gi.index("Write to City Councilors")
     assert smc < form < next_section, "form paragraphs must land under the SMC copy"
@@ -1294,6 +1294,54 @@ def test_public_scan_leaves_ordinary_row_prose_alone():
     # a caller-supplied marker set still applies, and patterns still apply with it
     assert psp_public.scan_text("wixstatic", "x.html", ("wixstatic",))
     assert psp_public.scan_text("row-40", "x.html", ())
+
+
+def test_public_scan_catches_staging_audit_provenance():
+    """Second pass on the same class (2026-11-24): the copied map pages cited
+    their audit cycle in marker a11y comments, and the stylesheet cited a
+    "page-structure review, fix N" and a "staging audit, digest #4". The audit
+    cycle is internal bookkeeping, so the phrase itself is now a pattern.
+
+    "digest #" and "issue #" are deliberately left out: a newsletter issue
+    number is legitimate public copy, and both real leaks sit inside the
+    "staging audit" phrase this pattern covers whole.
+    """
+    for text in (
+        "/* a11y (staging audit issue #4, Lighthouse aria-command-name): x */",
+        "/* a11y (PSP staging audit issue #4, Lighthouse aria-command-name): x */",
+        "/* heading-order fix (2026-10-15 staging audit, digest #4): pages */",
+    ):
+        violations = psp_public.scan_text(text, "docs/map/embed.html")
+        assert any("staging audit" in v for v in violations), (text, violations)
+    # and the generic shapes alone stay clean
+    assert psp_public.scan_text("<p>Our newsletter, issue #12, is out.</p>",
+                                "newsletter.html") == []
+
+
+def test_map_copy_strips_audit_provenance(tmp_path):
+    """The map pages are regenerated from the sibling checkout, so the strip
+    has to live in the copy step: a fresh source carrying an audit citation
+    must come out clean, with the rest of the note kept."""
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "embed.html").write_text(
+        "<script>\n/* a11y (staging audit issue #4, Lighthouse "
+        "aria-command-name): x */\n</script>", encoding="utf-8")
+    (src / "map.html").write_text(
+        "<html><body><header><nav><a href=\"report.html\">Research Report</a>"
+        "</nav></header>\n<script>\n/* a11y (PSP staging audit issue #4, "
+        "Lighthouse aria-command-name): x */\n</script></body></html>",
+        encoding="utf-8")
+    (src / "styles.css").write_text("/* nothing internal */\n", encoding="utf-8")
+    out = tmp_path / "out"
+    psp_public.copy_map_pages(str(out), str(src))
+    for name in psp_public.MAP_FILES:
+        copied = (out / "map" / name).read_text(encoding="utf-8")
+        assert "staging audit" not in copied, name
+        assert psp_public.scan_file(str(out / "map" / name), f"map/{name}") == [], name
+    embed = (out / "map" / "embed.html").read_text(encoding="utf-8")
+    assert "Lighthouse aria-command-name" in embed, (
+        "the strip must drop the citation, not the note around it")
 
 
 def test_built_tree_scans_clean(docs):
