@@ -166,11 +166,18 @@ def strip_injected_blocks(text):
     exact bytes the build produced and the gate report hashed. Deliberately one
     function: a second, parallel strip would drift the first time one of the
     two blocks changed shape.
+
+    Matched on our own exact marker pair, and bounded: a region may not contain
+    another opening marker, so a truncated or stray comment can never swallow
+    real copy between two regions. Nothing that merely looks like a marker is
+    touched, and an unbalanced pair removes nothing, which leaves the
+    comparison to fail loud rather than quietly deleting a chunk of page.
     """
     for marker in INJECTED_BLOCK_MARKERS:
+        opening = re.escape(injected_block_open(marker))
+        closing = re.escape(injected_block_close(marker))
         pattern = re.compile(
-            re.escape(injected_block_open(marker)) + r".*?"
-            + re.escape(injected_block_close(marker)), re.DOTALL)
+            opening + r"(?:(?!" + opening + r").)*?" + closing, re.DOTALL)
         text = pattern.sub("", text)
     return text
 
@@ -883,28 +890,28 @@ def tls_cert_subject(host, timeout=20):
 
 
 def index_matches_built(text, index_path):
-    """The served index equals the freshly built one once the publish-time
-    injections come off. Strict: equal, or the leg stops.
+    """True only when the served index, minus the publish-time injections, is
+    byte-equal to the built index.
 
-    A staging index serves the row-42 gate block and the row-79 stamp, so a
-    raw byte comparison would fail every time, and a check that fails every
-    time gets waived. Stripping both regions first makes the comparison pass
-    because the bytes match, not because the comparison was loosened.
+    Steps, and there are no others:
 
-    There is deliberately NO fallback, and this is a decision rather than an
-    omission. Until 2026-11-24 this function also passed when the served page
-    merely carried the banner line (ledger row 5). That branch is how a
-    stamped page came to look verified: strict equality failed, the fallback
-    turned the failure into a pass, and the leg printed success. With the
-    strip in place the fallback has no legitimate caller left, and any future
-    injection or template tweak would fail equality again with the fallback
-    waiting to hide it. A served index that differs from the build after the
-    strip is a wrong tree, and the leg must stop.
+    1. Strip the row-42 gate block and the row-79 stamp from both sides. A
+       staging index serves both, so a raw byte comparison would fail every
+       time, and a check that fails every time gets waived. Stripping them
+       makes the comparison pass because the bytes match.
+    2. Compare. Anything else is False.
 
-    BEHAVIOUR CHANGE, named here so nobody is surprised: a `--domain` publish
-    whose host serves a page that is not byte-identical to this build (an
-    older cached build, for instance) now stops instead of passing on the
-    banner line. Re-run the leg when the host is serving the current build.
+    THE BANNER-LINE FALLBACK IS GONE (operator ruling, 2026-11-24). It passed a
+    served page that merely contained the banner text, which is exactly how a
+    stamped page could have looked verified, and below a strict check it turns
+    a real failure into a printed success. This is a decision rather than an
+    omission: with the strip in place the fallback has no legitimate caller, and
+    any future template tweak would fail equality with the fallback waiting to
+    hide it. There is no partial credit here: a stripped page that differs from
+    the built source makes the publish leg stop. The one case the fallback used
+    to cover, a Pages rebuild that has not landed yet, is handled by waiting for
+    the real bytes (wait_for_built_index) rather than by accepting a weaker
+    signal.
     """
     if not os.path.exists(index_path):
         return False
@@ -912,24 +919,56 @@ def index_matches_built(text, index_path):
     return strip_injected_blocks(text) == strip_injected_blocks(built)
 
 
+def read_served_index(domain):
+    """The served index's text, or a loud failure on a non-200."""
+    with urllib.request.urlopen(f"https://{domain}/", timeout=20) as resp:
+        if resp.status != 200:
+            raise SystemExit(f"https://{domain}/ returned {resp.status}")
+        return resp.read().decode("utf-8", errors="replace")
+
+
+def wait_for_built_index(index_path, fetch, minutes=8, clock=time.time,
+                         pause=time.sleep):
+    """Poll the served index until it is byte-equal to the build, then return it.
+
+    A Pages rebuild takes a minute or so after the push, so the first read of a
+    freshly published domain can still be the previous build. That is the one
+    legitimate case the deleted banner fallback used to cover, and the answer is
+    to wait for the real bytes: the poll ends with a loud failure naming what
+    was served instead of accepting a page that merely resembles the build.
+    """
+    deadline = clock() + minutes * 60
+    served = ""
+    while True:
+        served = fetch()
+        if index_matches_built(served, index_path):
+            return served
+        if clock() >= deadline:
+            raise SystemExit(
+                f"the domain did not serve the built index within {minutes} "
+                f"minutes: the served page differs from {index_path} after the "
+                "row-42 gate block and the row-79 stamp are stripped, so the "
+                "tree being served is not the tree that was built. Pages may "
+                "still be rebuilding, so re-run the verification. Do not loosen "
+                "this comparison.")
+        pause(15)
+
+
 def verify_custom_domain(domain, index_path, minutes=8):
     """Blocking gate: the custom domain must serve the staged tree over a
-    hostname-valid TLS connection before the publish claims success."""
+    hostname-valid TLS connection before the publish claims success.
+
+    The index comparison is strict after the strip (operator ruling,
+    2026-11-24). The wait absorbs a Pages rebuild that has not landed yet; a
+    domain that never serves the built bytes fails the publish loud.
+    """
     wait_for_pages([f"https://{domain}/",
                     f"https://{domain}/map/embed.html",
                     f"https://{domain}/map/map.html"],
                    minutes=minutes, allowed_domains=(domain,))
     common, not_after = tls_cert_subject(domain)
-    with urllib.request.urlopen(f"https://{domain}/", timeout=20) as resp:
-        if resp.status != 200:
-            raise SystemExit(f"https://{domain}/ returned {resp.status}")
-        text = resp.read().decode("utf-8", errors="replace")
-    if not index_matches_built(text, index_path):
-        raise SystemExit(
-            f"https://{domain}/: the served index does not match the "
-            f"built index ({index_path}) once the publish-time injections "
-            f"are stripped; the tree being served is not the tree that "
-            f"was built")
+    wait_for_built_index(index_path, lambda: read_served_index(domain),
+                         minutes=minutes)
     return f"TLS commonName {common!r} (notAfter {not_after})"
 
 
@@ -1145,8 +1184,8 @@ def main():
             print(f"site: https://{domain}/")
             print(f"map: https://{domain}/map/map.html")
             print(f"tls: {cert_note}")
-            print("index: the served index matches the built index once "
-                  "the publish-time injections are stripped")
+            print("index: the served index is byte-equal to the built index "
+                  "once the staging injections are stripped")
             if wait_https:
                 print("https: enforced — polled the Pages API for the "
                       "certificate, then set https_enforced=true")

@@ -674,19 +674,14 @@ def test_row79_served_pages_hash_equal_the_gate_report_after_the_strip(tmp_path,
         assert hashlib.sha256(served.encode("utf-8")).hexdigest() != built_sha, page
 
 
-def test_row79_index_check_sees_through_both_injections(tmp_path, docs, monkeypatch):
-    # the served index must compare equal because the bytes match after the
-    # strip, not because the banner fallback waved it through: the fallback is
-    # made impossible here, so only the strip can pass this
+def test_row79_index_check_sees_through_both_injections(tmp_path, docs):
+    # strict equality after the strip, with no fallback anywhere: the served
+    # index matches because the bytes match
     tree = injected_tree(tmp_path, docs, "index-check")
     served = open(os.path.join(tree, "index.html"), encoding="utf-8").read()
     built_path = os.path.join(str(docs), "index.html")
-    monkeypatch.setattr(psp_public, "BANNER_TEXT", "a banner no page carries")
     assert publish.index_matches_built(served, built_path) is True, (
         "both injections must come off before the served index is compared")
-    tampered = served.replace("Protect South Portland", "Protect South Portland!", 1)
-    assert publish.index_matches_built(tampered, built_path) is False, (
-        "a real content change must still fail the comparison")
 
 
 def body_edit(text, old, new):
@@ -698,10 +693,10 @@ def body_edit(text, old, new):
     return head + body.replace(old, new, 1)
 
 
-def test_row79_index_check_refuses_one_body_character_with_the_fallback_live(
-        tmp_path, docs):
-    # the fallback is gone entirely, so this is now the simplest case: a staged
-    # index with one character changed in the body fails, banner line and all.
+def test_row79_index_check_refuses_one_body_character(tmp_path, docs):
+    # one character inside the body must fail. The banner line is still on the
+    # page and there is no longer any branch that reads it, so a pass here would
+    # mean the strip had eaten real copy.
     tree = injected_tree(tmp_path, docs, "index-body")
     served = open(os.path.join(tree, "index.html"), encoding="utf-8").read()
     built_path = os.path.join(str(docs), "index.html")
@@ -710,7 +705,7 @@ def test_row79_index_check_refuses_one_body_character_with_the_fallback_live(
     tampered = body_edit(served, "e", "E")
     assert tampered != served
     assert publish.index_matches_built(tampered, built_path) is False, (
-        "the banner fallback must not mask a body change on a staged page")
+        "one changed body character must fail the strict comparison")
 
 
 def test_row79_served_page_matches_refuses_one_body_character(tmp_path, docs):
@@ -722,6 +717,79 @@ def test_row79_served_page_matches_refuses_one_body_character(tmp_path, docs):
     assert publish.served_page_matches(
         tampered, "about.html", docs_dir=str(docs)) is False, (
         "a one-character body edit must change the served page's hash")
+
+
+def test_row79_strip_is_bounded_by_its_own_markers():
+    # the strip may only remove a region that opens and closes with OUR exact
+    # marker pair. Real copy survives: an unmatched open, an unmatched close, a
+    # near-miss comment, and anything outside a complete pair.
+    open_gate = publish.injected_block_open(publish.GATE_MARKER)
+    close_gate = publish.injected_block_close(publish.GATE_MARKER)
+    # an unmatched open, with no close anywhere: nothing is removed
+    stray_open = f"<p>KEEP ONE</p>{open_gate}<p>KEEP TWO</p>"
+    assert publish.strip_injected_blocks(stray_open) == stray_open
+    # an unmatched close: nothing is removed either
+    stray_close = f"<p>KEEP THREE</p>{close_gate}<p>KEEP FOUR</p>"
+    assert publish.strip_injected_blocks(stray_close) == stray_close
+    # a comment that only looks like a marker is not ours and stays put
+    near_miss = "<p><!-- staging-gate:injection --> KEEP FIVE</p>"
+    assert publish.strip_injected_blocks(near_miss) == near_miss
+    # one complete region between copy: the region goes, the copy stays
+    around = f"<p>KEEP SIX</p>{open_gate}<p>gate body</p>{close_gate}<p>KEEP SEVEN</p>"
+    stripped = publish.strip_injected_blocks(around)
+    assert "<p>gate body</p>" not in stripped
+    assert "KEEP SIX" in stripped and "KEEP SEVEN" in stripped
+    # a truncated pair (open, copy, open, body, close) must not swallow the copy
+    # between the two opens: the later region goes, the earlier open stays, so a
+    # comparison fails loud instead of silently deleting a page chunk
+    truncated = f"{open_gate}<p>KEEP EIGHT</p>{open_gate}<p>gate body</p>{close_gate}"
+    kept = publish.strip_injected_blocks(truncated)
+    assert "KEEP EIGHT" in kept, kept
+    assert "<p>gate body</p>" not in kept, kept
+
+
+def test_row79_index_check_waits_out_a_rebuild_then_passes(tmp_path, docs):
+    # the deleted fallback covered one real case: a Pages rebuild that has not
+    # landed yet. The answer is to wait for the real bytes.
+    built_path = os.path.join(str(docs), "index.html")
+    built = open(built_path, encoding="utf-8").read()
+    stale = "<p>the previous build</p>"
+    now = [0.0]
+    reads = [stale, stale, built]
+
+    def fetch():
+        return reads.pop(0)
+
+    def clock():
+        return now[0]
+
+    def pause(seconds):
+        now[0] += seconds
+
+    assert publish.wait_for_built_index(
+        built_path, fetch, minutes=2, clock=clock, pause=pause) == built
+
+
+def test_row79_index_check_fails_loud_when_the_rebuild_never_lands(tmp_path, docs):
+    built_path = os.path.join(str(docs), "index.html")
+    now = [0.0]
+    calls = []
+
+    def fetch():
+        calls.append(1)
+        return "<p>the previous build</p>"
+
+    def clock():
+        return now[0]
+
+    def pause(seconds):
+        now[0] += seconds
+
+    with pytest.raises(SystemExit) as stopped:
+        publish.wait_for_built_index(
+            built_path, fetch, minutes=1, clock=clock, pause=pause)
+    assert "did not serve the built index" in str(stopped.value)
+    assert len(calls) > 1, "the wait must poll, not read once"
 
 
 def test_row79_prod_leg_refuses_a_tree_that_already_carries_the_stamp(
@@ -1962,20 +2030,31 @@ def test_publish_check_domain_stickiness_resolves_and_aborts(monkeypatch):
 
 
 def test_publish_index_matches_built(tmp_path):
+    # Operator ruling 2026-11-24: strict, after the strip. There is no
+    # banner-line branch any more, so a served text that merely contains the
+    # banner is not the built file and does not pass.
     index = tmp_path / "index.html"
     index.write_text(f"<p>{BANNER_TEXT}</p>", encoding="utf-8")
     assert publish.index_matches_built(f"<p>{BANNER_TEXT}</p>", str(index))
-    # Strict equality, no fallback anywhere: carrying the banner line is not
-    # enough when the served bytes differ from the build. Before 2026-11-24
-    # these two passed on the banner branch, which is how a stamped page came
-    # to look verified.
-    assert not publish.index_matches_built(f"prose {BANNER_TEXT} prose",
-                                           str(index))
-    index.write_text("<p>unrelated</p>", encoding="utf-8")
+    assert not publish.index_matches_built(f"prose {BANNER_TEXT} prose", str(index))
     assert not publish.index_matches_built(BANNER_TEXT, str(index))
     assert not publish.index_matches_built("<p>different text only</p>",
                                            str(index))
-    assert not publish.index_matches_built(BANNER_TEXT, str(index) + "-gone")
+    assert not publish.index_matches_built(f"<p>{BANNER_TEXT}</p>",
+                                           str(index) + "-gone")
+    # the one thing that may differ is the two publish-time injections, and
+    # only when both are complete and ours
+    gate = (publish.injected_block_open(publish.GATE_MARKER) + "\n<p>gate</p>\n"
+            + publish.injected_block_close(publish.GATE_MARKER))
+    stamp = (publish.injected_block_open(publish.STAMP_MARKER) + "\n<p>stamp</p>\n"
+             + publish.injected_block_close(publish.STAMP_MARKER))
+    served = f"<head>{stamp}{gate}</head><p>{BANNER_TEXT}</p>"
+    assert not publish.index_matches_built(served, str(index))
+    index.write_text(f"<head></head><p>{BANNER_TEXT}</p>", encoding="utf-8")
+    assert publish.index_matches_built(served, str(index))
+    # a difference OUTSIDE the injections is a real difference and still fails
+    assert not publish.index_matches_built(
+        served.replace(f"<p>{BANNER_TEXT}</p>", "<p>edited</p>"), str(index))
 
 
 def test_publish_enforce_https_polls_then_enforces(monkeypatch):

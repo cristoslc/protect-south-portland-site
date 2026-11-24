@@ -124,10 +124,11 @@ BINARY_EXTENSIONS = {
 MAP_DIRNAME = "map"
 MAP_FILES = ("embed.html", "map.html", "styles.css")
 
-# The verbatim homepage banner (ledger row 5). publish.py's domain check
-# compares the served index with the local build, falling back to this
-# line; the tests pin the same string from here so the banner has one
-# source of truth.
+# The verbatim homepage banner (ledger row 5). The tests pin it from here so
+# the banner has one source of truth. It is NOT a comparison fallback any more:
+# the operator ruled on 2026-11-24 that publish.py's served-index check is
+# strict after the strip, so a page that merely contains this line is not the
+# built page and does not pass.
 BANNER_TEXT = ("Tell our leaders to stop tank farms from dumping hazardous "
                "pollutants in our neighborhoods.")
 
