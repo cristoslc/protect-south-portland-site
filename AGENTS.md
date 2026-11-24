@@ -49,6 +49,7 @@ One operational fact from the first run day (2026-10-15): an audit racing a Page
 2. No mention of the October 15 community assembly REVERSED 2026-10-15 by row 33 (Mindy-sanctioned meeting copy, operator publish-today directive; the meeting is tonight): the scanner's event-marker list is retired and the Action-Oriented meeting bullet ships with the flyer link. The original ban's shape is documented in the psp_public.py comment.
 3. Text copied verbatim from PSP-authored pages is fine. Photography and graphics from the live Wix site ARE copied locally into `site/assets/photos/` (operator directive, 2026-10-13) and served from this repo; never hotlink `static.wixstatic.com`. Keep press-photo credits (Portland Press Herald photographers) in captions.
 4. Change requests come from the ledger: `website-change-requests.md` in the PSP project workspace (this repo implements the open rows; row 4 and row 9 are constraints, not content).
+5. Text inside `{{...}}` in the campaign copy documents is stage guidance addressed to the agent, never copy: obey it (layout direction, verify-before-publishing notes) and ship neither the braces nor the words inside them (operator ruling, 2026-11-24), because dropping only the braces is how an agent instruction reaches a reader as campaign voice. The documents are read through the `psp-gdrive` skill, which carries the same rule.
 
 ## Public website release gate (operator directive, 2026-10-13 — applies before ANY publish or republish)
 

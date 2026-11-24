@@ -3337,6 +3337,44 @@ def test_index_benzene_paragraph_keeps_two_bold_runs(docs):
         f"bold belongs on the facility names only, found {runs}")
 
 
+def test_row86_brace_blocks_are_guidance_not_copy(docs):
+    """Ledger row 86, operator ruling 2026-11-24, verbatim: "You should read
+    content inside {{}} as stage instructions/agent guidance from [the copy
+    document, tab t.9ye2jj2z90j8], not as literal text."
+
+    The Act Now tab carries three brace blocks. Two of them shipped as
+    reader-facing prose because a hand transcription dropped only the braces,
+    which put agent-addressed "please verify" notes in front of visitors on
+    act-now.html. This pin holds the ruling on the built page: no brace block's
+    words reach a reader, the one reader-useful sentence beside a block
+    survives, and the legislator list keeps a lead-in so a removal cannot leave
+    it opening on a bare heading.
+    """
+    page = read(docs, "act-now.html")
+    act = reading_text(page)
+    # Agent-addressed instruction: never copy, never on a page.
+    assert "please verify" not in act, "an agent-addressed verify note shipped"
+    assert "Councilors as listed on the City" not in act, (
+        "the councilor block's instruction reached the page")
+    assert "Legislators listed here" not in act, (
+        "the legislator block's instruction reached the page")
+    assert "when you write" not in act, "instruction addressed to a writer"
+    # The reader-useful half of the councilor block survives: where else to
+    # find the addresses. (reading_text drops tags to spaces, so the link text
+    # and the closing period are asserted apart.)
+    assert "The addresses are also on" in act
+    assert "southportland.gov/411/City-Council" in act
+    # The legislator list keeps a lead-in between its heading and the list.
+    start = page.index("Write to Maine state legislators")
+    lead_in = reading_text(page[start:page.index("<ul", start)])
+    assert lead_in.endswith("Their email addresses are below."), lead_in
+    # No built page carries the brace syntax in either direction.
+    for name in html_files(docs):
+        markup = read(docs, name)
+        assert "{{" not in markup and "}}" not in markup, (
+            f"{name}: a brace block's delimiters reached the built tree")
+
+
 def test_docs_serve_tree_shape_pins_the_pages_serve_config():
     """docs/ is the tree GitHub Pages will serve from main (fork model).
 

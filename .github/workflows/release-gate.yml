@@ -1,0 +1,36 @@
+name: Release gate (fork model)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-gate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test suite (ledger rows + release gate rules)
+        run: |
+          pip install pytest
+          python -m pytest tests/ -q
+      - name: Freshness + publication scan (every push: upstream and fork)
+        run: python3 tools/release_check.py --freshness --scan
+      - name: Gate report validation (upstream only: release PRs land here)
+        # A release PR commits its gate report under gate-reports/, and the
+        # newest report must match the tree the PR carries. The fork skips
+        # this step: fork main is the work surface and may sit past the
+        # report until the next release branch is cut.
+        if: github.repository == 'cristoslc/protect-south-portland-site'
+        run: |
+          report=$(ls gate-reports/*.json 2>/dev/null | sort | tail -1)
+          if [ -n "$report" ]; then
+            python3 tools/release_check.py --gate-report "$report"
+          else
+            echo "no gate report in the tree yet (expected until the first release PR)"
+          fi
