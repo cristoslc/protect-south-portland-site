@@ -887,17 +887,30 @@ def index_matches_built(text, index_path):
     injections come off, or at least carries the verbatim banner line
     (ledger row 5).
 
-    The strip is first and primary: a staging index serves the row-42 gate
-    block and the row-79 stamp, so comparing the raw bytes would fail every
-    time and invite someone to waive the check. Stripping both regions makes
-    the comparison pass because the bytes match, not because the comparison
-    was loosened. The banner line stays as the fallback it always was.
+    Three steps, in this order:
+
+    1. STRIP BOTH SIDES, THEN COMPARE. A staging index serves the row-42 gate
+       block and the row-79 stamp, so a raw byte comparison would fail every
+       time, and a check that fails every time gets waived. Stripping both
+       regions first makes the comparison pass because the bytes match.
+    2. A TREE THAT CARRIES AN INJECTION AND STILL DIFFERS IS A REAL
+       DIFFERENCE. The banner fallback exists for a serve that is legitimately
+       not the built file (ledger row 5, the domain-flip check). It must never
+       wave through a staged tree: if a marker is present, the fallback is
+       skipped and the comparison fails. That is what keeps this check able to
+       catch a wrong tree being served; without it the stamp would have
+       silently downgraded every staging leg to the banner test.
+    3. THE BANNER LINE stays the fallback it always was, for texts that carry
+       no publish-time injection at all.
     """
     if not os.path.exists(index_path):
         return False
+    stripped = strip_injected_blocks(text)
     built = open(index_path, encoding="utf-8").read()
-    if strip_injected_blocks(text) == strip_injected_blocks(built):
+    if stripped == strip_injected_blocks(built):
         return True
+    if any(marker in text for marker in INJECTED_BLOCK_MARKERS):
+        return False
     return psp_public.BANNER_TEXT in text
 
 

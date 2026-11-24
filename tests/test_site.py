@@ -689,6 +689,42 @@ def test_row79_index_check_sees_through_both_injections(tmp_path, docs, monkeypa
         "a real content change must still fail the comparison")
 
 
+def body_edit(text, old, new):
+    """One character changed inside <main>, leaving the banner and the chrome
+    alone. Used to prove the strip cannot swallow a real difference."""
+    start = text.index("<main")
+    head, body = text[:start], text[start:]
+    assert old in body, f"{old!r} is not in the body, pick another character"
+    return head + body.replace(old, new, 1)
+
+
+def test_row79_index_check_refuses_one_body_character_with_the_fallback_live(
+        tmp_path, docs):
+    # the fallback is left exactly as production has it. A staged index with one
+    # character changed in the body must still fail, banner line and all,
+    # because an injected tree never falls through to the banner test.
+    tree = injected_tree(tmp_path, docs, "index-body")
+    served = open(os.path.join(tree, "index.html"), encoding="utf-8").read()
+    built_path = os.path.join(str(docs), "index.html")
+    assert psp_public.BANNER_TEXT in served, "the fixture must carry the banner"
+    assert publish.index_matches_built(served, built_path) is True
+    tampered = body_edit(served, "e", "E")
+    assert tampered != served
+    assert publish.index_matches_built(tampered, built_path) is False, (
+        "the banner fallback must not mask a body change on a staged page")
+
+
+def test_row79_served_page_matches_refuses_one_body_character(tmp_path, docs):
+    tree = injected_tree(tmp_path, docs, "page-body")
+    served = open(os.path.join(tree, "about.html"), encoding="utf-8").read()
+    assert publish.served_page_matches(served, "about.html", docs_dir=str(docs)) is True
+    tampered = body_edit(served, "e", "E")
+    assert publish.strip_injected_blocks(tampered) != publish.strip_injected_blocks(served)
+    assert publish.served_page_matches(
+        tampered, "about.html", docs_dir=str(docs)) is False, (
+        "a one-character body edit must change the served page's hash")
+
+
 def test_row79_prod_leg_refuses_a_tree_that_already_carries_the_stamp(
         tmp_path, docs, monkeypatch, capsys):
     # the ban, exercised through the production leg's own path: a docs tree
