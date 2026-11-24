@@ -4,9 +4,21 @@
     <span class="kicker">Newsletter</span>
     <h1>Subscribe to our newsletter</h1>
     <div class="prose">
-      <div class="callout">
-        <p style="margin-bottom:0"><strong>To subscribe</strong>, send a message to <a href="mailto:protectsouthportland@gmail.com?subject=Subscribe%20to%20newsletter">protectsouthportland@gmail.com</a> with &ldquo;Subscribe&rdquo; in the subject line.</p>
+      <div class="callout signup">
+        <label for="signup-email">Your email address</label>
+        <div class="signup__row">
+          <input type="email" id="signup-email" name="email" autocomplete="email" inputmode="email" spellcheck="false">
+          <button type="button" class="btn btn--cta" id="signup-open">Open my email app</button>
+        </div>
+        <p class="signup__note">The button opens your own email app with the message ready to send. This page does not subscribe you and it stores nothing: your address reaches the campaign when you press send in that app.</p>
+        <p class="signup__status" role="status" aria-live="polite"></p>
       </div>
+
+      <p class="signup__fallback">Writing by hand? Email <a href="mailto:protectsouthportland@gmail.com?subject=Subscribe%20to%20the%20newsletter">protectsouthportland@gmail.com</a> with &ldquo;Subscribe&rdquo; in the subject line.</p>
+
+      <noscript>
+        <p>The button above needs JavaScript. The email address in the line above works without it.</p>
+      </noscript>
 
       <h2>Newsletter archive</h2>
       <p>The January 13, 2021 issue carried the campaign news from Augusta: the state DEP&rsquo;s LD 1915 report on tank-emissions measurement and PSP&rsquo;s response.</p>
@@ -17,3 +29,53 @@
     </div>
   </div>
 </section>
+<script>
+/* Newsletter signup: the button builds a mailto: from the typed address and
+   hands it to the visitor's mail app. No backend, no third-party form
+   service, nothing stored, no analytics.
+
+   Two habits are deliberate. The typed value is trimmed and its shape is
+   checked before anything is built, so an empty field never opens a blank
+   message and a typo gets a sentence instead of a silent nothing. And the
+   value travels encoded: encodeURIComponent for the subject and the body, so
+   a quote, an ampersand or a line break cannot break the URL or smuggle a
+   second recipient in. Nothing a visitor types is ever parsed as markup: the
+   status line is written with textContent, so typed markup stays text. */
+(function () {
+  var box = document.querySelector(".signup");
+  if (!box) return;
+  var field = box.querySelector("#signup-email");
+  var button = box.querySelector("#signup-open");
+  var status = box.querySelector(".signup__status");
+  var ADDRESS = "protectsouthportland@gmail.com";
+  var SUBJECT = "Subscribe to the newsletter";
+  function say(message) {
+    status.textContent = message;
+  }
+  function open() {
+    var typed = field.value.trim();
+    if (!typed) {
+      say("Add your email address above first, or write to " + ADDRESS + ".");
+      field.focus();
+      return;
+    }
+    if (!field.checkValidity()) {
+      say("That does not look like an email address. Check it, or write to " + ADDRESS + ".");
+      field.focus();
+      return;
+    }
+    var body = "Please add this address to the Protect South Portland newsletter:\n\n" + typed + "\n";
+    window.location.href = "mailto:" + ADDRESS +
+      "?subject=" + encodeURIComponent(SUBJECT) +
+      "&body=" + encodeURIComponent(body);
+    say("Opening your email app. If nothing opens, write to " + ADDRESS + ".");
+  }
+  button.addEventListener("click", open);
+  field.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      open();
+    }
+  });
+})();
+</script>

@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-24",
+  "branch": "bb/newsletter-signup-nav-home",
+  "base_commit": "f1314d4",
+  "page": "newsletter.html",
+  "scope": "Header nav reversal (Home in, Newsletter out) plus the mailto signup component on the newsletter page. One leg, ledger row 91.",
+  "instructions_verbatim": {
+    "A": "can we drop 'Newsletter' from the header and create a newsletter signup component that just does a mailto? (maybe fill in your email address, then it launches a mailto with populated subject and body on the button click?)",
+    "B": "Let's add Home to the header, too."
+  },
+  "what_the_capture_shows": {
+    "empty": "The component at rest: label, field, .btn pill, the honest note, and the plain mailto line below the panel.",
+    "filled": "The same page with reader@example.com typed into the field by the browser (bb browser-automation p.fill, not a value written by hand into the HTML), so the text state is a real render."
+  },
+  "widths": [
+    412,
+    768,
+    1440
+  ],
+  "files": [
+    "newsletter-412-empty.png",
+    "newsletter-412-filled.png",
+    "newsletter-768-empty.png",
+    "newsletter-768-filled.png",
+    "newsletter-1440-empty.png",
+    "newsletter-1440-filled.png"
+  ],
+  "layout_findings": {
+    "412": "Field full width (330px inside the panel), button drops to its own line under it (the row wraps on its own; no media query), button 46px tall.",
+    "768": "Field 366px and button 235px sit side by side in one 54px row.",
+    "1440": "Same side-by-side row, left-aligned, capped at 34rem inside a callout that spans the prose column.",
+    "clipping": "None. Input scrollWidth never exceeded clientWidth in any state (measurements.json).",
+    "field_text": "rgb(38,56,58) ink on white at 18px in both states, so the typed value is readable, not a light grey placeholder look.",
+    "focus": "The filled captures show the 3px teal focus ring because typing focuses the field; the empty captures are the unfocused state."
+  },
+  "adjustments_during_the_pass": "The first capture round capped the whole callout panel at 34rem, which left the pale panel narrower than the prose below it (a new shape for this site, since other callouts span the column). The cap moved to the control row, the page was rebuilt, and all six captures were retaken from that build.",
+  "component_strings": {
+    "subject": "Subscribe to the newsletter",
+    "body": "Please add this address to the Protect South Portland newsletter:\\n\\n<typed address>\\n"
+  },
+  "no_script_fallback": "A plain sentence below the panel carries protectsouthportland@gmail.com as a mailto link with the subject prefilled, outside <noscript>; a <noscript> line only explains that the button needs JavaScript. A reader with scripting off can write to the campaign without the field.",
+  "measurements": "measurements.json, written by the capture runner (bounding boxes, computed styles, clipping check, stacked/side-by-side flag, typed value, status text).",
+  "live_click_checks": {
+    "how": "A headless local browser (bb browser-automation, backend local) loaded http://127.0.0.1:8821/newsletter.html and clicked #signup-open in each state, reading the status line and the page URL back. This is the behaviour the captures cannot show, since the captures are the page at rest.",
+    "empty_field": "Status becomes 'Add your email address above first, or write to protectsouthportland@gmail.com.', focus returns to the field, and the URL is unchanged: no blank mailto is attempted.",
+    "unparseable_value": "With 'not-an-address' typed, checkValidity() is false, the status says 'That does not look like an email address. Check it, or write to protectsouthportland@gmail.com.', and the URL is unchanged.",
+    "valid_value": "With reader@example.com typed, the status becomes 'Opening your email app. If nothing opens, write to protectsouthportland@gmail.com.' The status is written after the location assignment, so the message proves the click path ran to the end. The headless browser has no mail app, so its own URL stays on the page; the composed URL is recorded below.",
+    "composed_url": "mailto:protectsouthportland@gmail.com?subject=Subscribe%20to%20the%20newsletter&body=Please%20add%20this%20address%20to%20the%20Protect%20South%20Portland%20newsletter%3A%0A%0Areader%40example.com%0A",
+    "typed_markup": "With '<img src=x onerror=alert(1)>' in the field (type relaxed to text so it reaches the code path), the status line gained zero child nodes: the value is never parsed as markup.",
+    "scripting_off_address": "With <noscript> elements removed from the prose column, one mailto: link to protectsouthportland@gmail.com remains, so the plain address does not depend on scripting."
+  }
+}

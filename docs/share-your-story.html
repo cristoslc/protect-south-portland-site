@@ -19,7 +19,13 @@
     <input type="checkbox" id="nav-toggle" class="nav-toggle">
     <label class="nav-toggle-label" for="nav-toggle" aria-label="Toggle navigation">MENU</label>
     <nav class="main-nav" aria-label="Main">
+      <!-- Header items, in order: Home, Our work, About, Share your story,
+           Contact, then the Act now pill. Home returned here after the
+           2026-11-23 header pass dropped it on the reasoning that the seal
+           already links home; Newsletter left the header for the signup on
+           its own page, which the footer still links. -->
       <ul>
+        <li><a href="index.html">Home</a></li>
         <li class="has-sub">
           <a href="our-campaigns.html" aria-haspopup="true" aria-expanded="false">Our work</a>
           <ul class="submenu">
@@ -39,7 +45,6 @@
         </li>
         <li><a href="about.html">About</a></li>
         <li><a href="share-your-story.html" aria-current="page">Share your story</a></li>
-        <li><a href="newsletter.html">Newsletter</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li class="nav-cta"><a href="act-now.html">Act now</a></li>
       </ul>

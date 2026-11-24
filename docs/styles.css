@@ -310,6 +310,63 @@ img { max-width: 100%; height: auto; }
 .btn--light { background: #fff; color: var(--teal-900); }
 .btn--light:hover { background: var(--teal-100); }
 
+/* ---------- newsletter signup: the site's first form control ---------- */
+
+/* Nothing on the site was a text input before the newsletter signup, so this
+   block is new rule surface, kept to what a field needs to look native here
+   and to nothing more: the campaign's existing ink and paper tokens for the
+   border, fill and text, one radius, and a focus ring loud enough to find.
+   No new colour enters the palette. The button is the .btn family unchanged,
+   so the pill, the fill and the white label keep their measured contrast.
+   Corner choice: 8px, the site's small-control rounding (the nav links and
+   the MENU toggle carry it). The square corners elsewhere are the Act now
+   pair's deliberate exception, and the pill is the button family's own
+   shape; an input is neither, so it follows the small-control value. */
+
+.signup label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.signup__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.6rem;
+  /* the panel matches the prose column like every other callout, and the
+     controls keep a readable measure inside it */
+  max-width: 34rem;
+}
+
+.signup input {
+  flex: 1 1 18rem;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 2px solid var(--teal-900);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.signup input:focus-visible { outline: 3px solid var(--teal-900); outline-offset: 2px; }
+
+/* the row owns this button's spacing, the way the Act now pair does */
+.signup .btn { margin: 0; flex: 0 0 auto; }
+
+.signup__note { font-size: 0.95rem; color: var(--muted); margin: 0.9rem 0 0; }
+
+.signup__status { font-size: 0.95rem; color: var(--teal-900); font-weight: 700; margin: 0.5rem 0 0; }
+.signup__status:empty { display: none; }
+
+/* No media query here on purpose: the field's 18rem basis plus the button is
+   wider than the panel at phone widths, so the row wraps by itself and the
+   button drops under a full-width field. The stylesheet's single max-width
+   719 block belongs to the Act now pair further up, and a second one would
+   move that cascade. */
+
 /* ---------- generic sections ---------- */
 
 .section { padding: 46px 0; }

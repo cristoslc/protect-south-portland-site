@@ -1,0 +1,314 @@
+{
+  "base": "http://127.0.0.1:8813/",
+  "widths": {
+    "412": {
+      "empty": {
+        "value": "",
+        "field": {
+          "x": 41,
+          "y": 289,
+          "w": 330,
+          "h": 54
+        },
+        "button": {
+          "x": 41,
+          "y": 354,
+          "w": 235,
+          "h": 46
+        },
+        "label": {
+          "x": 41,
+          "y": 253,
+          "w": 330,
+          "h": 30
+        },
+        "note": {
+          "x": 41,
+          "y": 416,
+          "w": 330,
+          "h": 169
+        },
+        "field_style": {
+          "color": "rgb(38, 56, 58)",
+          "background": "rgb(255, 255, 255)",
+          "border": "2px rgb(29, 62, 64)",
+          "radius": "8px",
+          "font_size": "18px",
+          "line_height": "29.7px"
+        },
+        "clipped": false,
+        "scroll_width": 298,
+        "client_width": 298,
+        "button_style": {
+          "radius": "999px",
+          "background": "rgb(184, 64, 26)",
+          "color": "rgb(255, 255, 255)",
+          "font_size": "17.1px"
+        },
+        "stacked": true,
+        "same_row": false,
+        "status": "",
+        "page_height": 1857
+      },
+      "filled": {
+        "value": "reader@example.com",
+        "field": {
+          "x": 41,
+          "y": 289,
+          "w": 330,
+          "h": 54
+        },
+        "button": {
+          "x": 41,
+          "y": 354,
+          "w": 235,
+          "h": 46
+        },
+        "label": {
+          "x": 41,
+          "y": 253,
+          "w": 330,
+          "h": 30
+        },
+        "note": {
+          "x": 41,
+          "y": 416,
+          "w": 330,
+          "h": 169
+        },
+        "field_style": {
+          "color": "rgb(38, 56, 58)",
+          "background": "rgb(255, 255, 255)",
+          "border": "2px rgb(29, 62, 64)",
+          "radius": "8px",
+          "font_size": "18px",
+          "line_height": "29.7px"
+        },
+        "clipped": false,
+        "scroll_width": 298,
+        "client_width": 298,
+        "button_style": {
+          "radius": "999px",
+          "background": "rgb(184, 64, 26)",
+          "color": "rgb(255, 255, 255)",
+          "font_size": "17.1px"
+        },
+        "stacked": true,
+        "same_row": false,
+        "status": "",
+        "page_height": 1857,
+        "how": "fill"
+      },
+      "bytes": {
+        "newsletter-412-empty.png": 142045,
+        "newsletter-412-filled.png": 147023
+      }
+    },
+    "768": {
+      "empty": {
+        "value": "",
+        "field": {
+          "x": 41,
+          "y": 253,
+          "w": 366,
+          "h": 54
+        },
+        "button": {
+          "x": 418,
+          "y": 253,
+          "w": 235,
+          "h": 54
+        },
+        "label": {
+          "x": 41,
+          "y": 217,
+          "w": 686,
+          "h": 30
+        },
+        "note": {
+          "x": 41,
+          "y": 322,
+          "w": 686,
+          "h": 85
+        },
+        "field_style": {
+          "color": "rgb(38, 56, 58)",
+          "background": "rgb(255, 255, 255)",
+          "border": "2px rgb(29, 62, 64)",
+          "radius": "8px",
+          "font_size": "18px",
+          "line_height": "29.7px"
+        },
+        "clipped": false,
+        "scroll_width": 334,
+        "client_width": 334,
+        "button_style": {
+          "radius": "999px",
+          "background": "rgb(184, 64, 26)",
+          "color": "rgb(255, 255, 255)",
+          "font_size": "17.1px"
+        },
+        "stacked": false,
+        "same_row": true,
+        "status": "",
+        "page_height": 1534
+      },
+      "filled": {
+        "value": "reader@example.com",
+        "field": {
+          "x": 41,
+          "y": 253,
+          "w": 366,
+          "h": 54
+        },
+        "button": {
+          "x": 418,
+          "y": 253,
+          "w": 235,
+          "h": 54
+        },
+        "label": {
+          "x": 41,
+          "y": 217,
+          "w": 686,
+          "h": 30
+        },
+        "note": {
+          "x": 41,
+          "y": 322,
+          "w": 686,
+          "h": 85
+        },
+        "field_style": {
+          "color": "rgb(38, 56, 58)",
+          "background": "rgb(255, 255, 255)",
+          "border": "2px rgb(29, 62, 64)",
+          "radius": "8px",
+          "font_size": "18px",
+          "line_height": "29.7px"
+        },
+        "clipped": false,
+        "scroll_width": 334,
+        "client_width": 334,
+        "button_style": {
+          "radius": "999px",
+          "background": "rgb(184, 64, 26)",
+          "color": "rgb(255, 255, 255)",
+          "font_size": "17.1px"
+        },
+        "stacked": false,
+        "same_row": true,
+        "status": "",
+        "page_height": 1534,
+        "how": "fill"
+      },
+      "bytes": {
+        "newsletter-768-empty.png": 138975,
+        "newsletter-768-filled.png": 144110
+      }
+    },
+    "1440": {
+      "empty": {
+        "value": "",
+        "field": {
+          "x": 211,
+          "y": 269,
+          "w": 366,
+          "h": 54
+        },
+        "button": {
+          "x": 588,
+          "y": 269,
+          "w": 235,
+          "h": 54
+        },
+        "label": {
+          "x": 211,
+          "y": 233,
+          "w": 1018,
+          "h": 30
+        },
+        "note": {
+          "x": 211,
+          "y": 339,
+          "w": 1018,
+          "h": 56
+        },
+        "field_style": {
+          "color": "rgb(38, 56, 58)",
+          "background": "rgb(255, 255, 255)",
+          "border": "2px rgb(29, 62, 64)",
+          "radius": "8px",
+          "font_size": "18px",
+          "line_height": "29.7px"
+        },
+        "clipped": false,
+        "scroll_width": 334,
+        "client_width": 334,
+        "button_style": {
+          "radius": "999px",
+          "background": "rgb(184, 64, 26)",
+          "color": "rgb(255, 255, 255)",
+          "font_size": "17.1px"
+        },
+        "stacked": false,
+        "same_row": true,
+        "status": "",
+        "page_height": 1219
+      },
+      "filled": {
+        "value": "reader@example.com",
+        "field": {
+          "x": 211,
+          "y": 269,
+          "w": 366,
+          "h": 54
+        },
+        "button": {
+          "x": 588,
+          "y": 269,
+          "w": 235,
+          "h": 54
+        },
+        "label": {
+          "x": 211,
+          "y": 233,
+          "w": 1018,
+          "h": 30
+        },
+        "note": {
+          "x": 211,
+          "y": 339,
+          "w": 1018,
+          "h": 56
+        },
+        "field_style": {
+          "color": "rgb(38, 56, 58)",
+          "background": "rgb(255, 255, 255)",
+          "border": "2px rgb(29, 62, 64)",
+          "radius": "8px",
+          "font_size": "18px",
+          "line_height": "29.7px"
+        },
+        "clipped": false,
+        "scroll_width": 334,
+        "client_width": 334,
+        "button_style": {
+          "radius": "999px",
+          "background": "rgb(184, 64, 26)",
+          "color": "rgb(255, 255, 255)",
+          "font_size": "17.1px"
+        },
+        "stacked": false,
+        "same_row": true,
+        "status": "",
+        "page_height": 1219,
+        "how": "fill"
+      },
+      "bytes": {
+        "newsletter-1440-empty.png": 154418,
+        "newsletter-1440-filled.png": 159318
+      }
+    }
+  }
+}

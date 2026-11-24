@@ -318,8 +318,10 @@ def test_toolkit_reference_page(docs):
     writer composed here are the chapter headings, the anchor labels, one
     orientation line and the pointer back to the live document. This pins the
     document's own opening lines, the artifacts that must never ship, the
-    chapters the ruling left behind, the two places that reach the page, and
-    the header staying at five items.
+    chapters the ruling left behind, and the two places that reach the page.
+    The header's own five-item pin lives in
+    `test_header_nav_pins_the_five_items`, which now carries the three
+    rulings that shaped it.
 
     Two carried-copy defects stay on the page by decision, taken in the gate
     review of 2026-11-24, and a later agent must not "fix" them silently:
@@ -387,19 +389,7 @@ def test_toolkit_reference_page(docs):
     footer = footer[footer.index('class="footer"'):]
     assert '<a href="toolkit.html">Tank farms toolkit</a>' in footer
 
-    # 3. no sixth navigation item: five items plus the Act now pill
-    nav = re.search(r'<nav class="main-nav".*?</nav>',
-                    read(docs, "index.html"), re.S).group(0)
-    collector = _TopNavLinks()
-    collector.feed(nav)
-    assert collector.hrefs == [
-        "our-campaigns.html", "about.html", "share-your-story.html",
-        "newsletter.html", "contact.html", "act-now.html",
-    ], collector.hrefs
-    assert nav.count('class="nav-cta"') == 1, "one pill, the Act now link"
-    assert "toolkit.html" not in nav, "the toolkit page is not a nav item"
-
-    # 4. draft artifacts and unpublished answers never ship
+    # 3. draft artifacts and unpublished answers never ship
     banned = (
         # the two tabs outside this page's four: never carried at all
         "UPDATES IN PROGRESS", "TO BE UPDATED",
@@ -413,7 +403,7 @@ def test_toolkit_reference_page(docs):
     for needle in banned:
         assert needle not in page, f"toolkit.html ships a draft artifact: {needle}"
 
-    # 5. the chapters the ruling left in the live document
+    # 4. the chapters the ruling left in the live document
     for excluded in (
         "Glossary", "Health Impacts of Benzene", "VOC and HAP",
         "mi from fenceline", "Demand for action",
@@ -445,6 +435,52 @@ class _TopNavLinks(HTMLParser):
     def handle_endtag(self, tag):
         if tag == "ul":
             self.depth -= 1
+
+
+def test_header_nav_pins_the_five_items(docs):
+    """The header nav: five items plus the Act now pill, in this order —
+    Home, Our work, About, Share your story, Contact.
+
+    This pin has been rewritten once and it carries all three rulings, in the
+    order they were made, because the third reverses the first:
+
+    1. 2026-11-23 (`9474c5e`): the header was cut to five items because Act
+       now, Get involved and Donate all read as the same call to action. That
+       pass removed Home, Get involved and Donate, leaving Our work, About,
+       Share your story, Newsletter, Contact. Home went on the reasoning that
+       the seal already links home, so a second Home link only repeated the
+       logo.
+    2. 2026-11-24: Newsletter left the header. Its page did not move and did
+       not close; the subscription became a mailto component on
+       `newsletter.html` itself, and the header stopped spending one of its
+       five slots on a page the footer still links.
+    3. 2026-11-24, same day: Home returned as the first item, by operator
+       instruction. The count held at five, so this was a swap of one item
+       for another rather than a sixth entry.
+
+    The assertion stays exact on purpose: not a count, not a subset, not a
+    membership test. A quiet sixth item, a reordering, or a renamed target
+    fails by name.
+    """
+    nav = re.search(r'<nav class="main-nav".*?</nav>',
+                    read(docs, "index.html"), re.S).group(0)
+    collector = _TopNavLinks()
+    collector.feed(nav)
+    assert collector.hrefs == [
+        "index.html", "our-campaigns.html", "about.html",
+        "share-your-story.html", "contact.html", "act-now.html",
+    ], collector.hrefs
+    assert nav.count('class="nav-cta"') == 1, "one pill, the Act now link"
+    assert "toolkit.html" not in nav, "the toolkit page is not a nav item"
+    assert "newsletter.html" not in nav, (
+        "Newsletter left the header; the signup lives on its own page")
+    # the dropped item's page keeps a sitewide path, or the header change
+    # would orphan it
+    footer = read(docs, "index.html")
+    footer = footer[footer.index('class="footer"'):]
+    assert '<a href="newsletter.html">Newsletter</a>' in footer, (
+        "the newsletter page must stay reachable from the footer once the "
+        "header stops carrying it")
 
 
 def test_nav_structure_after_split(docs):
@@ -1946,6 +1982,84 @@ def test_newsletter_archive_demoted(docs):
     nl = read(docs, "newsletter.html")
     assert "Newsletter archive" in nl
     assert "Most recent newsletter" not in nl
+
+
+def test_newsletter_signup_component(docs):
+    """Ledger row 91: the header stopped carrying Newsletter, so the
+    subscription moved onto `newsletter.html` as a mailto component.
+
+    What it is: a labelled email field and a button in the .btn family that
+    hands the visitor's own mail app a message carrying the typed address.
+    What it is not: a subscription. Nothing is posted, nothing is stored, and
+    no request leaves the browser until the visitor presses send in that app,
+    so the page says so in words.
+
+    Four things are pinned rather than assumed: an empty field never opens a
+    blank message; a value that does not parse as an email is named as a
+    problem instead of vanishing; the typed value is encoded and only ever
+    written as text, never parsed as markup; and a reader with scripting off
+    still has the plain address, in the prose, outside `<noscript>`.
+    """
+    page = read(docs, "newsletter.html")
+
+    # the field is labelled by a real <label>, not by a placeholder
+    assert '<label for="signup-email">Your email address</label>' in page
+    assert '<input type="email" id="signup-email"' in page
+    assert "placeholder=" not in page, (
+        "a placeholder cannot stand in for the label")
+
+    # a button, not a submit control: there is no endpoint to submit to
+    assert '<button type="button" class="btn btn--cta" id="signup-open">' in page
+    assert 'type="submit"' not in page
+    assert "<form" not in page, (
+        "no form element: a form's implicit submission would reload the page "
+        "and put the typed address in the URL, with no backend to receive it")
+
+    # the mailto and its two agent-composed strings
+    assert 'var ADDRESS = "protectsouthportland@gmail.com";' in page
+    assert 'var SUBJECT = "Subscribe to the newsletter";' in page
+    assert ("Please add this address to the Protect South Portland newsletter"
+            in page)
+    assert '"mailto:" + ADDRESS' in page
+
+    # encoded, never concatenated raw into the URL, never parsed as markup
+    assert "encodeURIComponent(SUBJECT)" in page
+    assert "encodeURIComponent(body)" in page
+    assert "innerHTML" not in page, "typed input is written as text only"
+    assert "status.textContent = message;" in page
+
+    # the empty case is handled, and it is handled before anything is built
+    assert "if (!typed) {" in page
+    assert page.index("if (!typed) {") < page.index('"mailto:" + ADDRESS')
+    assert "if (!field.checkValidity()) {" in page
+
+    # the component says what it does and does not do
+    assert "does not subscribe you" in page
+
+    # scripting off: the address is in the prose, not only in <noscript>
+    without_noscript = re.sub(r"<noscript>.*?</noscript>", "", page, flags=re.S)
+    assert 'href="mailto:protectsouthportland@gmail.com' in without_noscript, (
+        "a reader with scripting off needs a plain address outside <noscript>")
+    assert "<noscript>" in page, "the button's JS dependency is explained"
+
+
+def test_newsletter_signup_css_adds_no_colour():
+    """Ledger row 91: the signup is the site's first form control, so its
+    block is the one place new visual rules appear. It may declare a border,
+    padding, a background, a radius and a focus ring; it may not introduce a
+    colour. Every value it uses is an existing token, and the button is the
+    .btn family unchanged, so the pill keeps its measured contrast.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    start = css.index("/* ---------- newsletter signup")
+    end = css.index("/* ---------- generic sections")
+    block = css[start:end]
+    assert re.findall(r"#[0-9a-fA-F]{3,8}\b", block) == [], (
+        "the signup block introduces a literal colour")
+    assert ".signup input {" in block
+    assert "border-radius: 8px" in block, "the site's small-control rounding"
+    assert "focus-visible" in block, "a keyboard needs to find the field"
+    assert "font-size: 1rem" in block, "the input inherits the reading floor"
 
 
 # ---- publication-safety helpers (tools/psp_public.py): the mirror tree's ----
