@@ -59,6 +59,35 @@ DRAFT_MARKERS = (
 
 ALL_MARKERS = PRIVATE_MARKERS + EVENT_MARKERS + DRAFT_MARKERS
 
+# Internal process references (2026-11-24). A footer script comment shipped
+# the text `row-40 dropdown a11y — progressive enhancement only` into the HTML
+# of every built page. Three reviewers flagged it independently, and it had
+# been on staging and on production, because the marker sets above only match
+# literal strings and nothing in them covered the project's own bookkeeping.
+# These shapes belong to the private ledger, thread and decision records and
+# to local checkouts; a campaign page never contains them.
+#
+# Literal substring matching cannot express "row 40" or "thr_abc123", so the
+# rule needs patterns. Every scan_text/scan_file/scan_tree caller inherits
+# these; the literal marker argument still works and still applies.
+#
+# The row forms are the deliberate part. The hyphenated id (`row-40`) and the
+# spelled-out form ("ledger row 40") are unambiguous. A bare "row 40" is only
+# a ledger reference when it opens a provenance note, so that pattern demands
+# a following "(" or ":" — ordinary prose about a table row, and the
+# stylesheet's own "nav row 909px", stay clean.
+INTERNAL_REFERENCE_PATTERNS = (
+    re.compile(r"\brow-\d+\b", re.IGNORECASE),          # row-40
+    re.compile(r"\bledger rows? \d+\b", re.IGNORECASE),  # ledger row 40
+    re.compile(r"\brow \d{1,3}\s*[:(]"),                 # row 40 (2026-10-15)
+    re.compile(r"\bthr_[A-Za-z0-9]+"),                   # bb thread id
+    re.compile(r"\bdec_[A-Za-z0-9]+"),                   # bb decision id
+    re.compile(r"\bproj_[A-Za-z0-9]+"),                  # bb project id
+    re.compile(r"gate-reports?/", re.IGNORECASE),        # gate-report dir
+    re.compile(r"\b\d{4}-\d{2}-\d{2}-\d+\.json\b"),      # 2026-11-24-1.json
+    re.compile(r"/Users/"),                              # absolute local path
+)
+
 # Nothing whose path smells like internal material is ever copied into a
 # published tree, whatever it claims to contain. Casefolded substring match
 # against every path component.
@@ -127,8 +156,13 @@ def find_map_source_docs():
     return SIBLING_MAP_DOCS if os.path.isdir(SIBLING_MAP_DOCS) else None
 
 
-def scan_text(text, label, markers=ALL_MARKERS):
-    """Violations for one text blob (case-insensitive); empty list = clean."""
+def scan_text(text, label, markers=ALL_MARKERS, patterns=INTERNAL_REFERENCE_PATTERNS):
+    """Violations for one text blob (case-insensitive); empty list = clean.
+
+    Checks the literal marker set and the internal-reference pattern set, so
+    an internal ledger or thread reference fails the same gate as a research
+    link. Callers that pass their own markers still get the patterns.
+    """
     lines = text.splitlines()
     folded = text.casefold()
     violations = []
@@ -149,6 +183,17 @@ def scan_text(text, label, markers=ALL_MARKERS):
             violations.append(f'{label}: marker "{marker}" line {line_no}: {snippet}')
         else:
             violations.append(f'{label}: marker "{marker}" (spans lines)')
+    for pattern in patterns:
+        match = pattern.search(text)
+        if match is None:
+            continue
+        line_no = text.count("\n", 0, match.start()) + 1
+        line = lines[line_no - 1].strip() if line_no <= len(lines) else ""
+        if len(line) > 120:
+            at = max(0, match.start() - (text.rfind("\n", 0, match.start()) + 1))
+            line = "…" + line[max(0, at - 40):at + 70] + "…"
+        violations.append(
+            f'{label}: internal reference "{match.group(0)}" line {line_no}: {line}')
     return violations
 
 

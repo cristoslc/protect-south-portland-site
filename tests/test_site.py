@@ -1245,6 +1245,64 @@ def test_public_scan_skips_binary_formats(tmp_path):
     assert psp_public.scan_tree(tmp_path) == []
 
 
+# ---- internal process references (2026-11-24) ----------------------------
+# The marker sets match literal strings only, so the footer script comment
+# `row-40 dropdown a11y` rode into every page and sat on staging and on
+# production for weeks. The pattern layer is what stops the next one.
+
+def test_public_scan_catches_the_footer_comment_as_it_stood():
+    """The exact pre-fix footer script comment must fail the scan now.
+
+    This is the byte-level shape that shipped, led by its ledger row id.
+    """
+    shipped = (
+        "<script>\n"
+        "/* row-40 dropdown a11y — progressive enhancement only. The menus already\n"
+        "   open and close in CSS (:hover and :focus-within; blur closes). */\n"
+        "</script>")
+    violations = psp_public.scan_text(shipped, "index.html")
+    assert any('internal reference "row-40"' in v for v in violations), violations
+
+
+def test_public_scan_catches_ids_and_gate_report_paths():
+    """Thread, decision and project ids and gate-report paths are
+    unambiguous: no campaign page would ever carry one."""
+    planted = (
+        '<p>Ask thread thr_g57ekquphp about decision dec_2x1vefwof9lj in project '
+        'proj_abc123xyz, then read gate-reports/2026-11-24-1.json, which lives '
+        'under /Users/cristos/Documents.</p>')
+    violations = psp_public.scan_text(planted, "past-work.html")
+    for expected in (
+        "thr_g57ekquphp",
+        "dec_2x1vefwof9lj",
+        "proj_abc123xyz",
+        "gate-reports/",
+        "2026-11-24-1.json",
+        "/Users/",
+    ):
+        assert any(expected in v for v in violations), (expected, violations)
+
+
+def test_public_scan_leaves_ordinary_row_prose_alone():
+    """The bare-row rule must not fire on geometry or ordinary prose, and the
+    literal-marker argument must keep working alongside the patterns."""
+    prose = (
+        "<p>The tanks stand in a row beside the fence line.</p>"
+        "<style>/* the nav row 909px at this width */</style>")
+    assert psp_public.scan_text(prose, "styles.css") == []
+    assert not [v for v in psp_public.scan_text(prose, "x.html") if "internal" in v]
+    # a caller-supplied marker set still applies, and patterns still apply with it
+    assert psp_public.scan_text("wixstatic", "x.html", ("wixstatic",))
+    assert psp_public.scan_text("row-40", "x.html", ())
+
+
+def test_built_tree_scans_clean(docs):
+    """The freshly built tree carries no private markers and no internal
+    process references."""
+    violations = psp_public.scan_tree(str(docs))
+    assert not violations, "\n" + "\n".join(violations)
+
+
 # ---- tools/publish.py --repo/--domain after the 2026-10-14            ----
 # ---- staging-first hardening: a bare run targets the staging mirror,  ----
 # ---- production is reachable ONLY through an explicit --repo, and a   ----
