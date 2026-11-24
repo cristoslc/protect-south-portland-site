@@ -109,6 +109,8 @@
     "reattribution": "the docstring, the manifest strings above and ledger row 94 attributed the keep-the-pair-with-a-quick-action motive to row 88. It belongs to row 92: row 88's own ledger grounds are consolidation only plus row 82's square corners, and no card existed when row 88 merged, so nothing could be paired with one. Row 92's record states the split itself, 'so the same two destinations get a quick button and a fuller description rather than the buttons being replaced'.",
     "restored_assertion": "the retarget dropped the suite's only existence check on the '.btn {', '.btn--cta {' and '.btn--ghost {' blocks while the page still renders a .btn--ghost Sign now pill and a .btn--cta Email the Council call to action. It is folded back into the same retargeted pin, test_act_now_action_links_are_the_cards, and it was proved load-bearing before being committed: with the .btn--ghost block deleted from site/styles.css that pin fails naming the missing block, and no other pin in the suite catches it.",
     "branch": "bb/act-now-pair-record-fix",
+    "follow_up_pr": "PR #80, cut from origin/main at 4e5e319",
+    "suite": "201 passed, 1 skipped from the follow-up branch after the rebase (main's own count at 4e5e319: the fix adds no test and drops none, so the totals match main exactly)",
     "no_page_change": "no byte of site/pages/, site/styles.css or docs/ changes in this fix; the page, its build and the captures above stand exactly as reviewed"
   },
 
