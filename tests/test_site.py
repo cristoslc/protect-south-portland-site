@@ -1768,6 +1768,13 @@ def test_act_now_current_ask_and_relocation(docs):
     assert "letters@metln.org" in act
     assert "letterstotheeditor@pressherald.com" in act
     assert "https://www.pressherald.com/reader-services/letters-editor/" in act
+    # the addition to the same ruling: the letters block links the campaign's
+    # own how-to-write-a-letter guidance, which lives on the toolkit page
+    # (from the 2026 South Portland Tanks Toolkit in the campaign Drive; the
+    # Drive listing carries no dedicated LTTE guide)
+    assert 'How to write a letter: the toolkit&rsquo;s <a href="toolkit.html#letter-to-the-editor">letter-to-the-editor guidance</a>.' in act
+    assert 'id="letter-to-the-editor"' in read(docs, "toolkit.html"), (
+        "the letters block's how-to link must land on a real anchor")
     # the indirection the operator ruled against never returns
     assert "submissions address" not in act
     # the non-indirection facts stay

@@ -26,6 +26,13 @@
   },
   "facts_kept": "word limits (350/300/300), Monday-at-noon deadlines, name/address/phone requirements, and the Press Herald mailing address are byte-for-byte unchanged",
   "doc_note": "protect_south_portland_website_copy (act-now tab) carries the same two indirection sentences verbatim, so the site is righter than the doc; the doc's open comment threads cover other blocks and none covers the letters block; the read-only service account cannot post the lane note, so it lives in the PR and ledger row 113",
+  "addition_operator_words_verbatim": "at the very least, there may be a 'how to write a LTTE' page that we should link to",
+  "addition_search": [
+    "Drive folder listing (read 2026-11-24): no dedicated how-to-write-a-letter guide; the only how-to document is how-to-write-a-one-page-brief.pdf, a different artifact",
+    "the site itself: FOUND — toolkit.html section 'Letter to the editor guidance' (id letter-to-the-editor), the campaign's own points-for-writing guidance, sourced from the 2026 South Portland Tanks Toolkit document in the Drive folder",
+    "copy document: its act-now tab carries only the 'Writing a letter to the editor' heading; the guidance lives in the toolkit chapter the site already mirrors"
+  ],
+  "addition_carried": "the letters block now leads with 'How to write a letter: the toolkit's letter-to-the-editor guidance.' linking toolkit.html#letter-to-the-editor; the direct submission addresses are unchanged; note: the toolkit's points-for-writing guidance says 150 words maximum, which is the campaign's own writing advice, separate from the papers' submission limits carried in this block",
   "pins": "one pin asserted the old hop (pressherald.com/contact/ in test_act_now_current_ask_and_relocation); retargeted as a recorded correction with the operator's words in its docstring, now pinning letters@metln.org, letterstotheeditor@pressherald.com, the submission form, the absence of the indirection text, and the kept facts",
   "uat_payload_answer": "sweep findings [] across every built page; act-now still has exactly one clean pair (Email the Council against Example message); the new mailto links are bare address links (no query), which the rule reads as addresses, not transmitting controls",
   "checks": {
