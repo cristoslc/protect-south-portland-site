@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-23",
+  "finding": "stacked callout boxes on tank-farms.html (operator report); guard: test_no_stacked_callouts",
+  "page": "tank-farms.html",
+  "region": ".page-head",
+  "captured_with": "bb browser-automation, local headless Chrome, deviceScaleFactor 1",
+  "served_from": "python3 -m http.server over docs/ (after) and a copy of docs/ with HEAD tank-farms.html + HEAD styles.css (before)",
+  "widths": [1440, 412],
+  "after": {
+    "tank-farms-head-1440.png": {"width": 1440, "height": 1021, "scroll_width": 1440},
+    "tank-farms-head-412.png": {"width": 412, "height": 2054, "scroll_width": 412}
+  },
+  "before": {
+    "before/tank-farms-head-1440.png": {"width": 1440, "height": 1069, "scroll_width": 1440},
+    "before/tank-farms-head-412.png": {"width": 412, "height": 2169, "scroll_width": 412}
+  },
+  "verdict": {
+    "model": "cove/vision:heavy",
+    "1440": "reads as one emphasised block; the single tinted panel holds the status, the ask sits on white below a rule",
+    "412": "reads as one emphasised block, nothing clipped; both buttons fit, the long URL and the email address each wrap inside the panel"
+  }
+}

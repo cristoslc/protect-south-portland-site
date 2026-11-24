@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from html.parser import HTMLParser
 
 import pytest
 
@@ -1840,3 +1841,119 @@ def test_buttons_keep_breathing_room(docs):
     padding = _re.search(r"padding:\s*([0-9.]+)px", body)
     assert padding and int(padding.group(1)) >= 8, (
         ".btn needs at least 8px of vertical padding")
+
+
+# ---- callout layout guard ------------------------------------------------
+
+_VOID_TAGS = frozenset({
+    "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
+    "meta", "param", "source", "track", "wbr",
+})
+
+
+class _ElementScanner(HTMLParser):
+    """A tiny element tree: enough of one to ask which elements are siblings.
+
+    Each element records its parent, the siblings that precede it, and whether
+    anything but whitespace sat between this element and the one before it.
+    Callout elements also collect their text, so a failure can quote them.
+    """
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.root = {
+            "tag": "(document)", "class": "", "classes": [], "children": [],
+            "text": [], "pending_text": False,
+        }
+        self.elements = []
+        self._open = [self.root]
+
+    def _parent(self):
+        return self._open[-1]
+
+    def handle_starttag(self, tag, attrs):
+        parent = self._parent()
+        classes = ""
+        for key, value in attrs:
+            if key == "class":
+                classes = value or ""
+        element = {
+            "tag": tag,
+            "class": classes,
+            "classes": classes.split(),
+            "children": [],
+            "text": [],
+            # non-whitespace text between the previous sibling and this one
+            "detached": parent["pending_text"],
+            "pending_text": False,
+        }
+        parent["children"].append(element)
+        parent["pending_text"] = False
+        self.elements.append(element)
+        # a void tag is still a child: an <img> or <br> between two callouts
+        # breaks their adjacency, so it gets recorded and never opened
+        if tag not in _VOID_TAGS:
+            self._open.append(element)
+
+    def handle_endtag(self, tag):
+        if tag in _VOID_TAGS:
+            return
+        for depth in range(len(self._open) - 1, 0, -1):
+            if self._open[depth]["tag"] == tag:
+                del self._open[depth:]
+                return
+
+    def handle_data(self, data):
+        if not data.strip():
+            return
+        self._parent()["pending_text"] = True
+        for element in self._open:
+            if "callout" in element["classes"]:
+                element["text"].append(data)
+
+
+def _callout_preview(element):
+    text = " ".join(" ".join(element["text"]).split())
+    return text[:60]
+
+
+def _stacked_callouts(scan):
+    """Pairs of callout elements that are adjacent siblings in one container."""
+    pairs = []
+    for element in [scan.root] + scan.elements:
+        children = element["children"]
+        for first, second in zip(children, children[1:]):
+            if ("callout" in first["classes"] and "callout" in second["classes"]
+                    and not second["detached"]):
+                pairs.append((element, first, second))
+    return pairs
+
+
+def test_no_stacked_callouts(docs):
+    """Design UAT guard (operator report, 2026-11-23): callouts exist to give
+    one thing emphasis, so two of them stacked directly on top of each other
+    cancel each other out and neither reads as highlighted.
+
+    A stack here is two `.callout` elements that are adjacent siblings inside
+    the same container, with nothing but whitespace between the closing tag of
+    the first and the opening tag of the second. A callout nested inside
+    another callout is a different shape (it reads as one box, not two) and is
+    not what this catches. Neither is a callout separated from the next by
+    another element or by text, because then the reader gets a break.
+
+    Cheap by design: html.parser only, no browser, so a pytest-only CI runner
+    can carry it.
+    """
+    violations = []
+    for name in html_files(docs):
+        scan = _ElementScanner()
+        scan.feed(read(docs, name))
+        scan.close()
+        for container, first, second in _stacked_callouts(scan):
+            where = '<{} class="{}">'.format(container["tag"], container["class"])
+            violations.append(
+                '{}: stacked callouts inside {}: "{}" then "{}"'.format(
+                    name, where, _callout_preview(first), _callout_preview(second)))
+    assert not violations, (
+        "adjacent callouts split the emphasis they are meant to give; merge "
+        "them into one box or demote one to plain prose\n" + "\n".join(violations))

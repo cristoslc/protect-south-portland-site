@@ -391,6 +391,25 @@ blockquote {
 
 .callout p:last-child { margin-bottom: 0; }
 
+/* ---------- action band (page-head demotion, 2026-11-23) ---------- */
+
+/* A callout earns emphasis by being the only tinted block in view, so the
+   tank-farms page head keeps its one callout for "Where things stand" and
+   sets the ask below it as an untinted band: a rule instead of a second
+   background, so the two never compete for the same attention. */
+
+.action-band {
+  border-top: 1px solid var(--line);
+  margin: 1.6em 0 0;
+  padding-top: 1.1em;
+}
+
+.action-band h2.h3-look { margin: 0 0 0.6em; }
+
+.action-band ul { margin-top: 0; }
+
+.action-band .btn { margin-bottom: 0; }
+
 /* ---------- tank-farms map section (ledger rows 1, 3, 7) ---------- */
 
 .map-frame {
