@@ -1894,6 +1894,14 @@ class _ElementScanner(HTMLParser):
         # breaks their adjacency, so it gets recorded and never opened
         if tag not in _VOID_TAGS:
             self._open.append(element)
+        self._mark_word_break()
+
+    def _mark_word_break(self):
+        # text on either side of a tag is separate words to a reader, so an
+        # element boundary becomes a space in a callout's quoted preview
+        for element in self._open:
+            if "callout" in element["classes"]:
+                element["text"].append(" ")
 
     def handle_endtag(self, tag):
         if tag in _VOID_TAGS:
@@ -1901,6 +1909,7 @@ class _ElementScanner(HTMLParser):
         for depth in range(len(self._open) - 1, 0, -1):
             if self._open[depth]["tag"] == tag:
                 del self._open[depth:]
+                self._mark_word_break()
                 return
 
     def handle_data(self, data):
@@ -1913,7 +1922,10 @@ class _ElementScanner(HTMLParser):
 
 
 def _callout_preview(element):
-    text = " ".join(" ".join(element["text"]).split())
+    text = " ".join("".join(element["text"]).split())
+    # a tag boundary becomes a space, but punctuation glued to its own tag
+    # (<a>...</a>: like this) keeps its colon attached
+    text = re.sub(r"\s+([,.;:])", r"\1", text)
     return text[:60]
 
 
