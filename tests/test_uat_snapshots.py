@@ -25,7 +25,7 @@ import uat_snapshots as us
 
 SUITE = json.dumps({"start_pages": [
     "index.html", "about.html", "act-now.html", "tank-farms.html",
-    "our-campaigns.html", "past-work.html", "get-involved.html",
+    "our-campaigns.html", "past-work.html", "report-an-odor.html",
     "contact.html", "donate.html", "newsletter.html",
     "coastal-flooding.html", "clear-skies.html", "fertilizer-ban.html",
     "pesticides.html", "yard-south-proposal.html", "404.html",

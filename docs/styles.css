@@ -458,7 +458,7 @@ blockquote {
 
 .card .card__more { font-weight: 800; text-decoration: none; }
 
-/* ---------- odor-report dual channel (get-involved) ---------------- */
+/* ---------- odor-report dual channel (report-an-odor) -------------- */
 
 /* The two reporting mechanisms read as peer actions: one grid, side by side
    above 720px and stacked below it. No fixed widths, so nothing overflows
@@ -474,6 +474,10 @@ blockquote {
 @media (min-width: 720px) {
   .report-actions { grid-template-columns: 1fr 1fr; }
 }
+
+/* the cards are the top of their own page, so their headings are h2 (an h1
+   followed by h3 would break the outline) and keep the h3 card look */
+.report-actions__card h2.h3-look { margin: 0 0 8px; }
 
 /* the dictated copy is primary reading text, not caption gray, and must not
    be stretched by the base card's flex column when a sibling runs longer */

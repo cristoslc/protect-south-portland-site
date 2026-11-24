@@ -33,6 +33,12 @@ REDIRECTS = {
     "tank-farms-history.html": "tank-farms.html#how-we-got-here",
     "library.html": "tank-farms.html#reference-documents",
     "press.html": "act-now.html",
+    # 2026-11-24 (operator copy-doc revision): the doc's action section is now
+    # "Act Now" and delegates its two children, Donate and Report an Odor, to
+    # pages of their own, so the doc no longer describes a Get involved page.
+    # Its action content lives on act-now.html and its odor section on
+    # report-an-odor.html; the old URL redirects to the action page.
+    "get-involved.html": "act-now.html",
 }
 
 META_RE = re.compile(r'<!--\s*meta:\s*title="(?P<title>[^"]*)"\s*\|\s*desc="(?P<desc>[^"]*)"\s*-->\s*\n?')
@@ -78,10 +84,12 @@ NAV_BODY = """
 
 # Ruling A (2026-11-05): the dated Oct. 27 workshop strip is retired. The
 # shared footer now carries the ruling's fallback call to action, linked to the
-# page that branches into both odor paths and the petition.
+# action page that branches into both odor paths and the petition. Since the
+# 2026-11-24 page-set revision that page is act-now.html: it carries the
+# petition and offers the Report an odor child page.
 FOOTER_BODY = """
 <div class="action-strip" role="note">
-  <p><a href="get-involved.html">Report every odor. Sign the petition.</a></p>
+  <p><a href="act-now.html">Report every odor. Sign the petition.</a></p>
 </div>
 <footer class="footer">
   <div class="wrap footer__grid">
@@ -101,7 +109,8 @@ FOOTER_BODY = """
         <li><a href="clear-skies.html">Clear Skies</a></li>
         <li><a href="pesticides.html">Pesticides</a></li>
         <li><a href="newsletter.html">Newsletter</a></li>
-        <li><a href="get-involved.html">Get involved</a></li>
+        <li><a href="act-now.html">Act now</a></li>
+        <li><a href="report-an-odor.html">Report an odor</a></li>
         <li><a href="donate.html">Donate</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>

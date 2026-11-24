@@ -145,7 +145,8 @@ def test_fragments_survive_the_build_structurally(docs):
 def test_expected_pages_built(docs):
     names = html_files(docs)
     for expected in (
-        "index.html", "act-now.html", "about.html", "our-campaigns.html",
+        "index.html", "act-now.html", "report-an-odor.html", "about.html",
+        "our-campaigns.html",
         "coastal-flooding.html", "yard-south-proposal.html", "oil-tank-emissions.html",
         "clear-skies.html", "fertilizer-ban.html", "pesticides.html", "vocs.html",
         "newsletter.html", "get-involved.html", "donate.html", "contact.html",
@@ -162,6 +163,9 @@ REDIRECT_PAGES = {
     "oil-tank-emissions.html", "vocs.html",
     # 2026-11-21 strip-back: agent-built pages retired to redirects
     "tank-farms-history.html", "library.html", "press.html",
+    # 2026-11-24 page-set revision: the doc's action section is Act Now and the
+    # odor section is its Report an Odor child, so Get involved leaves the set
+    "get-involved.html",
 }
 
 
@@ -174,6 +178,43 @@ def test_merged_redirects(docs):
     for name in REDIRECT_PAGES:
         page = read(docs, name)
         assert 'class="masthead"' not in page and len(page) < 800, name
+
+
+def test_get_involved_retires_into_act_now(docs):
+    """2026-11-24 page-set revision: the copy document renamed its action
+    section Act Now and split two children out of it, Donate and Report an
+    Odor. The document no longer describes a Get involved page, so the page
+    leaves the set the same way the 2026-11-21 strip-back pages did: a
+    meta-refresh stub at the old URL, its content living where the document
+    now puts it.
+
+    The stub shape is the existing redirect shape; the two halves of the old
+    page have to be reachable afterwards, or the retirement strands a reader
+    who came for the odor instructions or the legislator list.
+    """
+    stub = read(docs, "get-involved.html")
+    assert 'content="0; url=act-now.html"' in stub, stub
+    assert '<link rel="canonical" href="act-now.html">' in stub, stub
+    assert 'class="masthead"' not in stub and len(stub) < 800, "stubs carry no chrome"
+    # the source fragment is gone, not merely unpinned
+    assert not os.path.exists(
+        os.path.join(ROOT, "site", "pages", "get-involved.html"))
+    # no live page links the retired URL
+    for name in html_files(docs):
+        if name in REDIRECT_PAGES:
+            continue
+        assert 'href="get-involved.html"' not in read(docs, name), (
+            f"{name} links the retired get-involved.html")
+    # the action half is on act-now.html, the odor half on report-an-odor.html
+    act = read(docs, "act-now.html")
+    assert "Write to Maine state legislators" in act
+    assert "Writing a letter to the editor" in act
+    assert "More ways to help" in act
+    odor = read(docs, "report-an-odor.html")
+    assert "<h1 id=\"report-an-odor\">Report an odor two ways</h1>" in odor
+    # the campaign page's inbound odor link lands on the live page, not a stub
+    assert 'href="report-an-odor.html"' in read(docs, "tank-farms.html")
+    assert 'href="get-involved.html#' not in read(docs, "tank-farms.html")
 
 
 def test_share_your_story_page(docs):
@@ -214,7 +255,7 @@ def test_share_your_story_page(docs):
     invisible = [c for c in page if _uc.category(c) in ("Cf", "Cs", "Co", "Cn")]
     assert not invisible, f"invisible/bidi characters on the page: {[hex(ord(c)) for c in invisible]}"
     # reachable, and now in the nav too: the page's only action is live
-    assert 'href="share-your-story.html"' in read(docs, "get-involved.html")
+    assert 'href="share-your-story.html"' in read(docs, "act-now.html")
     assert 'href="share-your-story.html"' in read(docs, "contact.html")
     nav = re.search(r'<nav class="main-nav".*?</nav>',
                     read(docs, "index.html"), re.S).group(0)
@@ -768,7 +809,8 @@ def test_homepage_who_we_are_block(docs):
     on the homepage — the mission folds into the banner as its sign-off and
     the About paragraph sits in a compact strip between the hero photo and
     the issue section (2026-10-14 single-hero design pass), with Our Story
-    linking about.html and a Get involved link to get-involved.html — after
+    linking about.html and an Act now link to act-now.html (the doc's action
+    section renamed page on 2026-11-24) — after
     the 2026-10-14 design round 2 both read as list items in a two-item link
     row (page-structure patch): prose, not buttons; the banner Act now is the
     only button idiom in the first screen. The
@@ -783,8 +825,10 @@ def test_homepage_who_we_are_block(docs):
     assert "tar sands oils" in idx, "grammar quirk must stay verbatim"
     assert "Read more: Our Story" in idx
     assert 'href="about.html"' in idx, "Our Story must link to about.html"
-    assert "Get involved" in idx
-    assert 'href="get-involved.html"' in idx, "Get involved must link to get-involved.html"
+    # 2026-11-24 page-set revision: the doc renamed its action section Act Now,
+    # so the link row names the destination the site now has.
+    assert "Act now" in idx
+    assert 'href="act-now.html"' in idx, "the action link must reach act-now.html"
     # design round 2 + page-structure patch: exactly one button idiom in the
     # first screen — the banner Act now — and the strip's links read as a
     # two-item link row after the paragraph (labels and hrefs char-for-char;
@@ -796,7 +840,7 @@ def test_homepage_who_we_are_block(docs):
     row_pos = idx.index('<ul class="link-row">')
     row = idx[row_pos:idx.index("</ul>", row_pos)]
     assert row.count('<li><a href="about.html">Read more: Our Story</a></li>') == 1
-    assert row.count('<li><a href="get-involved.html">Get involved</a></li>') == 1
+    assert row.count('<li><a href="act-now.html">Act now</a></li>') == 1
     # heading order (fix 3): the banner headline is the page's single h1
     assert idx.count("<h1") == 1 and '<h1 class="banner__headline">' in idx
     assert '<p class="banner__headline">' not in idx
@@ -895,7 +939,10 @@ def test_act_now_in_header_nav(docs):
 def test_action_strip_every_page(docs):
     # Ruling A (2026-11-05): the dated workshop strip is retired. The footer
     # strip now carries the fallback call to action, linked to the page that
-    # branches into both odor paths and the petition.
+    # branches into both odor paths and the petition. Since the 2026-11-24
+    # page-set revision that page is act-now.html: it carries the petition and
+    # offers the Report an odor child page, so the strip's target is never a
+    # retired URL.
     for name in html_files(docs):
         if name in REDIRECT_PAGES:
             continue
@@ -905,8 +952,13 @@ def test_action_strip_every_page(docs):
         assert DATED_COMMENT not in page, f"{name}: internal DATED comment leaked into served HTML"
         assert 'class="action-strip"' in page, name
         assert re.search(
-            r'<a href="get-involved\.html">Report every odor\. Sign the petition\.</a>',
+            r'<a href="act-now\.html">Report every odor\. Sign the petition\.</a>',
             page), name
+    # and the target really is the branch page: the petition plus the way to
+    # report an odor both live there
+    act = read(docs, "act-now.html")
+    assert PETITION_URL in act, "the strip promises the petition"
+    assert 'href="report-an-odor.html"' in act, "the strip promises the odor path"
 
 
 def test_no_public_todo_strings(docs):
@@ -914,39 +966,47 @@ def test_no_public_todo_strings(docs):
         assert "TODO" not in read(docs, name), name
 
 
-def test_get_involved_current_ask_and_relocation(docs):
-    gi = read(docs, "get-involved.html")
-    assert "Oct. 27" in gi
-    assert PETITION_URL in gi
-    assert "pressherald.com/contact/" in gi
+def test_act_now_current_ask_and_relocation(docs):
+    """The current ask, the petition and the letter-to-the-editor guidance moved
+    here from get-involved.html on 2026-11-24, when the copy document renamed
+    its action section Act Now and gave the odor section its own page."""
+    act = read(docs, "act-now.html")
+    assert "Oct. 27" in act
+    assert PETITION_URL in act
+    assert "pressherald.com/contact/" in act
 
 
-def test_get_involved_workshop_is_past_tense(docs):
+def test_act_now_workshop_is_past_tense(docs):
     # The Oct. 27 workshop happened. Both mentions state that it happened and
     # point at the email action, and the high-school address that served only
     # that night stays gone. 2026-11-20: the second mention now also carries the
     # next date, so it is pinned by its past-tense opener, not by a count of the
     # full retired sentence (which the live fact legitimately extends).
-    gi = read(docs, "get-involved.html")
-    assert gi.count("The City Council workshop was held on Oct. 27") == 2
-    assert "Make plans to come to the City Council workshop" not in gi
-    assert "Attend the City Council workshop" not in gi
-    assert "637 Highland Ave" not in gi
+    # 2026-11-24: the two mentions are the current-ask callout and the More ways
+    # to help paragraph, both of which moved here from get-involved.html.
+    act = read(docs, "act-now.html")
+    assert act.count("The City Council workshop was held on Oct. 27") == 2
+    assert "Make plans to come to the City Council workshop" not in act
+    assert "Attend the City Council workshop" not in act
+    assert "637 Highland Ave" not in act
 
 
-def test_get_involved_odor_report_dual_channel(docs):
+def test_report_an_odor_page_dual_channel(docs):
     """Row 45: the city's Odor Report form joins the SMC app as the dual
     reporting channel; the two dictated paragraphs sit directly under the
-    SMC download paragraph inside the same section."""
-    gi = read(docs, "get-involved.html")
+    SMC download paragraph inside the same section.
+
+    2026-11-24: the section became page report-an-odor.html (the copy
+    document's Report an Odor child), moved byte-for-byte."""
+    gi = read(docs, "report-an-odor.html")
     assert "https://www.southportland.gov/FormCenter/Air-Quality-9/City-of-South-Portland-Odor-Report-Form-60" in gi
     assert ">Odor Report form</a>" in gi
     assert "Smell My City App" in gi
     assert "preferred method" in gi
     assert "not publicly available in real-time" in gi
     smc = gi.index("Download the Smell My City app")
-    form = gi.index("Odor Report form")
-    next_section = gi.index("Write to City Councilors")
+    form = gi.index(">Odor Report form</a>")
+    next_section = gi.index("File the report form")
     assert smc < form < next_section, "form paragraphs must land under the SMC copy"
 
 
@@ -955,7 +1015,7 @@ def test_row48_odor_report_visual_hierarchy(docs):
     are present and linked, and the four row-45 dictated sentences survive
     byte-exact — the pin asserts the sentences themselves, so any rewording
     (or a split/merge that drops a word) fails loudly here."""
-    gi = read(docs, "get-involved.html")
+    gi = read(docs, "report-an-odor.html")
 
     # both mechanisms present and linked
     assert 'href="https://smellmycity.org/"' in gi
@@ -1004,11 +1064,15 @@ INCOMING_DISTRICT_2 = ("Ellen Clancy", "Dec. 7 inauguration")
 
 
 def test_row47_city_council_roster(docs):
-    """Row 47: the live contact pages carry the City's current councilor
+    """Row 47: the live contact page carries the City's current councilor
     roster (verified against southportland.gov/m/directory), with the general
     address above it, in district order; the retired names and the dead domain
-    are gone. past-work.html keeps the historical 2024 list untouched."""
-    for name in ("get-involved.html", "act-now.html"):
+    are gone. past-work.html keeps the historical 2024 list untouched.
+
+    2026-11-24: the roster ran over get-involved.html and act-now.html; with
+    get-involved.html retired to a redirect, act-now.html is the one live page
+    that carries it, and the pins stay here so the roster keeps a guard."""
+    for name in ("act-now.html",):
         page = read(docs, name)
         for person, seat, alias, _ in ROW47_COUNCILORS:
             if seat is None:
@@ -1045,8 +1109,8 @@ def test_row47_city_council_roster(docs):
             cursor = page.index(needle, cursor)
             positions.append(cursor)
         assert positions == sorted(positions), f"{name}: roster out of district order"
-    # the general address line sits directly above the list on both pages
-    for name in ("get-involved.html", "act-now.html"):
+    # the general address line sits directly above the list
+    for name in ("act-now.html",):
         page = read(docs, name)
         expected_line = (
             'We recommend sending your email to the general email address '
@@ -1075,6 +1139,9 @@ def test_strip_back_to_doc_pages(docs):
         "library.html": "tank-farms.html#reference-documents",
         "press.html": "act-now.html",
         "tank-farms-history.html": "tank-farms.html#how-we-got-here",
+        # 2026-11-24 page-set revision: the doc has no Get involved page; the
+        # action content is Act Now and the odor section is Report an odor
+        "get-involved.html": "act-now.html",
     }
     for src, dest in stubs.items():
         stub = read(docs, src)
