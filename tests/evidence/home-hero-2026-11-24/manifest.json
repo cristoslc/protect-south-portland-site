@@ -1,0 +1,263 @@
+{
+  "date": "2026-11-24",
+  "ledger_row": 98,
+  "operator_instruction_verbatim": "This photo of bug light is still too squashed. what about filling the red outline with the photo and using a floating card over the photo (with or without transparency, you decide) for the text where the semi-opaque red rectangle is?",
+  "page": "index.html",
+  "region": "section.hero",
+  "source_image": {
+    "path": "site/assets/photos/hero-coast.jpg",
+    "width": 1600,
+    "height": 898,
+    "aspect": 1.7817,
+    "note": "unchanged, the same frame the operator named; no second asset was added"
+  },
+  "structure": {
+    "before": [
+      "<section class=\"banner\"> (solid --teal-900 block) holding h1.banner__headline, p.banner__meta, the ask paragraph, a.btn.btn--cta and .banner__signoff",
+      "<div class=\"hero-band hero-band--low hero-band--home\" role=\"img\" aria-label=\"...\"> (empty decorative div, photo as a CSS background, min-height 260px)"
+    ],
+    "after": [
+      "<section class=\"hero\">",
+      "  <img class=\"hero__photo\" src=\"assets/photos/hero-coast.jpg\" alt=\"...\"> (real image, object-fit: cover, object-position: 20% 100%)",
+      "  <div class=\"hero__inner\"> (the wrap, the region's height, the clear band above the card)",
+      "    <div class=\"hero__card\"> (hero overlay, no .card, no card__body, no card__more)",
+      "      h1.hero__headline, p.hero__meta, p.hero__ask, a.btn.btn--cta, .hero__signoff > p.hero__mission"
+    ],
+    "removed_css": [
+      ".banner",
+      ".banner__inner",
+      ".banner__headline",
+      ".banner__meta",
+      ".banner__signoff",
+      ".banner__mission",
+      ".hero-band--home",
+      ".hero-band--low",
+      "@media (min-width: 901px) .hero-band--home override"
+    ],
+    "kept_css": [
+      ".hero-band (shared band, three live users, unchanged)",
+      "@media (max-width: 700px) .hero-band min-height 190px"
+    ]
+  },
+  "alt_text": "Bug Light lighthouse and a schooner under sail beyond a park lawn where people gather at sunset on the South Portland waterfront",
+  "transparency": {
+    "decision": "semi-opaque",
+    "fill": "--teal-950 #122a2c",
+    "alpha": 0.8,
+    "reason": "A solid card would put a lid on the photograph and turn the hero back into a text block with a photo border, which is the shape the operator asked to leave. At 0.8 the lawn, the crowd, the schooner's sail and the lighthouse behind the panel still read as composition while every text pair clears AA at the worst pixel behind the card, so the transparency costs nothing in legibility. The card sits over the crowd and the lawn at every width, and those two bands are exactly what a reader can afford to see through a tint.",
+    "measured": "see measurements-contrast.json; worst case is the brightest single pixel behind the card (#ffffff, a shirt in the crowd) composited with the fill at 0.80"
+  },
+  "contrast": {
+    "method": "the card's rectangle is sampled from home-hero-behind-card-<w>.png (the card's fill and its text removed, so the pixels are the photograph itself); each sample is composited with the shipped fill at the shipped alpha; WCAG 2.x relative luminance",
+    "worst_case_behind_card": {
+      "photo_pixel": "#ffffff / #fefff8 / #fffffb",
+      "composite": "#415556",
+      "headline_white": 7.9,
+      "meta_cyan_soft": 6.9,
+      "mission_white_88": 6.6
+    },
+    "mean_behind_card": {
+      "composite": "#293c39 / #283a36 / #253831",
+      "headline_white": "11.67 - 12.44",
+      "meta_cyan_soft": "10.19 - 10.86",
+      "mission_white_88": "9.46 - 10.01"
+    },
+    "darkest_behind_card": {
+      "composite": "#122327 / #0f2323 / #0f2224",
+      "headline_white": "16.21 - 16.48",
+      "meta_cyan_soft": "14.16 - 14.39",
+      "mission_white_88": "12.82 - 12.92"
+    },
+    "per_width": {
+      "412": {
+        "worst": {
+          "headline_white": 7.9,
+          "meta_cyan_soft": 6.9,
+          "mission_white_88": 6.59
+        }
+      },
+      "768": {
+        "worst": {
+          "headline_white": 7.91,
+          "meta_cyan_soft": 6.91,
+          "mission_white_88": 6.6
+        }
+      },
+      "1440": {
+        "worst": {
+          "headline_white": 7.91,
+          "meta_cyan_soft": 6.91,
+          "mission_white_88": 6.6
+        }
+      }
+    },
+    "cta_label": {
+      "pair": "white on --orange-dark #b8401a",
+      "ratio": 5.55,
+      "note": "the family's declared pair, unchanged by this leg"
+    },
+    "focus_ring": {
+      "selector": ".hero .btn:focus-visible",
+      "colour": "--cyan-soft #d5f6f6",
+      "shape": "3px solid, 2px offset",
+      "reached_by": "real Tab presses until document.activeElement was the CTA, at 412 and 1440",
+      "rendered_pixels": "all four sampled ring pixels read exactly #d5f6f6 at both widths",
+      "contrast_vs_sampled_surface_under_ring": {
+        "412": 12.65,
+        "1440": 12.7
+      },
+      "contrast_vs_brightest_possible_surface": 6.82,
+      "floor": "WCAG 2.1 SC 1.4.11 non-text 3:1"
+    }
+  },
+  "crop_windows": {
+    "rule": "object-fit: cover, object-position: 20% 100%; the region's height is the card plus the clear band, so cover's scale is driven by whichever axis needs the most",
+    "per_width": {
+      "412": {
+        "region_px": [
+          412,
+          795
+        ],
+        "cover_scale": 0.8853,
+        "source_columns": [
+          227,
+          692
+        ],
+        "source_rows": [
+          0,
+          898
+        ],
+        "vertical_slack_rows": 0,
+        "clear_band_px": 150
+      },
+      "768": {
+        "region_px": [
+          768,
+          621
+        ],
+        "cover_scale": 0.6915,
+        "source_columns": [
+          98,
+          1208
+        ],
+        "source_rows": [
+          0,
+          898
+        ],
+        "vertical_slack_rows": 0,
+        "clear_band_px": 200
+      },
+      "1024": {
+        "region_px": [
+          1024,
+          607
+        ],
+        "cover_scale": 0.6759,
+        "source_columns": [
+          17,
+          1532
+        ],
+        "source_rows": [
+          0,
+          898
+        ],
+        "vertical_slack_rows": 0,
+        "clear_band_px": 200
+      },
+      "1100": {
+        "region_px": [
+          1100,
+          612
+        ],
+        "cover_scale": 0.6875,
+        "source_columns": [
+          0,
+          1600
+        ],
+        "source_rows": [
+          8,
+          898
+        ],
+        "vertical_slack_rows": 8,
+        "clear_band_px": 200
+      },
+      "1440": {
+        "region_px": [
+          1440,
+          613
+        ],
+        "cover_scale": 0.9,
+        "source_columns": [
+          0,
+          1600
+        ],
+        "source_rows": [
+          217,
+          898
+        ],
+        "vertical_slack_rows": 217,
+        "clear_band_px": 200
+      },
+      "1920": {
+        "region_px": [
+          1920,
+          613
+        ],
+        "cover_scale": 1.2,
+        "source_columns": [
+          0,
+          1600
+        ],
+        "source_rows": [
+          387,
+          898
+        ],
+        "vertical_slack_rows": 387,
+        "clear_band_px": 200
+      }
+    },
+    "what_narrow_screens_do": "Below about 1200px the region's height drives cover's scale, so the visible window is the frame's full 898 rows and there is no vertical slack: object-position cannot lift the crop, and the clear band above the card is the top of the frame (haze over the harbor) while the lighthouse, the sail and the crowd sit behind the card's tint. From 1300px up the viewport drives the scale, slack appears, and the bottom-anchored crop lifts the lantern room and the schooner's sail peaks into the clear band. The proportions never change at any width; only what the window contains does.",
+    "known_limit_1920": "at 1920 the slack is large enough that the bottom-anchored crop puts the lantern above the frame's top edge, so the tower reads from the gallery down. Both sails and the crowd remain. Stated rather than hidden."
+  },
+  "other_hero_band_users": {
+    "about.html": "class=\"hero-band\" inline casco-bay-shore.jpg, unchanged",
+    "act-now.html": "class=\"hero-band\" inline waterfront.jpg center 62%, unchanged (not edited by this leg)",
+    "share-your-story.html": "class=\"hero-band\" inline podium.jpg center 40%, unchanged",
+    "measured": "only .hero-band--home, .hero-band--low and the 901px crop override were removed; the shared .hero-band rule and its 700px max-width height rule are byte-identical, so those three bands render exactly as before"
+  },
+  "card_wording_used": {
+    "headline": "Tell our leaders to stop tank farms from dumping hazardous pollutants in our neighborhoods.",
+    "meta": "The Council took no vote at its Oct. 27 workshop on tank emissions. The next one is Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road.",
+    "ask": "Email the Council and ask it to require better technology at the tank farms.",
+    "cta": "Act now (a.btn.btn--cta -> act-now.html)",
+    "mission": "We are a community-based, volunteer-run organization working together to protect the environment and the health and well-being of South Portland residents.",
+    "divergence_note": "act-now.html's current-ask sentence reads 'The City Council workshop was held on Oct. 27 and the Council took no vote. It asked for options to discuss at the planned workshop on Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers.' The card says the same three facts in fewer words and adds the venue, 25 Cottage Road, per decision dec_huccqekz7fjt; the ask sentence is the act-now wording nearly verbatim. A five-ask restructure of act-now is queued behind this leg, so the two surfaces may diverge: this is the wording snapshot to diff against, so a divergence is a finding and not silent drift."
+  },
+  "captured_with": "bb browser-automation, local headless Chrome, deviceScaleFactor 1, served from python3 -m http.server over a fresh tools/build.py output",
+  "captures": {
+    "home-hero-412.png": "full page, 412 wide (5316 tall)",
+    "home-hero-768.png": "full page, 768 wide",
+    "home-hero-1440.png": "full page, 1440 wide",
+    "home-hero-behind-card-412.png": "same frame with the card's fill, border, shadow and text removed, so the pixels behind the card can be sampled",
+    "home-hero-behind-card-768.png": "same, 768",
+    "home-hero-behind-card-1440.png": "same, 1440",
+    "card-busiest-412.png": "1:1 crop of the card over the busiest part of the photograph at 412 (the crowd, the sail, the lawn showing through the fill)",
+    "behind-card-busiest-412.png": "the same rectangle with the card removed: the lighthouse, the crowd, the water and the lawn, which is what the card's tint sits over",
+    "band-above-card-412.png": "the clear photograph band above the card at 412 (the frame's top: haze, the far shore)",
+    "band-above-card-1440.png": "the clear photograph band above the card at 1440 (the lantern room, the gallery, the schooner's mast and sail peaks)",
+    "cta-focus-412.png": "full page after real Tab presses landed on the CTA, 412",
+    "cta-focus-1440.png": "the same, 1440",
+    "cta-focus-ring-412.png": "1:1 crop of the focused CTA at 412 (the cyan-soft ring on the card)",
+    "cta-focus-ring-1440.png": "the same, 1440",
+    "measurements-raw.json": "live DOM boxes, computed styles and the resolved ring at 412/768/920/1024/1100/1440/1920",
+    "measurements-contrast.json": "the pixel samples, composites and ratios above",
+    "cta-focus-style-412.json": "the focused element's tag, classes, label and resolved outline",
+    "cta-focus-style-1440.json": "the same at 1440"
+  },
+  "read_back": {
+    "1440": "a real photo hero: the region is 1440x613 and the photograph holds its 1600x898 proportions, so nothing is stretched. Above the card, a 200px clear band carries the lighthouse's lantern room and gallery on the left and the schooner's two mastheads and sail peaks on the right, under evening haze. The card (828x393) floats over the lower left with the crowd, the tents and the lawn showing through the fill, and the crowd, the water and the far shore stay sharp in the 250px column to its right. The copy is crisp on the tint; the Act now pill sits in the card with its ring measured.",
+    "768": "region 768x621, the card 728x401 across the width, a 200px band of haze above it. Through the tint the crowd, the tent, the lawn and a sail read clearly, and the lawn strip below the card and the 20px gutters at its sides keep the photograph present at the edges. No lighthouse tower in the clear band: at this width the whole frame height is visible and the tower sits behind the tint.",
+    "412": "region 412x795, the card 372x625 with 20px gutters, a 150px band of haze above. The card's tint sits directly over the lighthouse: the tower's silhouette, the crowd, the water and the lawn read through it, and the 1:1 crop pair (card-busiest-412 vs behind-card-busiest-412) shows exactly what is being tinted. The photograph is dark and moody at this width rather than washed out, and no part of the frame is stretched.",
+    "verdict": "the operator's two complaints are answered at all three widths: the photograph is no longer a 5.5:1 letterbox, and the copy is no longer in its own opaque block beside a decorative strip."
+  }
+}

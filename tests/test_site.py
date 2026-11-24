@@ -1348,14 +1348,24 @@ def test_every_page_shell_complete(docs):
         assert 'wordmark' not in page, name
 
 
-def test_banner_homepage_only(docs):
+def test_hero_homepage_only(docs):
+    """Ledger row 98 (operator, 2026-11-24): the homepage's top-of-page block is
+    a photo hero, and it is the homepage's alone.
+
+    Retargeted from `test_banner_homepage_only`, which pinned `class="banner"`
+    on the homepage and banned it everywhere else. The ruling did not change,
+    only the block's name: the solid teal banner and the decorative
+    `hero-band--home` strip under it became one `<section class="hero">`, so
+    the pin follows the region. Other pages keep their own `.hero-band` band,
+    which is a different component and is pinned separately below.
+    """
     for name in html_files(docs):
         page = read(docs, name)
-        has_banner = 'class="banner"' in page
+        has_hero = 'class="hero"' in page
         if name == "index.html":
-            assert has_banner, "homepage must carry the banner"
+            assert has_hero, "homepage must carry the photo hero"
         else:
-            assert not has_banner, f"{name} must not carry the homepage banner"
+            assert not has_hero, f"{name} must not carry the homepage hero"
 
 
 def test_internal_links_resolve(docs):
@@ -1455,15 +1465,16 @@ def test_pages_carry_no_coming_soon_promises(docs):
 def test_homepage_who_we_are_block(docs):
     """Ledger row 27 (Mindy-sanctioned homepage about-block from Alex's
     homepage pass): the mission line and the About-PSP paragraph sit verbatim
-    on the homepage — the mission folds into the banner as its sign-off and
-    the About paragraph sits in a compact strip between the hero photo and
-    the issue section (2026-10-14 single-hero design pass), with the Read
+    on the homepage — the mission folds into the hero's card as its sign-off
+    and the About paragraph sits in a compact strip under the hero photo and
+    above the issue section (2026-10-14 single-hero design pass, carried into
+    the 2026-11-24 photo hero unchanged), with the Read
     more link (labelled "Our Story" by row 27, relabelled "Our Work" by the
     operator by hand on 2026-11-24) linking about.html
     and an Act now link to act-now.html (the doc's action
     section renamed page on 2026-11-24) — after
     the 2026-10-14 design round 2 both read as list items in a two-item link
-    row (page-structure patch): prose, not buttons; the banner Act now is the
+    row (page-structure patch): prose, not buttons; the hero's Act now is the
     only button idiom in the first screen. The
     docx parentheticals are author instructions and must not ship; the
     working-note strings and the fact-flagged grammar quirks stay exactly as
@@ -1488,72 +1499,120 @@ def test_homepage_who_we_are_block(docs):
     assert "Act now" in idx
     assert 'href="act-now.html"' in idx, "the action link must reach act-now.html"
     # design round 2 + page-structure patch: exactly one button idiom in the
-    # first screen — the banner Act now — and the strip's links read as a
+    # first screen — the hero's Act now — and the strip's links read as a
     # two-item link row after the paragraph (labels and hrefs char-for-char;
     # the paragraph ends at its own period), not a run-on, not stacked buttons.
-    idx_top = idx[idx.index('class="banner"'):idx.index('<span class="kicker">Current campaign</span>')]
-    assert idx_top.count('class="btn') == 1, "only the banner Act now is a button in the top flow"
+    # Retargeted 2026-11-24 (ledger row 98): the slice starts at the hero
+    # region instead of the retired `.banner` block, and the count is still
+    # one, because the card's CTA is the only button above the campaign.
+    idx_top = idx[idx.index('<section class="hero">'):idx.index('<span class="kicker">Current campaign</span>')]
+    assert idx_top.count('class="btn') == 1, "only the hero's Act now is a button in the top flow"
     assert "intro-cta" not in idx and "btn--ghost" not in idx_top
     assert "meaningful actions.</p>" in idx and "Our Story</a> <a" not in idx, "strip ends at its own period"
     row_pos = idx.index('<ul class="link-row">')
     row = idx[row_pos:idx.index("</ul>", row_pos)]
     assert row.count('<li><a href="about.html">Read more: Our Work</a></li>') == 1
     assert row.count('<li><a href="act-now.html">Act now</a></li>') == 1
-    # heading order (fix 3): the banner headline is the page's single h1
-    assert idx.count("<h1") == 1 and '<h1 class="banner__headline">' in idx
-    assert '<p class="banner__headline">' not in idx
-    # final top-of-page order: banner (mission folded in as its sign-off, and
-    # now the h1) -> hero photo band -> who-we-are strip -> link row (inside
-    # the strip, after the paragraph) -> issue section
-    banner_pos = idx.index('class="banner"')
+    # heading order (fix 3): the hero headline is the page's single h1
+    assert idx.count("<h1") == 1 and '<h1 class="hero__headline">' in idx
+    assert '<p class="hero__headline">' not in idx
+    # final top-of-page order: hero region (its card holds the h1, the ask and
+    # the CTA, with the mission folded in as its sign-off) -> who-we-are strip
+    # -> link row (inside the strip, after the paragraph) -> issue section
+    hero_pos = idx.index('<section class="hero">')
+    card_pos = idx.index('class="hero__card"')
+    headline_pos = idx.index('<h1 class="hero__headline">')
+    cta_pos = idx.index('class="btn btn--cta"')
     mission_pos = idx.index("We are a community-based")
-    hero_pos = idx.index('class="hero-band')
     strip_pos = idx.index("For over a decade, we")
     issue_pos = idx.index('<span class="kicker">Current campaign</span>')
-    assert banner_pos < mission_pos < hero_pos < strip_pos < row_pos < issue_pos
+    assert hero_pos < card_pos < headline_pos < cta_pos < mission_pos < strip_pos
+    assert mission_pos < strip_pos < row_pos < issue_pos
     # author working notes are not copy
     for leak in ("Something like this", "Something like that", "link to About Us"):
         assert leak not in idx, leak
 
 
-def test_homepage_hero_band_shows_the_shoreline(docs):
-    """Operator ask, 2026-11-24: the band under the banner showed petroleum
-    tanks, so the photograph repeated the problem the headline complains
-    about. It now shows what the campaign protects (Bug Light, a schooner
-    under sail, the park lawn at dusk). The band is a CSS background with
-    role="img", so the aria-label is the only description a screen reader
-    gets, and the file it names has to exist in the built tree or the band
-    ships as an empty grey strip with nothing to catch it.
+def test_homepage_hero_photo_keeps_its_proportions(docs):
+    """Operator, 2026-11-24 (ledger row 98), verbatim: "This photo of bug light
+    is still too squashed. what about filling the red outline with the photo
+    and using a floating card over the photo (with or without transparency,
+    you decide) for the text where the semi-opaque red rectangle is?"
 
-    Gate finding 2026-11-24: the crop is no longer an inline style. The photo
-    and its narrow-width crop live in the page-scoped `.hero-band--home`
-    class, and a wide-viewport rule climbs the crop so the lawn and the
-    people survive at desktop width, where the 260px band shows the thinnest
-    slice of the frame."""
+    Retargeted from `test_homepage_hero_band_shows_the_shoreline`, which pinned
+    the photograph as a CSS background on an empty `role="img"` div. The
+    operator's complaint is that the band squashed the frame: a fixed height
+    over a 1600x898 photo is a 5.5:1 letterbox at 1440. The picture is now a
+    real `<img>` in the hero region, and `object-fit: cover` with a declared
+    `object-position` is what keeps its proportions at every width, so the pin
+    moves from "a background image exists" to "the element cannot stretch it
+    and the focal point is stated". The `role="img"` div, its aria-label and
+    the `.hero-band--home` class are all gone with the strip they served.
+    """
     idx = read(docs, "index.html")
     m = re.search(
-        r'<div class="hero-band hero-band--low hero-band--home"\s+'
-        r'role="img"\s+aria-label="([^"]+)"',
-        idx,
-    )
-    assert m, 'the homepage band keeps its classes + role="img" + aria-label'
-    label = m.group(1)
-    assert "background-image" not in idx.split('class="banner"')[0], "no inline band style"
-    css = read(docs, "styles.css")
-    rule = re.search(r"\.hero-band--home\s*\{([^}]*)\}", css)
-    assert rule, "the band's photo is declared in a page-scoped class, not an inline style"
-    base_rule = rule.group(1)
-    assert "assets/photos/hero-coast.jpg" in base_rule
-    assert "background-position" in base_rule
-    assert os.path.isfile(os.path.join(docs, "assets/photos/hero-coast.jpg")), \
+        r'<section class="hero">\s*\n\s*<img class="hero__photo" '
+        r'src="([^"]+)" alt="([^"]+)"', idx)
+    assert m, (
+        'the homepage hero opens with a real <img class="hero__photo"> carrying '
+        'src and alt, not an empty role="img" div')
+    src, alt = m.group(1), m.group(2)
+    assert src == "assets/photos/hero-coast.jpg", (
+        "the hero keeps the Bug Light frame the operator named")
+    assert os.path.isfile(os.path.join(docs, src)), \
         "hero-coast.jpg must exist in the built tree"
-    wide = re.search(r"@media \(min-width: 901px\) \{(.*?)\n\}", css, re.S)
-    assert wide, "a wide-viewport rule retunes this band's crop"
-    assert ".hero-band--home" in wide.group(1) and "center 58%" in wide.group(1)
-    assert "tank" not in label.lower(), "the band no longer describes tanks"
+    assert 'role="img"' not in idx, (
+        "the hero is a real region with an h1, not a decorative image with an "
+        "aria-label standing in for content")
+    assert ".hero-band" not in idx, (
+        "the homepage no longer carries a decorative band; the photo is the hero")
+    assert "tank" not in alt.lower(), "the hero no longer describes tanks"
     for landmark in ("Bug Light", "schooner"):
-        assert landmark in label, f"the description names the {landmark} the photo shows"
-    assert len(label.split()) >= 8, "the description stays a real sentence, not a file name"
+        assert landmark in alt, f"the alt names the {landmark} the photo shows"
+    assert len(alt.split()) >= 8, "the alt stays a real sentence, not a file name"
+
+    css = read(docs, "styles.css")
+    rule = re.search(r"\.hero__photo\s*\{([^}]*)\}", css)
+    assert rule, "the photo's fit and focus are declared on .hero__photo"
+    body = rule.group(1)
+    assert "object-fit: cover" in body, (
+        "cover is what keeps the frame's proportions at every width; anything "
+        "else stretches the photograph")
+    assert "object-position" in body, "the focal point must be stated, not default"
+    assert "height: 100%" in body and "width: 100%" in body, (
+        "the photograph fills the hero region in both axes")
+
+
+def test_homepage_hero_band_dead_code_is_gone_and_other_bands_are_intact(docs):
+    """Ledger row 98: the homepage-only band classes went with the strip they
+    styled, and the shared band the other pages use did not move.
+
+    `.hero-band--home` and `.hero-band--low` were the homepage's alone; after
+    the photo hero replaced the strip nothing renders either class, so leaving
+    them in the stylesheet would be dead code that the next reader has to
+    reverse-engineer. `.hero-band` itself is a different component with three
+    live users, and this pin walks the built tree for them instead of naming
+    pages, so a page that adopts or drops a band updates the pin by building.
+    """
+    css = read(docs, "styles.css")
+    assert not re.search(r"\.hero-band--home\s*\{", css), (
+        ".hero-band--home has no user left; the hero owns its own photograph")
+    assert not re.search(r"\.hero-band--low\s*\{", css), (
+        ".hero-band--low has no user left either")
+    # the comment above the shared rule may name the retired members (that is
+    # how the next reader learns why they are gone); no page may still wear one
+    for name in html_files(docs):
+        page = read(docs, name)
+        assert "hero-band--home" not in page, f"{name} still wears hero-band--home"
+        assert "hero-band--low" not in page, f"{name} still wears hero-band--low"
+    assert re.search(r"\.hero-band\s*\{[^}]*min-height", css), (
+        "the shared .hero-band rule still has to exist for the other pages")
+    users = [name for name in html_files(docs)
+             if name != "index.html" and 'class="hero-band"' in read(docs, name)]
+    assert users, "no page renders a .hero-band any more; the shared rule is dead"
+    for name in users:
+        assert 'role="img"' in read(docs, name), (
+            f"{name}: the decorative band keeps its role and label")
 
 
 def test_embed_url_is_the_public_embedding(docs):
@@ -3171,9 +3230,9 @@ def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
     assert ("btn", "btn--cta") in rendered, "the CTA variant must be in the census"
     assert ("btn", "btn--ghost") in rendered, "the ghost variant must be in the census"
     surfaces = {surface for _variant, surface in census}
-    assert ".banner" in surfaces, "the dark banner surface must be exercised"
+    assert ".hero" in surfaces, "the dark hero card surface must be exercised"
     assert ".footer" in surfaces, "the dark footer surface must be exercised"
-    assert any(surface not in (".banner", ".footer", ".section--teal")
+    assert any(surface not in (".hero", ".footer", ".section--teal")
                for surface in surfaces), "a light surface must be exercised too"
 
     for (variant, surface), (ratio, width, style, offset, winner, name) in sorted(census.items()):
@@ -3983,9 +4042,18 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
     # 2026-11-20: the live fact changed from "no date set" to the Dec. 1
     # workshop, so the pinned banner text moves with it. The rule is unchanged:
     # lead with what is true now, keep the ask, never an invitation to the past.
-    banner = ("The Council plans its next workshop on tank emissions for "
-              "Tuesday, Dec. 1 at 6:30 p.m. Ask it to require better technology "
-              "at the tank farms.")
+    # 2026-11-24 (ledger row 98): the banner is retired into the hero card, and
+    # the operator's instruction for that card is to carry the same current-ask
+    # material as the Act now page. The two sentences the pin reads therefore
+    # move with the copy: the Oct. 27 outcome plus the Dec. 1 workshop, the
+    # venue included per decision dec_huccqekz7fjt, and the ask unchanged.
+    # The ruling is what the pin guards, not the old sentence: a live date, a
+    # real ask, no invitation to a past event.
+    hero_state = ("The Council took no vote at its Oct. 27 workshop on tank "
+                  "emissions. The next one is Tuesday, Dec. 1 at 6:30 p.m. in "
+                  "City Hall Council Chambers, 25 Cottage Road.")
+    hero_ask = ("Email the Council and ask it to require better technology at "
+                "the tank farms.")
     bullet_state = ("The Council plans its next workshop for Tuesday, Dec. 1 "
                     "at 6:30 p.m.")
     past_state = ("The City Council took no vote at its Oct. 27 workshop")
@@ -3995,7 +4063,8 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
     # emphasis inside these sentences without weakening the ruling they pin.
     idx_text = reading_text(idx)
     tank_text = reading_text(tank)
-    assert banner in idx_text
+    assert hero_state in idx_text
+    assert hero_ask in idx_text
     assert bullet_state in idx_text
     assert past_state in idx_text
     assert "require better technology at the tank farms" in idx

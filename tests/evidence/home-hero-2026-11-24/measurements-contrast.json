@@ -1,0 +1,160 @@
+{
+  "fill": {
+    "token": "--teal-950",
+    "rgb": [
+      18,
+      42,
+      44
+    ],
+    "alpha": 0.8
+  },
+  "method": "card rect sampled from home-hero-behind-card-<w>.png (fill and text removed), each sample composited with the card fill at the shipped alpha",
+  "widths": {
+    "412": {
+      "card_box": [
+        20,
+        220,
+        372,
+        625
+      ],
+      "samples": 226554,
+      "photo_behind": {
+        "darkest": "#100815",
+        "brightest": "#ffffff",
+        "mean": "#83846e"
+      },
+      "composite": {
+        "darkest": "#122327",
+        "brightest": "#415556",
+        "mean": "#293c39"
+      },
+      "text_contrast": {
+        "darkest": {
+          "headline_white": 16.21,
+          "meta_cyan_soft": 14.16,
+          "mission_white_88": 12.82
+        },
+        "brightest": {
+          "headline_white": 7.9,
+          "meta_cyan_soft": 6.9,
+          "mission_white_88": 6.59
+        },
+        "mean": {
+          "headline_white": 11.67,
+          "meta_cyan_soft": 10.19,
+          "mission_white_88": 9.46
+        }
+      }
+    },
+    "768": {
+      "card_box": [
+        20,
+        270,
+        728,
+        401
+      ],
+      "samples": 285190,
+      "photo_behind": {
+        "darkest": "#050500",
+        "brightest": "#fffffb",
+        "mean": "#7e7b5e"
+      },
+      "composite": {
+        "darkest": "#0f2323",
+        "brightest": "#415555",
+        "mean": "#283a36"
+      },
+      "text_contrast": {
+        "darkest": {
+          "headline_white": 16.34,
+          "meta_cyan_soft": 14.27,
+          "mission_white_88": 12.9
+        },
+        "brightest": {
+          "headline_white": 7.91,
+          "meta_cyan_soft": 6.91,
+          "mission_white_88": 6.6
+        },
+        "mean": {
+          "headline_white": 12.01,
+          "meta_cyan_soft": 10.49,
+          "mission_white_88": 9.67
+        }
+      }
+    },
+    "1440": {
+      "card_box": [
+        190,
+        271,
+        828,
+        393
+      ],
+      "samples": 318114,
+      "photo_behind": {
+        "darkest": "#020403",
+        "brightest": "#fefff8",
+        "mean": "#726e46"
+      },
+      "composite": {
+        "darkest": "#0f2224",
+        "brightest": "#415555",
+        "mean": "#253831"
+      },
+      "text_contrast": {
+        "darkest": {
+          "headline_white": 16.48,
+          "meta_cyan_soft": 14.39,
+          "mission_white_88": 12.92
+        },
+        "brightest": {
+          "headline_white": 7.91,
+          "meta_cyan_soft": 6.91,
+          "mission_white_88": 6.6
+        },
+        "mean": {
+          "headline_white": 12.44,
+          "meta_cyan_soft": 10.86,
+          "mission_white_88": 10.01
+        }
+      }
+    }
+  },
+  "focus_ring": {
+    "412": {
+      "ring_pixels_rendered": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "ring_is_cyan_soft": true,
+      "card_surface_under_ring": [
+        "#152d30",
+        "#142b2b",
+        "#142b2b",
+        "#142b2c"
+      ],
+      "contrast_vs_worst_surface": 12.65
+    },
+    "1440": {
+      "ring_pixels_rendered": [
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6",
+        "#d5f6f6"
+      ],
+      "ring_is_cyan_soft": true,
+      "card_surface_under_ring": [
+        "#132b2b",
+        "#152c2c",
+        "#162d2b",
+        "#152d2b"
+      ],
+      "contrast_vs_worst_surface": 12.7
+    }
+  },
+  "cta_fill": {
+    "white_on_orange_dark": 5.55,
+    "note": "unchanged by this leg; the family's declared pair"
+  }
+}

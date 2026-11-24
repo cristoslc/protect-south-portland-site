@@ -233,27 +233,107 @@ img { max-width: 100%; height: auto; }
   .main-nav a:hover { background: var(--teal-100); color: var(--teal-900); }
 }
 
-/* ---------- action banner (very top of homepage) ------------------------
-   Single-hero composition 2026-10-14: the who-we-are mission line folds
-   into the banner as a quiet sign-off under the CTA instead
-   of stacking a second hero block above the hero photo. */
+/* ---------- homepage photo hero (very top of index.html) ----------------
 
-.banner {
-  background: var(--teal-900);
+   ONE REGION, TWO LAYERS, replacing the two blocks this used to be. Until
+   2026-11-24 the reader met a solid --teal-900 banner carrying the h1 and the
+   ask, and then, separately, a 260px decorative strip whose Bug Light
+   photograph lived as a CSS background on an empty role="img" div. The
+   operator's complaint was one defect seen twice: "This photo of bug light is
+   still too squashed. what about filling the red outline with the photo and
+   using a floating card over the photo (with or without transparency, you
+   decide) for the text where the semi-opaque red rectangle is?"
+
+   So the photograph is now a real <img> with alt text, covering the whole
+   region, and the copy floats over it in a card. object-fit: cover is what
+   makes the proportions hold at every width: the old band pinned its height
+   at 260px over a 1600x898 frame, so a 1440 viewport showed a 5.5:1 letterbox
+   slice of the middle of the scene. Here the region's height comes from the
+   card plus a fixed slice of photograph above it, and cover scales the image
+   until both dimensions are filled, never stretching it.
+
+   NO .card INHERITANCE. The overlay is a hero card, not a campaign card:
+   it carries no .card, no card__body and no card__more, and its own rules
+   are scoped to .hero__card so a campaign-card change never restyles the
+   hero by accident. It borrows the family's grammar only: the 14px rounding
+   of .card and .callout, real padding on all four sides, and the shadow
+   token.
+
+   SEMI-OPAQUE, DELIBERATELY. The card sits over the lawn and the crowd at
+   the bottom of the frame, which are the two bands of the photograph a
+   reader can afford to see through a tint. A solid card would put a lid on
+   the picture and turn the hero back into a text block with a photo border;
+   at 0.80 the grass, the people, the water and even the lighthouse read
+   through it as composition, while the worst single pixel behind the card
+   (a white shirt in the crowd, composited with the fill) still gives the
+   headline 7.90:1, the meta line 6.90:1 and the mission line 6.59:1, all
+   above AA. The samples and the method are in
+   tests/evidence/home-hero-2026-11-24/measurements-contrast.json. */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--teal-950);
   color: #fff;
 }
 
-.banner__inner {
+/* the photograph, full-bleed and proportion-true. object-position names the
+   focal point instead of guessing, and the two values do different jobs:
+   horizontally the crop leans left of centre (the tower sits at 23% across,
+   and a phone shows only 465 of the frame's 1600 columns, so a centred crop
+   would slice the lighthouse in half); vertically it anchors to the bottom
+   edge, which is what lifts the window wherever the viewport is wide enough
+   for cover to have vertical slack, putting the lantern and the schooner's
+   sail peaks in the clear band above the card. Where there is no slack
+   (every viewport narrower than about 1200px at this region's height) the
+   vertical value is a no-op and the frame is simply shown whole. */
+
+.hero__photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 20% 100%;
+}
+
+/* the region's height is the card's plus the photograph slice above it, so
+   the picture is never crushed to a strip: 150px of clear photograph on a
+   phone, 200px from the tablet breakpoint up, and the card keeps 20px of
+   photo below it and the page gutters beside it */
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 26px 20px 20px;
+  padding: 150px 20px 20px;
+  min-height: 560px;
+  display: flex;
+  align-items: flex-end;
+}
+
+@media (min-width: 701px) {
+  .hero__inner { padding-top: 200px; min-height: 600px; }
+}
+
+.hero__card {
+  max-width: 46rem;
+  padding: 24px 26px 22px;
+  border-radius: 16px;
+  background: rgba(18, 42, 44, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+  color: #fff;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
 }
 
-.banner__headline {
+.hero__headline {
   margin: 0;
   color: inherit;
   font-size: clamp(1.2rem, 2.6vw, 1.6rem);
@@ -263,18 +343,20 @@ img { max-width: 100%; height: auto; }
   max-width: 46rem;
 }
 
-.banner__meta { margin: 0; font-size: 0.95rem; color: var(--cyan-soft); }
+.hero__meta { margin: 0; font-size: 0.95rem; color: var(--cyan-soft); }
 
-/* mission line folded in as the banner's sign-off (secondary type) */
+.hero__ask { margin: 0; }
 
-.banner__signoff {
+/* mission line, still the hero's quiet sign-off under the CTA */
+
+.hero__signoff {
   border-top: 1px solid rgba(255, 255, 255, 0.18);
   width: 100%;
   max-width: 46rem;
   padding-top: 12px;
 }
 
-.banner__mission {
+.hero__mission {
   margin: 0;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.88);
@@ -328,22 +410,27 @@ img { max-width: 100%; height: auto; }
    `--teal-900` is 11.57:1 on --paper, 11.00:1 on --mist, 10.00:1 on
    --teal-100 and 10.10:1 on --cyan-soft. On the dark bands the same ink
    reads only 1.00:1 against --teal-900 and 1.30:1 against --teal-950, so the
-   dark override swaps to `--cyan-soft`: 10.10:1 on --teal-900 (banner) and
-   13.16:1 on --teal-950 (footer). Both clear the 3:1 non-text floor of
-   SC 1.4.11. No new colour enters the palette: these are the two tokens the
-   two existing focus rules already use.
+   dark override swaps to `--cyan-soft`: 6.82:1 on the hero card's fill at its
+   brightest possible pixel and 13.16:1 on --teal-950 (footer). Both clear the
+   3:1 non-text floor of SC 1.4.11. No new colour enters the palette: these are
+   the two tokens the two existing focus rules already use.
 
    The bare `.btn` rule covers the whole family, including `.btn--light`,
    which no built page renders today but which inherits the ring rather than
    waiting for a page to adopt it. The override is scoped to the surfaces
-   the built pages actually put a button on (`banner`, `footer`) plus
+   the built pages actually put a button on (`hero`, `footer`) plus
    `section--teal`, the site's one dark band component, so a button that
    lands there later is legible instead of dark-on-dark. `.btn--cta` keeps
-   its orange fill; the ring sits outside the fill on the band, never on it. */
+   its orange fill; the ring sits outside the fill on the band, never on it.
+
+   The `hero` member replaced `banner` on 2026-11-24, when the homepage's Act
+   now CTA moved out of the solid banner and into the hero's floating card.
+   The ring's job did not change: the card is a dark surface over a
+   photograph, so the light token is still the one that reads. */
 
 .btn:focus-visible { outline: 3px solid var(--teal-900); outline-offset: 2px; }
 
-.banner .btn:focus-visible,
+.hero .btn:focus-visible,
 .footer .btn:focus-visible,
 .section--teal .btn:focus-visible { outline-color: var(--cyan-soft); }
 
@@ -409,7 +496,8 @@ img { max-width: 100%; height: auto; }
 .section { padding: 46px 0; }
 
 /* compact who-we-are strip: the About paragraph sits under the hero photo,
-   demoted so only the banner reads as a hero (2026-10-14 design pass) */
+   demoted so only the hero reads as a hero (2026-10-14 design pass; the hero
+   became a real photo region on 2026-11-24) */
 
 .section--intro { padding: 26px 0; }
 
@@ -692,33 +780,13 @@ blockquote {
   background-repeat: no-repeat;
 }
 
-/* homepage-only shorter band: the tanks photo sits between the banner and
-   the who-we-are strip, so it stays punctuation, not a third hero-like
-   block (2026-10-14 design pass) */
-
-.hero-band--low { min-height: 260px; }
-
-/* homepage band photo: Bug Light, the schooner and the picnic lawn (ledger
-   row 76). The image and its crop live here rather than in a per-element
-   style, so the wide-viewport rule below can retune the crop as the band's
-   aspect flattens; every other band keeps the shared center 40%. */
-
-.hero-band--home {
-  background-image: url('assets/photos/hero-coast.jpg');
-  background-position: center 52%;
-}
-
-/* A fixed 260px band over this photo shows a thinner vertical slice as the
-   viewport widens: the cover render is 505 rows tall at 900 wide and 808 at
-   1440, so the window falls from about 460 source rows to 289. Center 52%
-   put that window's bottom edge on the schooner's deck rail at 1440, so the
-   crowd sat right on the frame and the lawn fell below it. From the tablet
-   breakpoint up, the crop climbs to trade sky for lawn, because a park full
-   of people is the reason this photo sits here. */
-
-@media (min-width: 901px) {
-  .hero-band--home { background-position: center 58%; }
-}
+/* No homepage member lives here any more. `.hero-band--low` and
+   `.hero-band--home` (and the 901px crop override that retuned it) were the
+   homepage's decorative strip; the photo hero replaced that strip with the
+   real `.hero` region above, which owns its own photograph and crop, so all
+   three went with it rather than lingering unused. The base `.hero-band`
+   below is unchanged and still serves about.html, act-now.html and
+   share-your-story.html exactly as before. */
 
 @media (max-width: 700px) { .hero-band { min-height: 190px; } }
 
