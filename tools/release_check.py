@@ -129,8 +129,15 @@ def scan_docs(docs_dir=None):
 
 
 def validate_gate_report(path):
-    """publish.load_gate_report's full rule set, against the current tree."""
-    model, review_class, per_page = publish.load_gate_report(path)
+    """publish.load_gate_report's full rule set, against the current tree.
+
+    Ledger row 93: a report validated by a release pull request is a production
+    credential, so the target is stated rather than left to a default. That
+    makes a pending entry — a page whose reviewer verdict is still in flight,
+    usable on a staging leg only — a red check here, by name.
+    """
+    model, review_class, per_page = publish.load_gate_report(
+        path, target=publish.PROD_REPO)
     print(f"gate report {os.path.basename(path)}: model {model} "
           f"(class {review_class}), pages: {per_page}")
 

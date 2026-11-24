@@ -18,9 +18,14 @@ per-page gate report (AGENTS.md "Public website release gate"):
      "pages": {"index.html": {"rounds": 1, "outcome": "pass",
                               "sha256": "<sha256 of site/pages/index.html>"}}}
 
-Every page under site/pages/ must appear with outcome "pass", a rounds count
-in 0-3, and the sha256 of the file as it stands now; the report must state a
-full-class reviewer and must not name a flash model. Anything else aborts
+Every page under site/pages/ must appear with a rounds count in 0-3 and the
+sha256 of the file as it stands now; the report must state a full-class
+reviewer and must not name a flash model. A page whose reviewer verdict is
+still in flight is written as {"rounds": 0, "outcome": "pending"} (ledger row
+93, 2026-11-24): the staging leg accepts that entry, and every other target
+refuses it by name because production needs a real verdict. Nothing upgrades
+pending to pass by itself; an amendment, run on purpose when the verdict
+lands (tools/gate_report.py --amend), replaces the entry. Anything else aborts
 loudly and the copy escalates to the operator instead of being published.
 Write reports with tools/gate_report.py, which stamps the hashes for you.
 
@@ -103,6 +108,18 @@ GATE_MARKER = "staging-gate"
 # rule, and the class field is what actually gates.
 REVIEW_CLASSES = ("full",)
 FLASH_MARKERS = ("flash",)
+
+# Ledger row 93 (2026-11-24): the operator's policy splits the legs — staging
+# publishes without waiting for review, production waits on the verdict — so a
+# page whose verdict is still in flight needs a state of its own instead of a
+# borrowed pass. PENDING_OUTCOME is that state: it means "no reviewer verdict
+# for this page yet", it carries rounds 0, and it is accepted on the leg that
+# targets STAGING_REPO only. The mark rides the OUTCOME, never the bytes: a
+# pending entry keeps its sha256, so the staging leg still pins what it ships
+# to the content the report names, and production refuses the entry by name.
+PENDING_OUTCOME = "pending"
+PENDING_ROUNDS = 0
+PENDING_MARKER = "PENDING"
 
 GATE_ROBOTS_TEXT = (
     "# Staging mirror variant — not the production site.\n"
@@ -511,7 +528,21 @@ def served_page_matches(served_text, name, docs_dir=None):
     return served_page_sha256(served_text) == page_sha256(name, docs_dir=docs_dir)
 
 
-def load_gate_report(path):
+def is_staging_target(target):
+    """True only when the leg names the staging mirror as its target.
+
+    The caller states the target — publish.main passes args.repo — and this is
+    the one comparison that grants the staging allowance, so a new target
+    cannot quietly inherit it. An unstated target (None) is NOT staging:
+    silence never buys the allowance, and the refusal it earns is the
+    production one. STAGING_REPO stays the single source of that identity,
+    compared exactly as staging_leg_gated compares it, so the pending
+    allowance and the row-42 gate can never disagree about which leg this is.
+    """
+    return target == STAGING_REPO
+
+
+def load_gate_report(path, target=None):
     """Validate the gate report and return (model, class, outcomes line).
 
     Two invariants since 2026-11-04 (row 57), both fail-loud:
@@ -526,6 +557,21 @@ def load_gate_report(path):
     2. REVIEWER CLASS. The report states review_class explicitly and it must
        be "full"; a review_model carrying a flash marker is refused even when
        the class field claims full. The model string alone is never trusted.
+
+    And a third since ledger row 93 (2026-11-24), which splits the legs:
+
+    3. THE TARGET DECIDES WHAT A PENDING ENTRY IS WORTH. The operator ruled
+       that staging publishes without waiting for review while review still
+       gates production. A page entry whose verdict is still in flight says so
+       with outcome "pending" and rounds 0 — a state of the verdict, never a
+       borrowed pass. The leg that targets STAGING_REPO accepts it; every
+       other target refuses it by name and says production needs a real
+       verdict. Pending does not loosen anything else: the entry keeps its
+       sha256 and is refused on a hash mismatch like any other page, and a
+       missing page, a non-passing outcome, a missing hash, a flash model or a
+       non-full class still fail every leg exactly as before. Nothing here
+       ever upgrades pending to pass; only an amendment, run on purpose when
+       the reviewer's verdict lands, replaces the entry.
     """
     raw = json.load(open(path, encoding="utf-8"))
     problems = []
@@ -554,6 +600,8 @@ def load_gate_report(path):
     if not isinstance(pages, dict) or not pages:
         problems.append(f"{path}: missing per-page outcomes")
         pages = {}
+    pending_allowed = is_staging_target(target)
+    pending_pages = []
     for page in sorted(os.listdir(os.path.join(ROOT, "site", "pages"))):
         if not page.endswith(".html"):
             continue
@@ -563,11 +611,29 @@ def load_gate_report(path):
             continue
         outcome = str(entry.get("outcome", "")).strip().lower()
         rounds = entry.get("rounds")
-        if outcome != "pass":
+        pending = outcome == PENDING_OUTCOME
+        if not pending and outcome != "pass":
             problems.append(
                 f"{page}: outcome {outcome!r} — not published, escalate to the operator")
             continue
-        if not isinstance(rounds, int) or not 0 <= rounds <= 3:
+        if pending and not pending_allowed:
+            problems.append(
+                f"{page}: outcome 'pending' — this leg does not target "
+                f"{STAGING_REPO}, and production needs a real reviewer verdict "
+                f"for every page; a pending entry is a staging artifact and "
+                f"never a release credential. Re-review the page and amend the "
+                f"report (python3 tools/gate_report.py --amend) before any "
+                f"production leg")
+            continue
+        if pending:
+            if rounds != PENDING_ROUNDS:
+                problems.append(
+                    f"{page}: outcome 'pending' with rounds {rounds!r} — a "
+                    f"page with no verdict yet has no round count; the entry "
+                    f"must say rounds 0")
+                continue
+            pending_pages.append(page)
+        elif not isinstance(rounds, int) or not 0 <= rounds <= 3:
             problems.append(f"{page}: rounds {rounds!r} outside 0-3")
             continue
         reviewed = entry.get("sha256")
@@ -587,6 +653,7 @@ def load_gate_report(path):
             "gate failures — nothing is published:\n  " + "\n  ".join(problems))
     per_page = ", ".join(
         f"{p} r{pages.get(p, {}).get('rounds', '?')}"
+        + (f" {PENDING_MARKER}" if p in pending_pages else "")
         for p in sorted(k for k in pages if k.endswith(".html")))
     return model, review_class, per_page
 
@@ -1129,7 +1196,9 @@ def main():
     # pages, and the build is reproducible, so a stale report is refused by
     # name instead of publishing content nobody reviewed.
     build_site()
-    review_model, review_class, per_page = load_gate_report(args.gate_report)
+    review_model, review_class, per_page = load_gate_report(
+        args.gate_report, target=args.repo)
+    print(f"gate: {review_model} ({review_class}) — pages: {per_page}")
 
     staging = tempfile.mkdtemp(prefix="psp-publish-")
     gated = 0
@@ -1159,11 +1228,27 @@ def main():
     site_sha, map_sha = source_provenance()
     snapshot = f"site {site_sha}" + (f", tank-farms map {map_sha}" if map_sha else "")
     subject = args.subject or f"Publish {today}"
+    # Row 93: the gate line says what actually happened. A staging leg may
+    # carry pages still waiting on their verdict, and the commit message names
+    # them as pending instead of claiming a pass the reviewer did not give.
+    if PENDING_MARKER in per_page:
+        gate_line = (
+            f"Release gate (AGENTS.md): pages WITHOUT a reviewer verdict "
+            f"published to the staging leg under the operator's 2026-11-24 "
+            f"policy — staging does not wait for review: {per_page}. Every "
+            f"page not marked {PENDING_MARKER} passed the humanizer + style "
+            f"review on model {review_model} (reviewer class {review_class}, "
+            f"content-addressed). The {PENDING_MARKER} pages are a staging "
+            f"artifact and never a release credential until the verdict lands "
+            f"and the report is amended")
+    else:
+        gate_line = (
+            f"Release gate (AGENTS.md): all pages passed the humanizer + style "
+            f"review on model {review_model} (reviewer class {review_class}, "
+            f"content-addressed). Rounds to pass: {per_page}")
     message = (
         f"{subject}\n\n"
-        f"Release gate (AGENTS.md): all pages passed the humanizer + style "
-        f"review on model {review_model} (reviewer class {review_class}, "
-        f"content-addressed). Rounds to pass: {per_page}.\n"
+        f"{gate_line}.\n"
         f"Snapshot: {snapshot}."
         + (f"\nStaging gate (row 42): {gated} pages gated; staging preview "
            f"stamp (row 79): {stamp_label(publish_clock)}." if staging_gate_on else "")

@@ -39,6 +39,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(ROOT, "tools", "build.py")
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
+import gate_report
 import psp_public
 import publish
 
@@ -2604,7 +2605,8 @@ def gate_pages(docs):
     }
 
 
-def write_gate_report(tmp_path, docs, pages=None, drop=(), **overrides):
+def write_gate_report(tmp_path, docs, pages=None, drop=(), name="gate.json",
+                      **overrides):
     report = {
         "date": "2026-11-04-test",
         "review_model": "synthetic/hf:zai-org/GLM-5.3",
@@ -2615,7 +2617,7 @@ def write_gate_report(tmp_path, docs, pages=None, drop=(), **overrides):
     for key in drop:
         report.pop(key, None)
     report.update(overrides)
-    path = tmp_path / "gate.json"
+    path = tmp_path / name
     path.write_text(json.dumps(report))
     return path
 
@@ -2681,6 +2683,189 @@ def test_gate_report_refuses_non_full_class(tmp_path, docs):
     message = str(exc.value)
     assert "flash" in message, message
     assert "full" in message, message
+
+
+def gate_pages_with_pending(docs, page="act-now.html"):
+    pages = gate_pages(docs)
+    pages[page] = {
+        "rounds": 0,
+        "outcome": "pending",
+        "sha256": gate_page_sha256(docs, page),
+    }
+    return pages
+
+
+def test_gate_report_pending_entry_publishes_to_the_staging_leg(tmp_path, docs):
+    """Ledger row 93: the operator's 2026-11-24 policy says a staging publish
+    does not wait for review, so a page whose verdict is still in flight needs
+    a state of its own to travel in. `pending` with rounds 0 is that state and
+    means exactly one thing: no reviewer verdict for this page yet. The staging
+    leg accepts it, and nothing on the way upgrades it to a pass."""
+    page = "act-now.html"
+    path = write_gate_report(
+        tmp_path, docs, pages=gate_pages_with_pending(docs, page))
+    model, review_class, per_page = publish.load_gate_report(
+        str(path), target=publish.STAGING_REPO)
+    assert "GLM-5.3" in model
+    assert review_class == "full"
+    assert f"{page} r0 PENDING" in per_page, per_page
+
+
+def test_gate_report_pending_entry_refused_on_a_production_leg(tmp_path, docs):
+    """The same report is a release credential nowhere. A production-targeted
+    leg refuses it, and the refusal names the page and says production needs a
+    real verdict rather than a borrowed pass. An unstated target is refused
+    too: the staging allowance is stated by naming the staging mirror, never
+    inferred by silence."""
+    page = "act-now.html"
+    path = write_gate_report(
+        tmp_path, docs, pages=gate_pages_with_pending(docs, page))
+    for target in (publish.PROD_REPO, None):
+        with pytest.raises(SystemExit) as exc:
+            publish.load_gate_report(str(path), target=target)
+        message = str(exc.value)
+        assert page in message, message
+        assert "pending" in message.lower(), message
+        assert "production" in message.lower(), message
+        assert "verdict" in message.lower(), message
+
+
+def test_gate_report_amend_refuses_a_page_whose_hash_moved(tmp_path, docs):
+    """The amend path exists for one case: a verdict lands for a page that
+    published as pending. It refuses the case content addressing exists to
+    prevent, a verdict amended onto bytes the reviewer did not see, and a
+    refused amendment leaves the report byte-identical."""
+    page = "act-now.html"
+    pages = gate_pages_with_pending(docs, page)
+    pages[page]["sha256"] = "0" * 64
+    path = write_gate_report(tmp_path, docs, pages=pages)
+    before = path.read_text()
+    with pytest.raises(SystemExit) as exc:
+        gate_report.amend_gate_report(
+            str(path), page, {"rounds": 2, "outcome": "pass"})
+    message = str(exc.value)
+    assert page in message, message
+    assert "0" * 64 in message, message
+    assert publish.page_sha256(page) in message, message
+    assert path.read_text() == before, "a refused amendment must not rewrite it"
+
+
+def test_gate_report_amended_pending_entry_publishes_on_both_legs(tmp_path, docs):
+    """The landings: the reviewer's verdict replaces the pending entry, the
+    report records who was amended and what it was before, and the amended
+    report is accepted by both legs because it now carries a real verdict."""
+    page = "act-now.html"
+    path = write_gate_report(
+        tmp_path, docs, pages=gate_pages_with_pending(docs, page))
+    amended = gate_report.amend_gate_report(
+        str(path), page, {"rounds": 2, "outcome": "pass"})
+    entry = amended["pages"][page]
+    assert entry["outcome"] == "pass", entry
+    assert entry["rounds"] == 2, entry
+    assert entry["sha256"] == publish.page_sha256(page), entry
+    assert amended["pages"]["index.html"]["outcome"] == "pass"
+    record = amended["amendments"][-1]
+    assert record["page"] == page, record
+    assert record["old_outcome"] == "pending", record
+    assert record["old_rounds"] == 0, record
+    assert record["new_outcome"] == "pass", record
+    assert record["new_rounds"] == 2, record
+    assert record["date"], record
+    for target in (publish.STAGING_REPO, publish.PROD_REPO):
+        publish.load_gate_report(str(path), target=target)
+
+
+def test_gate_report_all_pass_behaviour_unchanged_on_both_legs(tmp_path, docs):
+    """The pre-2026-11-24 rule set is not loosened by the pending allowance:
+    all-pass stays accepted on either leg, and a missing page or a hash that
+    no longer matches is refused on either leg. A pending page keeps its
+    content address, so pending is a state of the verdict, never of the
+    bytes."""
+    path = write_gate_report(tmp_path, docs)
+    for target in (publish.STAGING_REPO, publish.PROD_REPO, None):
+        model, _, per_page = publish.load_gate_report(str(path), target=target)
+        assert "GLM-5.3" in model
+        assert per_page.count("r1") == len(gate_source_pages())
+        assert "PENDING" not in per_page
+
+    pages = gate_pages(docs)
+    del pages["contact.html"]
+    missing = write_gate_report(
+        tmp_path, docs, pages=pages, name="missing.json")
+    moved_pages = gate_pages(docs)
+    moved_pages["index.html"]["sha256"] = "0" * 64
+    moved = write_gate_report(
+        tmp_path, docs, pages=moved_pages, name="moved.json")
+    for target in (publish.STAGING_REPO, publish.PROD_REPO):
+        with pytest.raises(SystemExit) as exc:
+            publish.load_gate_report(str(missing), target=target)
+        assert "contact.html" in str(exc.value), str(exc.value)
+        with pytest.raises(SystemExit) as exc:
+            publish.load_gate_report(str(moved), target=target)
+        message = str(exc.value)
+        assert "index.html" in message, message
+        assert "0" * 64 in message, message
+
+    pending_moved_pages = gate_pages_with_pending(docs)
+    pending_moved_pages["act-now.html"]["sha256"] = "0" * 64
+    pending_moved = write_gate_report(
+        tmp_path, docs, pages=pending_moved_pages, name="pending-moved.json")
+    with pytest.raises(SystemExit) as exc:
+        publish.load_gate_report(str(pending_moved), target=publish.STAGING_REPO)
+    assert "act-now.html" in str(exc.value), str(exc.value)
+
+
+def run_gate_report_writer(tmp_path, verdicts, name):
+    verdicts_path = tmp_path / f"{name}-verdicts.json"
+    verdicts_path.write_text(json.dumps(verdicts))
+    out = tmp_path / name
+    return subprocess.run(
+        [sys.executable, os.path.join(ROOT, "tools", "gate_report.py"),
+         "--date", "2026-11-24-93",
+         "--review-model", "synthetic/hf:zai-org/GLM-5.3",
+         "--review-class", "full",
+         "--verdicts", str(verdicts_path),
+         "--scope-note", "ledger row 93 pending writer pin",
+         "--out", str(out)],
+        capture_output=True, text=True), out
+
+
+def test_gate_report_writer_stamps_pending_without_upgrading_it(tmp_path):
+    """The writer takes a pending verdict as it is: outcome pending, rounds 0,
+    the page's own hash. It never writes a pass the reviewer did not give, and
+    it leaves every other entry alone."""
+    page = "act-now.html"
+    verdicts = {
+        name: {"rounds": 1, "outcome": "pass"}
+        for name in gate_source_pages()
+    }
+    verdicts[page] = {"rounds": 0, "outcome": "pending"}
+    proc, out = run_gate_report_writer(tmp_path, verdicts, "pending.json")
+    assert proc.returncode == 0, proc.stderr
+    report = json.loads(out.read_text())
+    assert report["pages"][page]["outcome"] == "pending", report["pages"][page]
+    assert report["pages"][page]["rounds"] == 0, report["pages"][page]
+    assert report["pages"][page]["sha256"] == publish.page_sha256(page)
+    assert report["pages"]["index.html"]["outcome"] == "pass"
+    assert "amendments" not in report, "the writer never amends by itself"
+    publish.load_gate_report(str(out), target=publish.STAGING_REPO)
+
+
+def test_gate_report_writer_refuses_pending_with_a_round_count(tmp_path):
+    """A pending page has no round count yet, so a verdict that says pending
+    and rounds 2 contradicts itself. It is refused loud with the page named,
+    never quietly coerced to 0."""
+    page = "act-now.html"
+    verdicts = {
+        name: {"rounds": 1, "outcome": "pass"}
+        for name in gate_source_pages()
+    }
+    verdicts[page] = {"rounds": 2, "outcome": "pending"}
+    proc, out = run_gate_report_writer(tmp_path, verdicts, "pending-rounds.json")
+    assert proc.returncode != 0, proc.stdout
+    assert page in proc.stderr, proc.stderr
+    assert "rounds" in proc.stderr, proc.stderr
+    assert not out.exists(), "a refused report must not be written"
 
 
 def test_gate_report_writer_emits_publishable_report(tmp_path, docs):
