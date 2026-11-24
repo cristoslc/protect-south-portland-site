@@ -97,9 +97,12 @@ def _repo_with_origin(path):
     """A repo with an `origin` remote, the CI shape.
 
     On the fork's runner the remote is the repository itself, configured
-    by actions/checkout; in tests a bare repo stands in for it. The seed
-    commit gives the branch_exists fetch a main to hold and the push a
-    fast-forward base.
+    by actions/checkout; in tests a bare repo stands in for it. The
+    fixture sets its own identity because the runner carries none (a
+    local git fabricates one silently, which masked this on dev
+    machines while CI failed), and the seed commit gives the
+    branch_exists fetch a main to hold and the push a fast-forward
+    base.
     """
     origin = path / "origin.git"
     subprocess.run(["git", "init", "--bare", "-b", "main", str(origin)],
@@ -107,6 +110,8 @@ def _repo_with_origin(path):
     repo = path / "repo"
     repo.mkdir()
     _git(repo, "init", "-b", "main")
+    _git(repo, "config", "user.email", "test@example.invalid")
+    _git(repo, "config", "user.name", "test")
     _git(repo, "remote", "add", "origin", str(origin))
     (repo / "seed.txt").write_text("base")
     _git(repo, "add", "-A")
@@ -138,8 +143,6 @@ def test_the_push_lands_on_the_remote(tmp_path):
 
 def test_pushes_append_and_never_force(tmp_path):
     repo = _repo_with_origin(tmp_path)
-    _git(repo, "config", "user.email", "test@example.invalid")
-    _git(repo, "config", "user.name", "test")
 
     tree_one = _serve_tree(tmp_path / "one", "first serve")
     sha_one = staging_serve.push_serve_branch(
@@ -181,8 +184,6 @@ def test_push_supplies_identity_on_a_bare_runner(tmp_path, monkeypatch):
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
     monkeypatch.setenv("GIT_CONFIG_SYSTEM", os.devnull)
     repo = _repo_with_origin(tmp_path)
-    _git(repo, "config", "user.email", "seed@example.invalid")
-    _git(repo, "config", "user.name", "seed")
     _git(repo, "config", "--unset", "user.email")
     _git(repo, "config", "--unset", "user.name")
     # a bare runner cannot fall back to an auto-fabricated ident either
