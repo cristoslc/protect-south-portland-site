@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-24",
+  "finding": "homepage tank-farms section ran kicker, heading, map with its slider note, two prose paragraphs, then the aerial photo; the operator wants the photo first and the map after the prose, and the kicker label changed",
+  "ledger": {
+    "row_77": "swap the map and the aerial photo in this section; rename the kicker from 'The issue front and center'",
+    "supersedes": "row 3 (Mindy, 2026-10-12) put the map top-center with her text below it; that still holds where the map is not sharing a section with a photograph, so this row overrides it for this section only"
+  },
+  "page": "index.html",
+  "region": "#tank-farms, from .kicker through the end of .map-note",
+  "order_before": ["kicker", "h2", "map-frame", "map-note", "prose x2", "figure (aerial + caption)"],
+  "order_after": ["kicker", "h2", "figure (aerial + caption)", "prose x2", "map-frame", "map-note"],
+  "kicker": {
+    "before": "The issue front and center",
+    "after": "Current campaign",
+    "why": "the operator allowed latitude ('or something like that'); house kicker style is sentence case and two words, the same shape as 'The campaign', 'Past work' and 'Take action', and the CSS renders it uppercase either way"
+  },
+  "captured_with": "bb browser-automation, local headless Chrome, deviceScaleFactor 1, then JPEG q88 for repository size (the map and the aerial are photographic, so PNG ran 1.2 to 1.8 MB per frame)",
+  "served_from": "python3 -m http.server over freshly built docs/",
+  "widths": [412, 768, 1440],
+  "files": {
+    "issue-section-412.jpg": {"width": 412, "height": 1814},
+    "issue-section-768.jpg": {"width": 768, "height": 1748},
+    "issue-section-1440.jpg": {"width": 1440, "height": 1827}
+  },
+  "verdict": {
+    "reader": "read directly from the three frames above",
+    "1440": "photo, caption, prose, map, slider note, then the callout; the aerial is the section's first big element and the map reads as the follow-up evidence, not the lead",
+    "768": "same order, nothing clipped; caption sits under the photo, the slider note directly under the map",
+    "412": "same order at phone width; the aerial holds its frame, both prose paragraphs stay legible, the map keeps its note and its slider stays reachable",
+    "seam_between_bands": "the photo band above this section is unchanged by this row; its own evidence lives in tests/evidence/hero-band-2026-11-24/"
+  }
+}

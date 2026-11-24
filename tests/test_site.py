@@ -493,9 +493,11 @@ def test_map_not_the_lead_on_tank_farms_page(docs):
     iframe = tf.index(EMBED_URL)
     assert tf.index("id=\"where-things-stand\"") < iframe
     assert tf.index("120 large petroleum tanks") < iframe
-    # the homepage keeps the ledger-pinned layout: map top-center, text below
+    # row 77 (2026-11-24) exchanged the map and the aerial photo on the
+    # homepage, so there the photo leads and the map follows the prose; the
+    # campaign page keeps text-before-map exactly as row 3 rules it.
     idx = read(docs, "index.html")
-    assert idx.index(EMBED_URL) < idx.index("120 large petroleum tanks in South Portland")
+    assert idx.index("assets/photos/tank-farms-aerial.jpg") < idx.index(EMBED_URL)
 
 
 def test_row5_banner_verbatim_on_homepage(docs):
@@ -511,13 +513,41 @@ def test_row7_section_relabelled(docs):
     assert 'id="tank-farms"' in idx
 
 
-def test_row3_map_top_center_text_below(docs):
+def test_row77_photo_prose_map_replaces_row3_on_homepage(docs):
+    """Ledger row 77 (operator, 2026-11-24): the homepage tank-farms section
+    exchanges the map and the aerial photo, so it runs the photo, then the
+    two prose paragraphs, then the map with its slider note. Photo, prose,
+    map; not photo, map, prose.
+
+    This supersedes ledger row 3 (Mindy, 2026-10-12), which put the map
+    top-center with her text below it. Row 3 still rules every page where the
+    map is not sharing a section with a photograph, which is why
+    test_map_not_the_lead_on_tank_farms_page keeps pinning text-before-map on
+    the campaign page. The map-first assertion is retargeted to the new
+    order, never dropped.
+
+    The same row renames the kicker: the long sentence label becomes a short
+    one in the house kicker style, matching "The campaign" and "Past work"."""
     idx = read(docs, "index.html")
+    kicker = '<span class="kicker">Current campaign</span>'
+    assert "The issue front and center" not in idx, "the old sentence label is replaced, not joined"
     iframe_pos = idx.index(EMBED_URL)
     assert '<iframe' in idx
-    # the verbatim website-addition text sits below the map
-    assert idx.index("120 large petroleum tanks in South Portland") > iframe_pos
-    # map section is near the top, right after the banner
+    kicker_pos = idx.index(kicker)
+    h2_pos = idx.index("<h2>South Portland Tank Farms</h2>")
+    figure_pos = idx.index('<figure class="figure">')
+    img_pos = idx.index("assets/photos/tank-farms-aerial.jpg")
+    caption_pos = idx.index("The tank farms along South Portland&rsquo;s working waterfront.")
+    prose_pos = idx.index("120 large petroleum tanks in South Portland")
+    map_pos = idx.index('<div class="map-frame">')
+    note_pos = idx.index("Use the slider inside the map")
+    assert kicker_pos < h2_pos < figure_pos < img_pos < caption_pos < prose_pos
+    assert prose_pos < map_pos < iframe_pos < note_pos, "the map and its note follow the prose"
+    # the slider note belongs to the map: the prose must not sit between them
+    assert "120 large petroleum tanks" not in idx[map_pos:note_pos]
+    assert idx[map_pos:note_pos].count('class="map-note"') == 1
+    assert idx.index("</figure>", figure_pos) > caption_pos, "the caption stays inside the figure"
+    # the whole block stays inside the section, above the call to act
     assert iframe_pos < idx.index("Now is the time to act")
 
 
@@ -872,7 +902,7 @@ def test_homepage_who_we_are_block(docs):
     # first screen — the banner Act now — and the strip's links read as a
     # two-item link row after the paragraph (labels and hrefs char-for-char;
     # the paragraph ends at its own period), not a run-on, not stacked buttons.
-    idx_top = idx[idx.index('class="banner"'):idx.index("The issue front and center")]
+    idx_top = idx[idx.index('class="banner"'):idx.index('<span class="kicker">Current campaign</span>')]
     assert idx_top.count('class="btn') == 1, "only the banner Act now is a button in the top flow"
     assert "intro-cta" not in idx and "btn--ghost" not in idx_top
     assert "meaningful actions.</p>" in idx and "Our Story</a> <a" not in idx, "strip ends at its own period"
@@ -890,7 +920,7 @@ def test_homepage_who_we_are_block(docs):
     mission_pos = idx.index("We are a community-based")
     hero_pos = idx.index('class="hero-band')
     strip_pos = idx.index("For over a decade, we")
-    issue_pos = idx.index("The issue front and center")
+    issue_pos = idx.index('<span class="kicker">Current campaign</span>')
     assert banner_pos < mission_pos < hero_pos < strip_pos < row_pos < issue_pos
     # author working notes are not copy
     for leak in ("Something like this", "Something like that", "link to About Us"):
