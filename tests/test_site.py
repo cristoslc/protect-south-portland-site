@@ -2884,21 +2884,35 @@ def _parse_compound(compound):
 
 
 def _focus_rules(css):
-    """(order, selector, declarations) for every evaluable focus rule.
+    """(order, media, selector, declarations) for every focus rule shipped.
 
-    Sibling (`+`, `~`) and child (`>`) combinators are skipped: this census
-    resolves an element inside its ancestor chain only, and pretending to
-    evaluate a combinator it cannot see would be worse than skipping it.
+    NOTHING is skipped here, including a selector shape the census cannot
+    *match* and a rule inside a media query: a shape reader needs the whole
+    set, and the matcher that cannot decide one raises instead of dropping it
+    (see `_matching_focus_rules`). Skipping here is what hid the MENU toggle's
+    focus rule from this census, so the coverage a docstring claimed was never
+    what the code did.
+
+    `media` is the max-width bound the rule sits under, or None when the rule
+    is width-independent. It is reported rather than discarded so a reader can
+    reason about it; a rule declares the same outline at every width, so it
+    does not change a shape comparison, and only matching cares (there it
+    fails loud instead of guessing).
+
+    Understood exactly, not implied: element tags, `.class`, descendant
+    combinators (plain whitespace) and the single pseudo-class
+    `:focus-visible`. Anything else in a compound fails loud in
+    `_parse_compound`; the sibling and child combinators (`+`, `~`, `>`)
+    fail loud in `_matches_focus`.
     """
     rules = []
-    for order, (_media, selector, body) in enumerate(_css_rules(css)):
+    for order, (media, selector, body) in enumerate(_css_rules(css)):
         if ":focus-visible" not in selector:
             continue
         for part in selector.split(","):
             part = " ".join(part.split())
-            if not part or any(ch in part for ch in "+>~"):
-                continue
-            rules.append((order, part, _css_declarations(body)))
+            if part:
+                rules.append((order, media, part, _css_declarations(body)))
     return rules
 
 
@@ -2910,7 +2924,24 @@ def _selector_specificity(selector):
 
 
 def _matches_focus(selector, tag, classes, ancestors):
-    """Does a focus selector reach this element inside its ancestor chain?"""
+    """Does a focus selector reach this element inside its ancestor chain?
+
+    Descendant combinators only, and deliberately so: the walker records a
+    button's ancestor chain and nothing about its siblings, or about a child's
+    own nesting, so `+`, `~` and `>` cannot be decided here. A selector
+    carrying one raises rather than being guessed at or skipped, because a
+    silently skipped focus rule is reported as "no ring" while the browser may
+    well be painting one — the exact failure this census must never have.
+    """
+    for combinator in ("+", "~", ">"):
+        if combinator in selector:
+            raise AssertionError(
+                f"the focus census cannot evaluate the selector {selector!r}: "
+                f"it carries the {combinator!r} combinator and the button walker "
+                "records an ancestor chain only. Teach _ButtonSurfaceWalker, "
+                "_matches_focus and _button_census to see sibling/child "
+                "structure before shipping a ring written that way, or express "
+                "it with a descendant selector")
     parsed = [_parse_compound(compound) for compound in selector.split()]
 
     def compound_matches(compound, element_tag, element_classes):
@@ -2935,22 +2966,92 @@ def _matches_focus(selector, tag, classes, ancestors):
     return True
 
 
+def _subject_could_match(selector, tag, classes):
+    """Can the selector's last compound name this element at all?
+
+    The subject is decided without touching a combinator, so a rule written
+    against a different element — the MENU toggle's label, say — is filtered
+    out before the matcher is asked, and the matcher's refusal only fires for
+    a shape that could actually paint this element's ring. That is a sound
+    filter, not a silent skip: a rule whose subject is another element cannot
+    reach this one whatever combinator it carries.
+    """
+    for kind, name in _parse_compound(selector.split()[-1]):
+        if kind == "class" and name not in classes:
+            return False
+        if kind == "tag" and name != tag:
+            return False
+    return True
+
+
+def _matching_focus_rules(rules, tag, classes, ancestors):
+    """[(specificity, order, selector, declarations)] reaching this element.
+
+    Returned in CASCADE order: specificity first, source order second, which
+    is what a browser does. The declarations are consumed in that order by
+    `_resolve_outline`, so a shorthand and its longhand keep their real order
+    too. Source order alone was right only by luck — every higher-specificity
+    rule happened to come later — and a synthetic sheet proves the difference.
+
+    Two shapes this census cannot decide are refused rather than skipped: a
+    sibling or child combinator, and a rule under a media query that would
+    otherwise reach the element (one ring per element cannot be a function of
+    the viewport). Today the one media-scoped focus rule targets the MENU
+    label, so the filter above keeps the census honest and a future
+    width-scoped button ring fails here by name.
+    """
+    matched = []
+    for order, media, selector, declarations in rules:
+        if not _subject_could_match(selector, tag, classes):
+            continue
+        if not _matches_focus(selector, tag, classes, ancestors):
+            continue
+        if media is not None:
+            raise AssertionError(
+                f"the focus census cannot evaluate the selector {selector!r}: it "
+                f"sits under @media (max-width: {media:g}px) and the census "
+                "resolves one ring per element per surface, so a width-"
+                "conditional ring would be reported as if it always applied. "
+                "Teach this helper to evaluate media context, or scope the ring "
+                "with a selector instead of a breakpoint")
+        matched.append((_selector_specificity(selector), order, selector,
+                        declarations))
+    return sorted(matched, key=lambda rule: (rule[0], rule[1]))
+
+
 def _resolve_outline(declarations):
-    """(width, style, colour, offset) from a merged focus declaration block."""
-    width = style = colour = None
-    shorthand = declarations.get("outline")
-    if shorthand:
-        for token in shorthand.split():
-            if token in ("solid", "dashed", "dotted", "double", "none"):
-                style = token
-            elif re.fullmatch(r"[\d.]+px", token):
-                width = token
-            else:
-                colour = token
-    width = declarations.get("outline-width", width)
-    style = declarations.get("outline-style", style)
-    colour = declarations.get("outline-color", colour)
-    offset = declarations.get("outline-offset")
+    """(width, style, colour, offset) resolved in declaration order.
+
+    Accepts a mapping (one rule block) or a sequence of (property, value)
+    pairs (a cascade-ordered run across blocks). Components are applied in the
+    order given and the last one to set a component wins, which is what a
+    browser does: a shorthand and its longhand are NOT order-free, so
+    `outline-color` declared before `outline` loses to the shorthand's colour
+    and the same longhand declared after it wins. The old merge read the two
+    out of a dict without regard to order and always let the longhand win.
+    """
+    if hasattr(declarations, "items"):
+        declarations = declarations.items()
+    width = style = colour = offset = None
+    for prop, value in declarations:
+        if prop == "outline":
+            # a shorthand resets every component it does not name
+            width = style = colour = None
+            for token in value.split():
+                if token in ("solid", "dashed", "dotted", "double", "none"):
+                    style = token
+                elif re.fullmatch(r"[\d.]+px", token):
+                    width = token
+                else:
+                    colour = token
+        elif prop == "outline-width":
+            width = value
+        elif prop == "outline-style":
+            style = value
+        elif prop == "outline-color":
+            colour = value
+        elif prop == "outline-offset":
+            offset = value
     return width, style, colour, offset
 
 
@@ -3006,15 +3107,12 @@ def _button_census(docs):
                 variant = tuple(c for c in classes if _is_btn_class(c))
                 surface, surface_rgb = _surface_behind(
                     ancestors, backgrounds, variables)
-                merged, winner = {}, None
-                applicable = sorted(
-                    (order, selector, declarations)
-                    for order, selector, declarations in rules
-                    if _matches_focus(selector, tag, classes, ancestors))
-                for _order, selector, declarations in applicable:
-                    merged.update(declarations)
-                    winner = selector
-                width, style, colour, offset = _resolve_outline(merged)
+                applicable = _matching_focus_rules(rules, tag, classes, ancestors)
+                winner = applicable[-1][2] if applicable else None
+                width, style, colour, offset = _resolve_outline(
+                    [pair
+                     for _specificity, _order, _selector, declarations in applicable
+                     for pair in declarations.items()])
                 assert colour, (
                     f"{name}: {tag} {' '.join(variant)} on {surface} has no "
                     f"reachable :focus-visible colour (winning rule: {winner})")
@@ -3070,7 +3168,8 @@ def test_button_focus_ring_colour_is_a_palette_token_and_keeps_the_shape():
     css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
     variables = _css_variables(css)
     rules = _focus_rules(css)
-    family = [(selector, declarations) for _order, selector, declarations in rules
+    family = [(selector, declarations)
+              for _order, _media, selector, declarations in rules
               if any(_is_btn_class(token.lstrip("."))
                      for compound in selector.split()
                      for token in re.findall(r"\.[\w-]+", compound))]
@@ -3095,12 +3194,26 @@ def test_button_focus_ring_colour_is_a_palette_token_and_keeps_the_shape():
                 f"{selector} introduces a literal colour ({value!r}); "
                 "no new colour enters the palette")
 
-    established = set()
-    for _order, selector, declarations in rules:
-        if "signup input" in selector or "nav-toggle" in selector:
-            width, style, _colour, offset = _resolve_outline(declarations)
-            established.add((width, style, offset))
-    assert established == {("3px", "solid", "2px")}, (
+    established = {}
+    for _order, _media, selector, declarations in rules:
+        width, style, _colour, offset = _resolve_outline(declarations)
+        if width is None:
+            continue  # a recolour-only override: the dark-band rules
+        established[selector] = (width, style, offset)
+    # The two rules the site already shipped before the family gained one are
+    # named rather than counted: the reader used to skip every selector with a
+    # combinator in it, so the MENU toggle's rule never reached this set and
+    # "the two focus rules the site already ships" was really the signup input
+    # alone. Naming both makes the claim the docstring makes testable.
+    prior = (".signup input:focus-visible",
+             ".nav-toggle:focus-visible + .nav-toggle-label")
+    for selector in prior:
+        assert selector in established, (
+            f"the site's pre-existing focus rule {selector!r} is missing from "
+            "the stylesheet or no longer declares a full outline; the family's "
+            "shape is set by those rules, so one vanishing is a change of "
+            "convention rather than a refactor")
+    assert set(established.values()) == {("3px", "solid", "2px")}, (
         f"the site's existing focus convention moved: {established}")
     for selector, declarations in family:
         width, style, _colour, offset = _resolve_outline(declarations)
@@ -3109,9 +3222,158 @@ def test_button_focus_ring_colour_is_a_palette_token_and_keeps_the_shape():
             # rules do), inheriting width/style/offset from the family base;
             # the resolved per-element shape is pinned by the census test above
             continue
-        assert (width, style, offset) in established, (
+        assert (width, style, offset) in set(established.values()), (
             f"{selector} renders {width} {style} offset {offset}, not the "
             f"site's own {established} convention")
+
+
+def _focus_ring_comment(css):
+    """The `.btn` ring's explanatory comment, from its banner to its `*/`."""
+    start = css.index("the family's keyboard ring")
+    return css[start:css.index("*/", start)]
+
+
+def test_focus_ring_comment_figures_reproduce_from_the_shipped_tokens():
+    """Ledger row 99: the ring comment's contrast figures are recomputed.
+
+    The full-class review of PR #79 caught the rejected-pair line claiming the
+    teal ring measures "1.97:1 against `--teal-900` and 2.09:1 against
+    `--teal-950`". Neither reproduces: teal-900 on teal-900 is 1.00:1 and on
+    teal-950 is 1.30:1. 1.97 is teal-900 on `--teal-700` and 2.09 is teal-900
+    on `--orange-dark`, so two numbers were copied off other rows and
+    relabelled. This pin recomputes every pair the comment states from the
+    palette in the same file, so a figure cannot drift from the token it
+    claims to measure. A comment is not read by a browser, which is exactly
+    why a wrong figure in one survived a review round and a published build.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    variables = _css_variables(css)
+    comment = _focus_ring_comment(css)
+
+    for fg, bg in (
+            ("--teal-900", "--paper"),
+            ("--teal-900", "--mist"),
+            ("--teal-900", "--teal-100"),
+            ("--teal-900", "--cyan-soft"),
+            ("--teal-900", "--teal-900"),
+            ("--teal-900", "--teal-950"),
+            ("--cyan-soft", "--teal-900"),
+            ("--cyan-soft", "--teal-950"),
+    ):
+        ratio = _contrast_ratio(_css_color(variables[fg], variables),
+                                _css_color(variables[bg], variables))
+        figure = f"{ratio:.2f}:1"
+        assert re.search(rf"(?<![\d.]){re.escape(figure)}", comment), (
+            f"the ring comment no longer states {figure} for {fg} on {bg}; "
+            "recompute the figure from the tokens rather than retyping one")
+    for wrong in ("1.97:1", "2.09:1"):
+        assert wrong not in comment, (
+            f"the ring comment carries {wrong}, which the review of ledger row "
+            "95 found mislabelled: that figure measures teal-900 on --teal-700 "
+            "(1.97:1) and on --orange-dark (2.09:1), not on the dark bands")
+
+
+def test_focus_cascade_ranks_specificity_before_source_order():
+    """Ledger row 99: specificity first, source order only as the tie-break.
+
+    The census used to merge every applicable rule in source order, so a
+    later, LOWER-specificity rule overrode an earlier, higher-specificity one.
+    That is correct on the shipped stylesheet only because every
+    higher-specificity rule also happens to come later, and the shape helper
+    that ranks them (`_selector_specificity`) was defined and never called.
+    This synthetic sheet is the case the real one does not contain.
+    """
+    css = (" .band .btn:focus-visible { outline: 3px solid var(--teal-900); "
+           "outline-offset: 2px; }"
+           " .btn:focus-visible { outline: 1px dotted var(--orange); "
+           "outline-offset: 0px; }")
+    matched = _matching_focus_rules(
+        _focus_rules(css), "a", ("btn", "btn--cta"), (("section", ("band",)),))
+    assert [selector for _s, _o, selector, _d in matched] == [
+        ".btn:focus-visible", ".band .btn:focus-visible"], (
+        "the resolver must apply rules in ascending specificity order, so the "
+        "most specific rule lands last")
+    resolved = _resolve_outline(
+        [pair for _s, _o, _selector, declarations in matched
+         for pair in declarations.items()])
+    assert resolved == ("3px", "solid", "var(--teal-900)", "2px"), (
+        "the later, lower-specificity `.btn:focus-visible` overrode the "
+        f"earlier `.band .btn:focus-visible`: {resolved}")
+
+    tie = (" .btn:focus-visible { outline: 3px solid var(--teal-900); }"
+           " .btn:focus-visible { outline: 4px solid var(--cyan-soft); }")
+    assert [declarations["outline"] for _s, _o, _sel, declarations
+            in _matching_focus_rules(_focus_rules(tie), "a", ("btn",), ())] == [
+        "3px solid var(--teal-900)", "4px solid var(--cyan-soft)"], (
+        "equal specificity must fall back to source order")
+
+
+def test_focus_outline_shorthand_and_longhand_keep_their_declaration_order():
+    """Ledger row 99: `outline` and `outline-color` are not order-free.
+
+    `_resolve_outline` used to parse the shorthand first and then prefer any
+    longhand out of a dict, whatever order the two were declared in. CSS does
+    the opposite: the LAST declaration of a property wins, so a longhand
+    declared before the shorthand is overwritten by it. The site's own dark
+    override declares only `outline-color`, from a later rule block, which the
+    old code got right by accident; this pins both directions so the accident
+    becomes a rule.
+    """
+    longhand_first = _css_declarations(
+        "outline-color: var(--orange); outline: 3px solid var(--teal-900)")
+    assert _resolve_outline(longhand_first) == (
+        "3px", "solid", "var(--teal-900)", None), (
+        "a shorthand declared after a longhand must win, exactly as in CSS")
+
+    shorthand_first = _css_declarations(
+        "outline: 3px solid var(--teal-900); outline-color: var(--cyan-soft)")
+    assert _resolve_outline(shorthand_first) == (
+        "3px", "solid", "var(--cyan-soft)", None), (
+        "a longhand declared after the shorthand must win")
+
+
+def test_focus_census_reads_every_rule_and_refuses_an_unknown_shape():
+    """Ledger row 99: no focus rule is skipped, and an unhandled shape is loud.
+
+    The reader used to drop every selector carrying `+`, `>` or `~`, and it
+    dropped each rule's media context with it. That silently removed the MENU
+    toggle's rule (`.nav-toggle:focus-visible + .nav-toggle-label`, the site's
+    second pre-existing focus rule) from the census, so a docstring claiming
+    the shape was compared against "the two focus rules the site already
+    ships" was comparing one. Nothing is skipped now: every selector part is
+    reported, the media bound travels with it, and a shape the matcher cannot
+    decide raises instead of vanishing. A skipped rule reads as "no ring"
+    while the browser may well be painting one.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    rules = _focus_rules(css)
+    selectors = [selector for _order, _media, selector, _decl in rules]
+    assert ".nav-toggle:focus-visible + .nav-toggle-label" in selectors, (
+        "the MENU toggle's focus rule must be reported, not skipped for its "
+        "sibling combinator")
+    expected = sum(len([part for part in selector.split(",")
+                        if ":focus-visible" in part])
+                   for _media, selector, _body in _css_rules(css))
+    assert len(selectors) == expected, (
+        f"the reader reported {len(selectors)} of {expected} focus rules; a "
+        "rule this census cannot see reads as no ring at all")
+    toggle = next(rule for rule in rules
+                  if rule[2] == ".nav-toggle:focus-visible + .nav-toggle-label")
+    assert toggle[1] == 1120.0, (
+        "the MENU toggle's focus rule sits under a media query and the reader "
+        f"must report that bound rather than discard it: {toggle[1]}")
+
+    for selector in (".band + .btn:focus-visible",
+                     ".band > .btn:focus-visible"):
+        with pytest.raises(AssertionError, match="combinator"):
+            _matching_focus_rules(
+                _focus_rules(f"{selector} {{ outline: 3px solid var(--teal-900); }}"),
+                "a", ("btn",), ())
+    with pytest.raises(AssertionError, match="@media"):
+        _matching_focus_rules(
+            _focus_rules("@media (max-width: 700px) { .btn:focus-visible "
+                         "{ outline: 3px solid var(--teal-900); } }"),
+            "a", ("btn",), ())
 
 
 def test_heading_order_is_sequential(docs):

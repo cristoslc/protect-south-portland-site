@@ -326,9 +326,9 @@ img { max-width: 100%; height: auto; }
 
    Two surfaces, two tokens, both measured (WCAG 2.x relative luminance):
    `--teal-900` is 11.57:1 on --paper, 11.00:1 on --mist, 10.00:1 on
-   --teal-100 and 10.10:1 on --cyan-soft; on the dark bands the same ink is
-   1.97:1 against --teal-900 and 2.09:1 against --teal-950, so the dark
-   override swaps to `--cyan-soft`: 10.10:1 on --teal-900 (banner) and
+   --teal-100 and 10.10:1 on --cyan-soft. On the dark bands the same ink
+   reads only 1.00:1 against --teal-900 and 1.30:1 against --teal-950, so the
+   dark override swaps to `--cyan-soft`: 10.10:1 on --teal-900 (banner) and
    13.16:1 on --teal-950 (footer). Both clear the 3:1 non-text floor of
    SC 1.4.11. No new colour enters the palette: these are the two tokens the
    two existing focus rules already use.
