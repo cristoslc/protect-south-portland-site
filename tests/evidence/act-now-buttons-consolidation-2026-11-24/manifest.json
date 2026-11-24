@@ -1,0 +1,208 @@
+{
+  "row": 88,
+  "date": "2026-11-24",
+  "branch": "bb/act-now-button-consolidation",
+  "base_commit": "2bb63b5",
+  "page": "act-now.html",
+  "instruction": "act-now.html has too many button variants, it's visually confusing.",
+  "what_changed": "Every button-like control in the page body is now a member of the standard .btn family: one primary (.btn--cta, solid orange) and one secondary (.btn--ghost, transparent with a teal border). The Donate / Report an odor pair keeps its square corners and joins the family. No new classes, no new colours.",
+
+  "distinct_treatments": {
+    "before_page_content": 3,
+    "after_page_content": 2,
+    "before_whole_page_including_chrome": 6,
+    "after_whole_page_including_chrome": 5,
+    "note": "Chrome (masthead 'Act now' pill, footer social pills, footer Donate) is shared by all 18 pages and is out of scope for this page's controls, so it is inventoried and left alone."
+  },
+
+  "inventory_before": {
+    "method": "computed styles in headless Chrome at 1440 CSS px via bb browser-automation, not read from the stylesheet",
+    "page_content": [
+      {
+        "role": "secondary",
+        "label": "Sign now",
+        "markup": "<a class=\"btn btn--ghost\" href=\"…google.com/forms…\">Sign now</a>",
+        "zone": "petition-strip callout",
+        "shape": "pill",
+        "radius": "999px",
+        "fill": "transparent (teal-100 callout behind)",
+        "border": "2px solid rgb(29,62,64) teal-900",
+        "size": "148x54",
+        "type": "17.1px/800 uppercase, letter-spacing 0.684px",
+        "padding": "11px 22px",
+        "family_member": true
+      },
+      {
+        "role": "secondary",
+        "label": "Donate",
+        "markup": "<a href=\"donate.html\">Donate</a> inside <ul class=\"link-row link-row--buttons\">",
+        "zone": "donate/report pair",
+        "shape": "square",
+        "radius": "0",
+        "fill": "#fff (white)",
+        "border": "2px solid rgb(44,110,112) teal-700",
+        "size": "252x65",
+        "type": "17.1px/700 uppercase, letter-spacing 0.684px",
+        "padding": "16.2px 32.4px",
+        "min_height": "48px",
+        "family_member": false,
+        "own_treatment": "third style: a local block re-declaring border, fill, colour, padding, min-height, type, underline reset and focus ring"
+      },
+      {
+        "role": "secondary",
+        "label": "Report an odor",
+        "markup": "<a href=\"report-an-odor.html\">Report an odor</a> inside the same list",
+        "zone": "donate/report pair",
+        "shape": "square",
+        "radius": "0",
+        "fill": "#fff (white)",
+        "border": "2px solid rgb(44,110,112) teal-700",
+        "size": "252x65",
+        "type": "17.1px/700 uppercase, letter-spacing 0.684px",
+        "padding": "16.2px 32.4px",
+        "min_height": "48px",
+        "family_member": false,
+        "own_treatment": "same local block as Donate"
+      },
+      {
+        "role": "primary",
+        "label": "Email the Council",
+        "markup": "<a class=\"btn btn--cta\" href=\"mailto:citycouncil@southportland.gov?cc=…\">Email the Council</a>",
+        "zone": "prose body, under the lede",
+        "shape": "pill",
+        "radius": "999px",
+        "fill": "rgb(184,64,26) orange-dark solid",
+        "border": "2px solid transparent",
+        "size": "239x54",
+        "type": "17.1px/800 uppercase, letter-spacing 0.684px",
+        "padding": "11px 22px",
+        "family_member": true
+      }
+    ],
+    "chrome_out_of_scope": [
+      {
+        "label": "Act now",
+        "markup": "<li class=\"nav-cta\"><a href=\"act-now.html\" aria-current=\"page\">Act now</a></li>",
+        "shape": "pill",
+        "radius": "999px",
+        "fill": "rgb(184,64,26) orange-dark",
+        "border": "none",
+        "size": "103x41",
+        "type": "16.2px/800, no text-transform",
+        "why_left_alone": "shared masthead across all 18 pages, pinned by its own contrast test and its own aria-current outline rule"
+      },
+      {
+        "label": "Donate (footer)",
+        "markup": "<a class=\"btn btn--cta\" href=\"donate.html\">Donate</a>",
+        "shape": "pill",
+        "radius": "999px",
+        "fill": "rgb(184,64,26) orange-dark",
+        "border": "2px solid transparent",
+        "size": "127x54",
+        "type": "17.1px/800 uppercase",
+        "why_left_alone": "already a family primary; nothing to consolidate"
+      },
+      {
+        "label": "X / Facebook (footer social)",
+        "markup": "<a href=…>X</a> / <a href=…>Facebook</a>",
+        "shape": "pill",
+        "radius": "999px",
+        "fill": "transparent on teal-900",
+        "border": "1px solid rgba(255,255,255,0.4)",
+        "size": "41x39 and 102x39",
+        "type": "15.3px/700, no text-transform",
+        "why_left_alone": "social links, not page actions; shared footer"
+      }
+    ],
+    "note_on_brief": "The brief named a 'City Council emails ghost button'. No such control exists on the page: there is exactly one .btn--ghost in the built HTML (the Sign now pill), and the councilor addresses render as ordinary prose links in the contact list. Counted as written, not as described."
+  },
+
+  "inventory_after": {
+    "method": "same measurement, same width, after the change",
+    "page_content": [
+      {
+        "role": "secondary",
+        "label": "Sign now",
+        "markup": "<a class=\"btn btn--ghost\" …>",
+        "shape": "pill",
+        "radius": "999px",
+        "fill": "transparent",
+        "border": "2px solid rgb(29,62,64)",
+        "size": "148x54",
+        "family_member": true,
+        "changed": false
+      },
+      {
+        "role": "secondary",
+        "label": "Donate",
+        "markup": "<a class=\"btn btn--ghost\" href=\"donate.html\">Donate</a>",
+        "shape": "square (local modifier)",
+        "radius": "0",
+        "fill": "transparent (white page behind)",
+        "border": "2px solid rgb(29,62,64) teal-900",
+        "size": "252x54",
+        "type": "17.1px/800 uppercase, letter-spacing 0.684px",
+        "padding": "11px 22px",
+        "family_member": true,
+        "changed": "radius kept square; fill, border colour, padding, weight and the underline reset now come from the family; height 65 -> 54"
+      },
+      {
+        "role": "secondary",
+        "label": "Report an odor",
+        "markup": "<a class=\"btn btn--ghost\" href=\"report-an-odor.html\">Report an odor</a>",
+        "shape": "square (local modifier)",
+        "radius": "0",
+        "fill": "transparent",
+        "border": "2px solid rgb(29,62,64)",
+        "size": "252x54",
+        "type": "17.1px/800 uppercase",
+        "padding": "11px 22px",
+        "family_member": true,
+        "changed": "same as Donate"
+      },
+      {
+        "role": "primary",
+        "label": "Email the Council",
+        "markup": "<a class=\"btn btn--cta\" …>",
+        "shape": "pill",
+        "radius": "999px",
+        "fill": "rgb(184,64,26)",
+        "border": "2px solid transparent",
+        "size": "239x54",
+        "family_member": true,
+        "changed": false
+      }
+    ]
+  },
+
+  "measured_sizes_by_width": [
+    {"width": 412, "state": "before", "pair": [{"label": "Donate", "w": 372, "h": 65}, {"label": "Report an odor", "w": 372, "h": 65}], "sign_now": "148x54 at y=1063", "email_cta": "239x54 at y=1509", "document_height": 6282, "pair_layout": "stacked full width"},
+    {"width": 412, "state": "after", "pair": [{"label": "Donate", "w": 372, "h": 54}, {"label": "Report an odor", "w": 372, "h": 54}], "sign_now": "148x54 at y=1063", "email_cta": "239x54 at y=1488", "document_height": 6261, "pair_layout": "stacked full width"},
+    {"width": 768, "state": "before", "pair": [{"label": "Donate", "w": 252, "h": 65}, {"label": "Report an odor", "w": 252, "h": 65}], "sign_now": "148x54 at y=823", "email_cta": "239x54 at y=1125", "document_height": 4440, "pair_layout": "side by side, 252 each"},
+    {"width": 768, "state": "after", "pair": [{"label": "Donate", "w": 252, "h": 54}, {"label": "Report an odor", "w": 252, "h": 54}], "sign_now": "148x54 at y=823", "email_cta": "239x54 at y=1114", "document_height": 4430, "pair_layout": "side by side, 252 each"},
+    {"width": 1440, "state": "before", "pair": [{"label": "Donate", "w": 252, "h": 65}, {"label": "Report an odor", "w": 252, "h": 65}], "sign_now": "148x54 at y=824", "email_cta": "239x54 at y=1126", "document_height": 3749, "pair_layout": "side by side, 252 each"},
+    {"width": 1440, "state": "after", "pair": [{"label": "Donate", "w": 252, "h": 54}, {"label": "Report an odor", "w": 252, "h": 54}], "sign_now": "148x54 at y=824", "email_cta": "239x54 at y=1116", "document_height": 3738, "pair_layout": "side by side, 252 each"}
+  ],
+
+  "layout_checks": {
+    "no_collision": "at 1440 the pair occupies y=926..980 and the Email the Council CTA y=1116..1170, so 136px of clearance and the lede paragraph sits between them; the pills above and below are unmoved",
+    "no_label_wrap": "Report an odor stays on one line at all three widths (252px box at 768/1440, 372px at 412)",
+    "width_floor_holds": "14rem = 252px at the 18px root, preserved at both desktop widths",
+    "touch_target": "54px tall, above the 48px minimum row 82 asked for, so deleting the explicit min-height loses nothing",
+    "other_pages": "the build changed only docs/act-now.html and docs/styles.css; the other 22 built pages are byte-identical, and every changed rule is prefixed .link-row--buttons, which appears on act-now.html alone (test-pinned)"
+  },
+
+  "focus_ring": {
+    "method": "real Tab presses in headless Chrome, reading getComputedStyle(outline) on the focused element",
+    "results": [
+      {"control": "Sign now", "outline": "auto 1px rgb(0,95,204) (browser default)"},
+      {"control": "Donate (pair)", "outline": "solid 3px rgb(29,62,64), offset 3px"},
+      {"control": "Report an odor (pair)", "outline": "solid 3px rgb(29,62,64), offset 3px"},
+      {"control": "Email the Council", "outline": "auto 1px rgb(0,95,204) (browser default)"},
+      {"control": "Donate (footer)", "outline": "auto 1px rgb(0,95,204) (browser default)"}
+    ],
+    "why_the_loud_ring_stayed_local": "The .btn family declares no focus ring at all, so there is no duplicate to delete. A single teal ring cannot serve the dark masthead and footer surfaces where .btn also appears (teal-900 on teal-900 is invisible), so promoting it into the family would have made two controls' rings disappear. The pair sits on white, where the loud ring belongs, so it stays on the pair. The two pills' default rings are unchanged from before this row."
+  },
+
+  "suite": "184 passed, 1 skipped (identical to the 2bb63b5 baseline); psp_public.scan_tree('docs') returned []"
+}

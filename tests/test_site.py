@@ -2783,14 +2783,23 @@ def test_act_now_child_links_are_square_buttons(docs):
     buttons. "Square" means square corners, not a square shape. The list, the
     labels and the targets stay as they are; only the presentation changes, and
     the rule is scoped to this one list so no other link row moves.
+
+    2026-11-24 (row 88): the operator then said "act-now.html has too many
+    button variants, it's visually confusing", so the pair joins the standard
+    family instead of carrying its own border, fill, colour, padding, type and
+    underline reset. This pin follows the pair into the family: it asserts
+    membership plus the declarations that legitimately stay local (layout, the
+    square corner, the width floor, the focus ring). It no longer asserts the
+    bespoke values the consolidation deleted, because pinning those would pin
+    the third variant the operator asked to remove.
     """
     act = read(docs, "act-now.html")
     css = read(docs, "styles.css")
 
-    # the list, the labels and the targets are unchanged
+    # the list and the targets are unchanged; both anchors are family members
     assert '<ul class="link-row link-row--buttons">' in act
-    assert '<a href="donate.html">Donate</a>' in act
-    assert '<a href="report-an-odor.html">Report an odor</a>' in act
+    assert '<a class="btn btn--ghost" href="donate.html">Donate</a>' in act
+    assert '<a class="btn btn--ghost" href="report-an-odor.html">Report an odor</a>' in act
 
     # scoped to this list: the modifier appears on Act now and nowhere else
     users = [name for name in html_files(docs)
@@ -2798,16 +2807,26 @@ def test_act_now_child_links_are_square_buttons(docs):
     assert users == ["act-now.html"], (
         f"the button modifier is scoped to the Act now list, found on {users}")
 
-    # the declaration block itself
+    # the declaration block itself: layout, the square corner, and nothing the
+    # family already provides
     start = css.index(".link-row--buttons a {")
     block = css[start:css.index("}", start)]
-    for prop in ("min-height: 48px", "padding: 0.9rem 1.8rem",
-                 "border: 2px solid var(--teal-700)", "border-radius: 0",
-                 "text-decoration: none", "color: var(--teal-900)"):
-        assert prop in block, f"the button rule must declare {prop}"
+    assert "border-radius: 0" in block, "square corners are explicit and local"
+    assert "border-radius: 999px" not in block
+    for family_prop in ("border:", "background:", "color:", "padding:",
+                        "min-height:", "font-weight:", "font-size:",
+                        "letter-spacing:", "text-transform:",
+                        "text-decoration:"):
+        assert family_prop not in block, (
+            f"the pair must take {family_prop} from the .btn family, not "
+            f"re-declare it in the local scope")
+
+    # the pair is a .btn member on the page, and the family is where its
+    # shape comes from
+    for cls in (".btn {", ".btn--cta {", ".btn--ghost {"):
+        assert cls in css, f"the standard family must declare {cls}"
 
     # square corners are explicit, and the pair matches on desktop
-    assert "border-radius: 0" in block and "border-radius: 999px" not in block
     desktop = css[css.index("@media (min-width: 720px)"):]
     desktop = desktop[:desktop.index("@media", 5)]
     assert ".link-row--buttons a { min-width: 14rem; }" in desktop, (

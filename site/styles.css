@@ -331,36 +331,30 @@ img { max-width: 100%; height: auto; }
 
 .link-row li { margin: 0; }
 
-/* Act now's two child links, as a matched pair of square buttons under the
-   sign-now pill. Scoped to this list so no other .link-row changes: the
-   operator's "square" means square corners, not a square shape. */
+/* Act now's two child links, as a matched pair under the sign-now pill.
+   Layout, square corners and the shared width floor only: the fill, border,
+   colour, padding, type and underline reset all come from the .btn family
+   now, so this scope is not a third variant (row 88 consolidation). */
 .link-row--buttons { gap: 0.75rem; margin: 1.1rem 0 1.15rem; }
 .link-row--buttons > li { flex: 0 0 auto; }
 .link-row--buttons a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 0.9rem 1.8rem;
-  border: 2px solid var(--teal-700);
+  /* the list owns this row's spacing, so the family's inline-button margin
+     comes off and the pair keeps the geometry it already had */
+  margin: 0;
   border-radius: 0;
-  background: #fff;
-  color: var(--teal-900);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
-.link-row--buttons a:hover { background: var(--teal-100); border-color: var(--teal-900); }
-/* A bigger button a keyboard cannot find is half a fix, so the ring is loud
-   and sits outside the border instead of on top of it. */
+/* The family declares no focus ring of its own, and one teal ring cannot
+   serve the dark masthead and footer surfaces where .btn also appears, so
+   the loud ring stays on this light-surface pair instead of moving up. */
 .link-row--buttons a:focus-visible { outline: 3px solid var(--teal-900); outline-offset: 3px; }
 
 @media (min-width: 720px) {
   /* a shared floor so the pair reads as a set, not two ragged labels */
   .link-row--buttons a { min-width: 14rem; }
-  /* one row of 65px buttons needs more air under it than the stacked pair
+  /* one row of buttons needs more air under it than the stacked pair
      does, or the bold heading below reads as if it touches the row */
   .link-row--buttons { margin-bottom: 1.75rem; }
 }
