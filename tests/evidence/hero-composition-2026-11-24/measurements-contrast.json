@@ -1,0 +1,110 @@
+{
+  "412": {
+    "card_rect_region": [
+      14,
+      495,
+      398,
+      1100
+    ],
+    "pixels": 232320,
+    "headline_white": {
+      "worst": 7.93,
+      "mean": 12.26,
+      "darkest": 16.42
+    },
+    "meta_cyan_soft": {
+      "worst": 6.92,
+      "mean": 10.71,
+      "darkest": 14.34
+    },
+    "mission_white_88": {
+      "worst": 6.03,
+      "mean": 9.32,
+      "darkest": 12.49
+    },
+    "worst_photo_pixel": "#fffffe",
+    "mean_photo_pixel": "#75754f",
+    "composite_worst": "#415556"
+  },
+  "768": {
+    "card_rect_region": [
+      20,
+      360,
+      748,
+      789
+    ],
+    "pixels": 312312,
+    "headline_white": {
+      "worst": 7.93,
+      "mean": 12.32,
+      "darkest": 16.45
+    },
+    "meta_cyan_soft": {
+      "worst": 6.93,
+      "mean": 10.76,
+      "darkest": 14.37
+    },
+    "mission_white_88": {
+      "worst": 6.03,
+      "mean": 9.36,
+      "darkest": 12.51
+    },
+    "worst_photo_pixel": "#fffffd",
+    "mean_photo_pixel": "#75734e",
+    "composite_worst": "#415556"
+  },
+  "1440": {
+    "card_rect_region": [
+      190,
+      360,
+      1018,
+      752
+    ],
+    "pixels": 324576,
+    "headline_white": {
+      "worst": 7.94,
+      "mean": 12.47,
+      "darkest": 16.42
+    },
+    "meta_cyan_soft": {
+      "worst": 6.94,
+      "mean": 10.89,
+      "darkest": 14.35
+    },
+    "mission_white_88": {
+      "worst": 6.04,
+      "mean": 9.48,
+      "darkest": 12.49
+    },
+    "worst_photo_pixel": "#fefff8",
+    "mean_photo_pixel": "#726f46",
+    "composite_worst": "#415555"
+  },
+  "1920": {
+    "card_rect_region": [
+      430,
+      377,
+      1258,
+      770
+    ],
+    "pixels": 325404,
+    "headline_white": {
+      "worst": 8.24,
+      "mean": 12.99,
+      "darkest": 16.39
+    },
+    "meta_cyan_soft": {
+      "worst": 7.2,
+      "mean": 11.35,
+      "darkest": 14.32
+    },
+    "mission_white_88": {
+      "worst": 6.27,
+      "mean": 9.88,
+      "darkest": 12.47
+    },
+    "worst_photo_pixel": "#fff1e5",
+    "mean_photo_pixel": "#64612d",
+    "composite_worst": "#415251"
+  }
+}

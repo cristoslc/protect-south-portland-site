@@ -287,7 +287,11 @@ img { max-width: 100%; height: auto; }
    for cover to have vertical slack, putting the lantern and the schooner's
    sail peaks in the clear band above the card. Where there is no slack
    (every viewport narrower than about 1200px at this region's height) the
-   vertical value is a no-op and the frame is simply shown whole. */
+   vertical value is a no-op and the frame is simply shown whole. The frame's
+   landmarks never pay for the crop: the highest thing in the picture is the
+   schooner's mast peaks at row 252 of 898, so the slack cap on the region
+   below stops the window at row 240, just above them, and the crop gives up
+   empty sky only — never the top of the lighthouse or the sails. */
 
 .hero__photo {
   position: absolute;
@@ -300,23 +304,47 @@ img { max-width: 100%; height: auto; }
 }
 
 /* the region's height is the card's plus the photograph slice above it, so
-   the picture is never crushed to a strip: 150px of clear photograph on a
-   phone, 200px from the tablet breakpoint up, and the card keeps 20px of
-   photo below it and the page gutters beside it */
+   the picture is never crushed to a strip, and the split between the two is
+   tuned per width: below about 1340px cover has no vertical slack, so the
+   clear band's height measured in source rows is band height divided by
+   cover's scale, and growing the band while trimming the card is what walks
+   the card's top edge down the photograph. The invariant the two values
+   hold is ~400 of the frame's 898 rows clear above the card at every
+   no-slack width — the evening haze, the schooner's mast peaks and the
+   lighthouse's ball, roof and lantern glass — instead of the empty sky
+   slice a shorter band leaves on a phone. 480px of clear photograph on a
+   phone with the card trimmed to match (14px gutters, a tighter card box
+   below), 360px from the tablet breakpoint up, and the card keeps its 20px
+   of photo below it and the page gutters beside it */
 
 .hero__inner {
   position: relative;
   z-index: 1;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 150px 20px 20px;
+  padding: 495px 14px 16px;
   min-height: 560px;
   display: flex;
   align-items: flex-end;
 }
 
 @media (min-width: 701px) {
-  .hero__inner { padding-top: 200px; min-height: 600px; }
+  .hero__inner { padding: 360px 20px 20px; min-height: 600px; }
+}
+
+/* above 1440px cover's scale is width-driven and the vertical slack grows
+   with the viewport; left alone, a 1920 viewport put 387 source rows of
+   slack under the bottom-anchored crop and the lantern room left the frame
+   at the top. This cap holds the slack at 240 rows, just above the
+   schooner's mast peaks (row 252, the highest landmark in the frame), so
+   everything under the empty sky stays in the picture at any ultrawide
+   width: (898 - 240) / 1600 of the viewport width is the region height at
+   which cover's width-driven scale leaves exactly those 240 rows
+   uncovered. It binds from about 1830px up; below that the card plus the
+   clear band is already the taller value */
+
+@media (min-width: 1441px) {
+  .hero__inner { min-height: 41.125vw; }
 }
 
 .hero__card {
@@ -331,6 +359,16 @@ img { max-width: 100%; height: auto; }
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
+}
+
+/* on a phone the card's box tightens so the clear band above it can grow
+   without growing the region past the photograph's proportions: same copy,
+   same type sizes, 14px gutters on the wrap and a smaller card padding and
+   gap, which is what drops cover's scale and lets the card's top edge sit
+   lower on the photograph */
+
+@media (max-width: 700px) {
+  .hero__card { padding: 18px 20px 16px; gap: 10px; }
 }
 
 .hero__headline {

@@ -1,0 +1,327 @@
+{
+  "note": "live DOM sweep at deviceScaleFactor 1 over a local http.server serve of a fresh build; region box, card box, cover scale, vertical slack in source rows (898 - regionHeight/scale); cardTopSrcRow = slack rows + the card's device offset from the region top divided by scale, i.e. the true source row at the card's top edge. Before = origin/main at fa688f0 (whose wear-green meta sentence lengthened the card), after = this branch. At width-driven widths (1440 up) the card's top source row is 898 - (card+bottomPad)/scale, independent of the band, which is why 1440's cardTopSrcRow is 439.6 in both states; what changes there is the clear band's own window (source row 217.4 to 39.6 at its top) and, above 1830, the slack cap.",
+  "before": {
+    "412": {
+      "region_px": [
+        412,
+        823.4
+      ],
+      "card_px": [
+        372,
+        653.4
+      ],
+      "scale": 0.917,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 163.6,
+      "padTop": "150px",
+      "minHeight": "560px",
+      "objectPosition": "20% 100%"
+    },
+    "768": {
+      "region_px": [
+        768,
+        649.0
+      ],
+      "card_px": [
+        728,
+        429.0
+      ],
+      "scale": 0.7227,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 276.7,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1024": {
+      "region_px": [
+        1024,
+        606.9
+      ],
+      "card_px": [
+        828,
+        386.9
+      ],
+      "scale": 0.6758,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 295.9,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1100": {
+      "region_px": [
+        1100,
+        612.0
+      ],
+      "card_px": [
+        828,
+        392.0
+      ],
+      "scale": 0.6875,
+      "vertical_slack_rows": 7.8,
+      "cardTopSrcRow": 298.7,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1200": {
+      "region_px": [
+        1200,
+        612.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 0.75,
+      "vertical_slack_rows": 81.3,
+      "cardTopSrcRow": 348.0,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1300": {
+      "region_px": [
+        1300,
+        612.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 0.8125,
+      "vertical_slack_rows": 144.1,
+      "cardTopSrcRow": 390.3,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1440": {
+      "region_px": [
+        1440,
+        612.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 0.9,
+      "vertical_slack_rows": 217.4,
+      "cardTopSrcRow": 439.6,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1491": {
+      "region_px": [
+        1491,
+        612.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 0.9319,
+      "vertical_slack_rows": 240.7,
+      "cardTopSrcRow": 455.3,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1920": {
+      "region_px": [
+        1920,
+        612.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 1.2,
+      "vertical_slack_rows": 387.6,
+      "cardTopSrcRow": 554.3,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "2560": {
+      "region_px": [
+        2560,
+        612.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 1.6,
+      "vertical_slack_rows": 515.2,
+      "cardTopSrcRow": 640.2,
+      "padTop": "200px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    }
+  },
+  "after": {
+    "412": {
+      "region_px": [
+        412,
+        1116.2
+      ],
+      "card_px": [
+        384,
+        605.2
+      ],
+      "scale": 1.243,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 398.2,
+      "padTop": "495px",
+      "minHeight": "560px",
+      "objectPosition": "20% 100%"
+    },
+    "768": {
+      "region_px": [
+        768,
+        809.0
+      ],
+      "card_px": [
+        728,
+        429.0
+      ],
+      "scale": 0.9009,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 399.6,
+      "padTop": "360px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1024": {
+      "region_px": [
+        1024,
+        766.9
+      ],
+      "card_px": [
+        828,
+        386.9
+      ],
+      "scale": 0.854,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 421.5,
+      "padTop": "360px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1100": {
+      "region_px": [
+        1100,
+        772.0
+      ],
+      "card_px": [
+        828,
+        392.0
+      ],
+      "scale": 0.8597,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 418.7,
+      "padTop": "360px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1200": {
+      "region_px": [
+        1200,
+        772.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 0.8603,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 418.5,
+      "padTop": "360px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1300": {
+      "region_px": [
+        1300,
+        772.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 0.8603,
+      "vertical_slack_rows": 0,
+      "cardTopSrcRow": 418.5,
+      "padTop": "360px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1440": {
+      "region_px": [
+        1440,
+        772.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 0.9,
+      "vertical_slack_rows": 39.6,
+      "cardTopSrcRow": 439.6,
+      "padTop": "360px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1491": {
+      "region_px": [
+        1491,
+        772.5
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 0.9319,
+      "vertical_slack_rows": 69.0,
+      "cardTopSrcRow": 455.3,
+      "padTop": "360px",
+      "minHeight": "600px",
+      "objectPosition": "20% 100%"
+    },
+    "1920": {
+      "region_px": [
+        1920,
+        789.6
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 1.2,
+      "vertical_slack_rows": 240.0,
+      "cardTopSrcRow": 554.2,
+      "padTop": "360px",
+      "minHeight": "41.125vw=789.6px",
+      "objectPosition": "20% 100%"
+    },
+    "2560": {
+      "region_px": [
+        2560,
+        1052.8
+      ],
+      "card_px": [
+        828,
+        392.5
+      ],
+      "scale": 1.6,
+      "vertical_slack_rows": 240.0,
+      "cardTopSrcRow": 640.2,
+      "padTop": "360px",
+      "minHeight": "41.125vw=1052.8px",
+      "objectPosition": "20% 100%"
+    }
+  }
+}

@@ -1,0 +1,229 @@
+{
+  "date": "2026-11-24",
+  "ledger_row": 112,
+  "operator_ruling_verbatim": "Ruled: fix both hero composition notes. Dispatch the styling leg now \u2014 one leg, both fixes: **Phone haze band:** at narrow widths the clear band above the card reads as featureless haze; trim the card's height share below ~1200px so the photo gains room, per the report's own suggestion. **Wide-viewport framing:** above 1440px the lighthouse only reads from the gallery down; cap the region's height or the crop's slack so the full tower stays in frame.",
+  "operator_steer_verbatim": "better to capture the full lighthouse and sailboat than to crop the top of bug light, particularly",
+  "page": "index.html",
+  "region": "section.hero",
+  "source_image": {
+    "path": "site/assets/photos/hero-coast.jpg",
+    "width": 1600,
+    "height": 898,
+    "measured_landmark_rows": {
+      "lighthouse_lantern_dark_run": [
+        322,
+        443
+      ],
+      "lighthouse_gallery_details": [
+        445,
+        491
+      ],
+      "schooner_first_mast_dark_row": 252,
+      "note": "measured on the source frame by luminance scan, the numbers the band and the cap are sized against"
+    }
+  },
+  "review_findings": [
+    {
+      "finding": "Phone haze: at narrow widths the clear band above the card reads as featureless haze; cover has zero vertical slack below about 1200px, so no landmark sits in the clear band at 412.",
+      "reviewer_suggestion": "trim the card's height share at small widths so the photo gains room",
+      "fix": "the clear band above the card grows (150px to 495px on a phone, 200px to 360px from the tablet breakpoint up) while the card's box trims (gutters 20px to 14px, card padding 24/26/22 to 18/20/16, flex gap 12px to 10px; the copy and the type sizes are unchanged, the card measures 653px to 605px tall at 412). Below about 1340px cover has no vertical slack, so the band's height in source rows is band/scale: the card's top edge now sits at source row 398.2 at 412 (was 163.6) and 399.6 at 768 (was 276.7), so the lighthouse's ball, roof and lantern glass (rows 322-443) sit in the clear band at every no-slack width instead of empty sky."
+    },
+    {
+      "finding": "Wide framing: above 1440px the lighthouse only reads from the gallery down; the row-98 manifest stated the limit at 1920 (387 slack rows) but never captured it.",
+      "reviewer_suggestion": "cap the region's height or the crop's slack above 1440 so the full tower stays in frame",
+      "fix": "a min-height cap on .hero__inner at min-width 1441px: 41.125vw, which is (898 - 240) / 1600 of the viewport and holds cover's width-driven slack at 240 source rows, just above the schooner's mast peaks (row 252, the frame's highest landmark). It binds from about 1878px up; below that the card plus the clear band is already taller. At 1920 the slack drops 387.6 to 240.0 rows exactly, and the window shows rows 240-898: the full tower from ball to base, the full masts and sails, the crowd and the lawn."
+    }
+  ],
+  "object_position_unchanged": "20% 100%, the shipped focal point; both comments above it and on the region rules state the focal point and why in the stylesheet's prose style. The horizontal lean (20%) keeps the tower, at 23% across, whole in a phone's narrow window; the vertical bottom anchor is what lets the slack cap, not the position value, decide the ultrawide framing.",
+  "crop_windows": {
+    "rule": "object-fit: cover, object-position: 20% 100%; scale = max(viewport/1600, region_height/898); cardTopSrcRow = card's top edge measured in source rows",
+    "per_width": {
+      "412": {
+        "before": {
+          "region_px": [
+            412,
+            823.4
+          ],
+          "card_px": [
+            372,
+            653.4
+          ],
+          "scale": 0.917,
+          "vertical_slack_rows": 0,
+          "cardTopSrcRow": 163.6
+        },
+        "after": {
+          "region_px": [
+            412,
+            1116.2
+          ],
+          "card_px": [
+            384,
+            605.2
+          ],
+          "scale": 1.243,
+          "vertical_slack_rows": 0,
+          "cardTopSrcRow": 398.2
+        }
+      },
+      "768": {
+        "before": {
+          "region_px": [
+            768,
+            649.0
+          ],
+          "card_px": [
+            728,
+            429.0
+          ],
+          "scale": 0.7227,
+          "vertical_slack_rows": 0,
+          "cardTopSrcRow": 276.7
+        },
+        "after": {
+          "region_px": [
+            768,
+            809.0
+          ],
+          "card_px": [
+            728,
+            429.0
+          ],
+          "scale": 0.9009,
+          "vertical_slack_rows": 0,
+          "cardTopSrcRow": 399.6
+        }
+      },
+      "1440": {
+        "before": {
+          "region_px": [
+            1440,
+            612.5
+          ],
+          "card_px": [
+            828,
+            392.5
+          ],
+          "scale": 0.9,
+          "vertical_slack_rows": 217.4,
+          "cardTopSrcRow": 439.6
+        },
+        "after": {
+          "region_px": [
+            1440,
+            772.5
+          ],
+          "card_px": [
+            828,
+            392.5
+          ],
+          "scale": 0.9,
+          "vertical_slack_rows": 39.6,
+          "cardTopSrcRow": 439.6
+        }
+      },
+      "1920": {
+        "before": {
+          "region_px": [
+            1920,
+            612.5
+          ],
+          "card_px": [
+            828,
+            392.5
+          ],
+          "scale": 1.2,
+          "vertical_slack_rows": 387.6,
+          "cardTopSrcRow": 554.3
+        },
+        "after": {
+          "region_px": [
+            1920,
+            789.6
+          ],
+          "card_px": [
+            828,
+            392.5
+          ],
+          "scale": 1.2,
+          "vertical_slack_rows": 240.0,
+          "cardTopSrcRow": 554.2
+        }
+      },
+      "2560_extra": {
+        "after": {
+          "region_px": [
+            2560,
+            1052.8
+          ],
+          "card_px": [
+            828,
+            392.5
+          ],
+          "scale": 1.6,
+          "vertical_slack_rows": 240.0,
+          "cardTopSrcRow": 640.2
+        },
+        "note": "measured beyond the four evidence widths to prove the cap holds at ultrawide, not just at 1920; before, the same width had 515.2 slack rows and showed only the tower's lower half"
+      }
+    },
+    "invariant": "at every width where cover has no vertical slack (412 to about 1340) the card's top edge sits at source row 398-422, so the clear band holds the lighthouse's ball, roof and lantern glass (rows 322-443, down to the band's edge) and the schooner's mast peaks where the window is wide enough to include them; above 1878 the slack is pinned at 240 rows"
+  },
+  "contrast": {
+    "method": "identical to the row-98 evidence: the card's rectangle is sampled from after/behind-card-<w>.png (the card's fill, border, shadow and text removed in the live page, so the pixels are the photograph itself); each sample is composited with the shipped fill rgba(18, 42, 44, 0.8); WCAG 2.x relative luminance",
+    "re_measured_after_trim": true,
+    "per_width": {
+      "412": {
+        "headline_white": 7.93,
+        "meta_cyan_soft": 6.92,
+        "mission_white_88": 6.03
+      },
+      "768": {
+        "headline_white": 7.93,
+        "meta_cyan_soft": 6.92,
+        "mission_white_88": 6.03
+      },
+      "1440": {
+        "headline_white": 7.94,
+        "meta_cyan_soft": 6.94,
+        "mission_white_88": 6.04
+      },
+      "1920": {
+        "headline_white": 8.24,
+        "meta_cyan_soft": 7.2,
+        "mission_white_88": 6.27
+      }
+    },
+    "worst_case": "the brightest pixel behind the card is a white shirt in the crowd (#ffffff), composited to #415556: headline 7.93:1, meta 6.92:1, mission 6.03:1 at 412 \u2014 all above the AA floor of 4.5:1, and within a tenth of the shipped leg's 7.9/6.9/6.6. The mission line's dip (6.59 to 6.03 at 412) comes from the card covering a slightly different slice of the crowd; the mean behind the card improved (12.27:1 headline vs 11.67 at the shipped leg).",
+    "detail_file": "measurements-contrast.json"
+  },
+  "copy_unchanged": "the card's wording, the type sizes and the button are byte-identical; the trim is box geometry only (gutters, card padding, flex gap)",
+  "read_back": {
+    "before_412": "a 150px band of featureless grey haze above the card; the lighthouse's tip and the crowd read only through the tint behind the card",
+    "before_768": "a 200px band of haze with a faint mast line at the right; the tower's lantern is behind the card's tint",
+    "before_1440": "the lantern room and gallery in the 200px clear band, sails' upper masts at the right; the card's top edge at source row 439.6",
+    "before_1920": "the tower cut at the gallery: the lantern room is above the frame's top edge (387.6 slack rows), the mast peaks are cut, only the sails' bodies, the crowd and the lawn remain - the finding, now photographed on the current base with the wear-green sentence in the card",
+    "after_412": "the lighthouse reads in the clear band: ball, black roof and the glowing lantern glass against the haze, with the gallery deck at the card's edge; the crowd and the lawn read through the tint below; nothing is cropped - the whole frame is in the region, the card's top edge simply sits 398 source rows down",
+    "after_768": "the lantern room and the top of the tower clear of the card on the left, the schooner's mast and sail tops clear on the right, haze above",
+    "after_1440": "the ball, roof, glass and gallery of the tower fully clear of the card, both mast peaks and the sail tops clear at the right, the crowd and the lawn around the card; the card's top edge stays at source row 439.6 as before, and the clear band's window now starts at row 39.6 instead of 217.4",
+    "after_1920": "the full lighthouse from ball to base column and the full schooner, both mast peaks included, over the crowd and the lawn; the card floats over the lawn exactly as it does at 1440",
+    "tradeoff_stated": "the phone region grows 823px to 1116px tall at 412 (the card's share of the region drops 79.4% to 54.2%); that height is what buys the landmark in the clear band, because below ~1340px cover has no vertical slack and scale is region-height-driven - the band's source-row height only grows when the region does"
+  },
+  "captures": {
+    "before/hero-412.png": "the hero region at 412 before the edit, scroll position 0, deviceScaleFactor 1",
+    "before/hero-768.png": "the same at 768",
+    "before/hero-1440.png": "the same at 1440",
+    "before/hero-1920.png": "the same at 1920 \u2014 the finding's first capture",
+    "after/hero-412.png": "the hero region at 412 after, same scroll position and clip as before",
+    "after/hero-768.png": "the same at 768",
+    "after/hero-1440.png": "the same at 1440",
+    "after/hero-1920.png": "the same at 1920 \u2014 the acceptance surface for finding 2",
+    "after/behind-card-412.png": "the 412 frame with the card's fill, border, shadow and text removed: the photograph the card's tint sits over",
+    "after/behind-card-768.png": "the same at 768",
+    "after/behind-card-1440.png": "the same at 1440",
+    "after/behind-card-1920.png": "the same at 1920",
+    "measurements-contrast.json": "the per-width worst/mean/darkest samples, composites and ratios behind the card after the trim",
+    "measurements-geometry.json": "the live DOM sweep at 412/768/1024/1100/1200/1300/1440/1491/1920/2560 before and after"
+  },
+  "captured_with": "bb browser-automation, local headless Chrome, deviceScaleFactor 1, served from python3 -m http.server over a fresh tools/build.py output; every capture read before reporting"
+}
