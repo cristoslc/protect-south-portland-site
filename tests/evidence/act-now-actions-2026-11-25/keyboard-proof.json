@@ -1,0 +1,36 @@
+[
+  {
+    "step": "Enter on focused summary opens",
+    "openAfter": true,
+    "active": {
+      "tag": "SUMMARY",
+      "cls": "btn btn--light",
+      "text": "Add to Calendar"
+    }
+  },
+  {
+    "step": "Tab moves into the dropdown menu (first entry focused)",
+    "active": {
+      "tag": "A",
+      "cls": "",
+      "text": "Google Calendar"
+    }
+  },
+  {
+    "step": "Shift+Tab back to summary, Enter closes",
+    "openAfter": false
+  },
+  {
+    "step": "Space on the summary re-opens",
+    "openAfter": true,
+    "active": {
+      "tag": "SUMMARY",
+      "cls": "btn btn--light",
+      "text": "Add to Calendar"
+    }
+  },
+  {
+    "step": "Space again closes",
+    "openAfter": false
+  }
+]

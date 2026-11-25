@@ -1009,6 +1009,98 @@ blockquote {
 
 .ask-step .lede { margin: 0; }
 
+/* ---------- act-now action row + calendar menu (2026-11-25, row 129) ------
+
+   The operator's directive moves the page's two CTA buttons into ONE centered
+   row beneath the two ask columns (not one control under each column),
+   wrapping to a stacked, still-centered pair at mobile width. The row is a
+   plain wrapping flex row: centered above 720px by justify-content, stacked
+   below it by the same column stacking the ask steps already use. The second
+   control is the Add to Calendar dropdown, a native <details>/<summary> —
+   no script and no third-party calendar service. The trigger renders the
+   family's `.btn--light` (white fill, `--teal-900` ink, 11.57:1), the panel's
+   secondary treatment beside the orange `.btn--cta`; its focus ring rides the
+   `.callout--ask` override above (cyan-soft, 10.10:1 on the panel). The menu
+   is a white panel in the site's card grammar (`--paper` fill, 2px
+   `--teal-900` border at 11.57:1 non-text, the standing shadow, 14px radius):
+   menu links are `--teal-900` on white at 11.57:1 and the one muted hint line
+   is `--muted` on white at 5.56:1 — every pair clears the suite's 4.5:1 text
+   floor and the border clears the 3:1 non-text floor, measured against the
+   WCAG_COMPLIANCE.md contract (no annotation colour is sampled; see the
+   design-input discipline in AGENTS.md). The dropdown centers on its trigger
+   and never overflows a 412px viewport (max-width against the viewport), so
+   the stacked pair keeps the menu reachable at mobile width. */
+
+.ask-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+@media (max-width: 719.9px) {
+  .ask-actions { flex-direction: column; }
+}
+
+.cal-add { position: relative; }
+
+.cal-add summary { list-style: none; }
+
+.cal-add summary::-webkit-details-marker { display: none; }
+
+.cal-add__menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  min-width: 280px;
+  max-width: calc(100vw - 48px);
+  background: var(--paper);
+  /* the menu inherits the dark panel's white ink; declare its own so the
+     menu reads in the card grammar (the .cal-add__hint and the links carry
+     their own measured colours) */
+  color: var(--ink);
+  border: 2px solid var(--teal-900);
+  border-radius: 14px;
+  padding: 8px 18px;
+  box-shadow: var(--shadow);
+}
+
+.cal-add[open] .cal-add__menu { display: block; }
+
+.cal-add__menu a {
+  display: block;
+  padding: 8px 0;
+  color: var(--teal-900);
+  font-weight: 700;
+}
+
+.cal-add__other {
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.cal-add__hint { color: var(--muted); }
+
+.cal-add__other code {
+  font-size: 0.78rem;
+  word-break: break-all;
+  color: var(--teal-900);
+  background: var(--mist);
+  border-radius: 8px;
+  padding: 6px 8px;
+  user-select: all;
+}
+
 .card-grid--act { grid-template-columns: 1fr; }
 
 @media (min-width: 720px) {

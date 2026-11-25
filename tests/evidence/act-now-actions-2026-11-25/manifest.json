@@ -1,0 +1,38 @@
+{
+  "leg": "Act now: the two CTA buttons move into one centered row beneath the two ask columns, plus an Add to Calendar dropdown (native details/summary, static .ics asset) and a measured-contrast check (operator directive via the lane lieutenant, ledger row 129)",
+  "date": "2026-11-25",
+  "branch": "bb/act-now-centering-calendar-thr_t9dvrarnfz",
+  "base": "a8453bc (origin/main at leg start; the dispatch named 4fe95f5, one commit behind - 4fe95f5 is an ancestor of a8453bc)",
+  "operator_directive_points_verbatim": [
+    "The page's two CTA buttons center as a row beneath the two ask columns (one row under BOTH columns, not each under its own column), wrapping to a stacked, still-centered pair at mobile width",
+    "Part 2 - ADD TO CALENDAR, dropdown, three entries, NO third-party widget or external calendar service script",
+    "DURATION ASSUMPTION, NAMED: no end time is on record. Block 6:30-8:30 p.m., state the assumption in the PR body, and show \"6:30 p.m.\" (never the end time) as the time in page text",
+    "do NOT sample any annotation's colors, geometry or proportions as design tokens; build in the site's real design system... measure the REAL rendered pair against the suite's contrast floor and fix if it fails, naming the measured ratios in the PR"
+  ],
+  "mechanism": "The Email button leaves the first .ask-step; a new .ask-actions flex row (justify-content: center, wrapping) after the .ask-steps grid carries BOTH controls - the orange .btn--cta Email CTA and the Add to Calendar native <details>/<summary> wearing the family's .btn--light. Below 720px the row stacks into a still-centered column. The dropdown ships no script: the summary is a native button-role toggle (accessible name = its own text 'Add to Calendar'), and the menu is a white card-grammar panel (2px --teal-900 border, standing shadow) with three plain-verb entries: Google Calendar (standard no-auth template URL, dates=20261201T233000Z/20261202T013000Z, target=_blank rel=noopener), Apple / download .ics (assets/calendar/city-council-workshop-2026-12-01.ics, download attribute), Other - copy link (the absolute ICS URL in a user-select:all code chip with 'Copy this link into your calendar app.').",
+  "duration_assumption": "no end time is on record; the calendar entries block 6:30-8:30 p.m. (DTSTART 20261201T183000 / DTEND 20261201T203000, TZID America/New_York; EST is UTC-5 so the Google URL runs 23:30Z to 01:30Z Dec 2). Page text shows only '6:30 p.m.'; '8:30' appears nowhere in the built page (pinned). A duration correction is a one-line .ics asset change plus the Google URL's dates param.",
+  "annotation_discipline": "the operator's screenshot (washed-out pink label on a dark tile) was treated as an annotation of intent per AGENTS.md design-input discipline; no annotation colour, geometry or proportion was sampled. The implementation builds in the site's tokens; the REAL rendered pairs were measured instead.",
+  "contrast_measured_wcag2x": {
+    "floors": "4.5:1 text below 18.66px bold / 24px; 3:1 non-text (WCAG_COMPLIANCE.md contract)",
+    "pairs": [
+      {"pair": "panel ink: #fff on --teal-900 #1d3e40", "ratio": "11.57:1", "verdict": "pass"},
+      {"pair": "Add to Calendar summary: --teal-900 ink on #fff fill (.btn--light)", "ratio": "11.57:1", "verdict": "pass"},
+      {"pair": "Email the Council: #fff on --orange-dark #b8401a (.btn--cta, recorded pair)", "ratio": "5.55:1", "verdict": "pass"},
+      {"pair": "menu links: --teal-900 on --paper", "ratio": "11.57:1", "verdict": "pass"},
+      {"pair": "menu hint: --muted #5c6b6d on --paper", "ratio": "5.56:1", "verdict": "pass"},
+      {"pair": "menu border: --teal-900 on --paper (non-text)", "ratio": "11.57:1", "verdict": "pass"},
+      {"pair": "focus ring on the panel: --cyan-soft on --teal-900 (non-text, the existing .callout--ask override)", "ratio": "10.10:1", "verdict": "pass"}
+    ],
+    "fix_during_leg": "the menu panel initially inherited the dark panel's white ink (.callout--ask sets color:#fff), leaving the 'Other - copy link' label white-on-white - caught by READING the open-menu capture, fixed with color: var(--ink) on .cal-add__menu (11.57:1). The annotation's washed-out pink therefore corresponds to a real inheritance defect this fix closes; the annotation's colour itself was never sampled."
+  },
+  "keyboard_proof": "keyboard-proof.json, recorded in headless Chromium against the built page: Enter on the focused summary opens (hasAttribute('open') true), Tab moves focus to the first menu entry (Google Calendar), Shift+Tab back + Enter closes, Space re-opens and closes. Screen-reader labeling is the summary's native button role and visible text.",
+  "captures": [
+    "before-412.jpg / before-1440.jpg - pre-change build (button inside the left ask column, no calendar control)",
+    "after-412.jpg / after-1440.jpg - one centered row under BOTH columns; at 412px the pair stacks, still centered",
+    "after-412-open.jpg / after-1440-open.jpg - dropdown open at both widths",
+    "menu-zoom-1440.jpg - zoomed open menu: all three entries and the copy-link hint legible"
+  ],
+  "capture_notes": "viewport screenshots of act-now.html served by a local http.server over the freshly built docs/; taken with the bb browser-automation headless session at 412x900 and 1440x900; every capture read by the leg before reporting",
+  "checks": {"suite": "267 passed, 1 skipped (263 baseline + 4 new red-first pins; 2 existing pins retargeted as recorded corrections citing row 129 words; the focus-ring census gained a same-specificity cascade fix so .callout--ask resolves as the true surface behind the panel's controls)", "external_allowlist": "calendar.google.com added with the row-129 citation", "scanner": "not run separately; publish scanner rules untouched", "visual": "captures read; layout clean at both widths"},
+  "not_done": "not published, not merged; the shared root checkout untouched; staging-bar.js, gate code (tools/publish.py GATE_HEAD_BLOCK, tools/staging_serve.py), serve workflows and staging-bar styles untouched; report 2026-11-24-6 and PR 59 untouched; the served .ics content-type (text/calendar) check belongs to the orchestrator's serve turn and is stated as pending in the PR"
+}

@@ -66,6 +66,11 @@ EXTERNAL_ALLOWLIST = (
     "southportland.gov",
     "southportland.org",
     "protectsouthportland.com",
+    # ledger row 129 (operator directive, 2026-11-25): the Act now Add to
+    # Calendar dropdown links Google's standard no-auth template URL
+    # (calendar.google.com/render?action=TEMPLATE) — a hand-built link to the
+    # reader's own calendar, not an embedded widget or service script.
+    "calendar.google.com",
     "docs.google.com",
     "drive.google.com",
     "diligentoneplatform.com",
@@ -3501,9 +3506,19 @@ def _resolve_outline(declarations):
 
 
 def _class_backgrounds(css):
-    """Background each single-class rule declares, plus the body's own."""
+    """Background each single-class rule declares, plus the body's own.
+
+    Alongside the fills this records each class's rule position in the
+    stylesheet (source order), because one element can carry several of these
+    classes at once — `class="callout callout--ask"` — and the surface the
+    browser paints is the same-specificity rule that comes LAST, not the
+    first class in the attribute.
+    """
     backgrounds = {}
+    order = {}
+    counter = 0
     for _media, selector, body in _css_rules(css):
+        counter += 1
         if ":" in selector:
             continue
         declarations = _css_declarations(body)
@@ -3515,20 +3530,30 @@ def _class_backgrounds(css):
             m = re.fullmatch(r"\.([\w-]+)", part)
             if m:
                 backgrounds[m.group(1)] = fill
+                order[m.group(1)] = counter
             elif part == "body":
                 backgrounds["body"] = fill
-    return backgrounds
+                order["body"] = counter
+    return backgrounds, order
 
 
-def _surface_behind(ancestors, backgrounds, variables):
-    """(label, rgb) for the nearest ancestor that paints a surface."""
+def _surface_behind(ancestors, backgrounds, background_order, variables):
+    """(label, rgb) for the nearest ancestor that paints a surface.
+
+    When one ancestor carries several background-declaring classes, the
+    winner is the rule latest in the stylesheet — the same-specificity
+    cascade, which is what the browser renders. This is what lets
+    `.callout--ask` (teal-900, declared later) beat the base `.callout`
+    (cyan-soft) as the true surface behind the panel's controls.
+    """
     for _tag, classes in reversed(ancestors):
-        for name in classes:
-            if name in backgrounds:
-                fill = backgrounds[name]
-                if fill.startswith("rgba"):
-                    continue
-                return f".{name}", _css_color(fill, variables)
+        candidates = [(background_order[name], name)
+                      for name in classes
+                      if name in backgrounds
+                      and not backgrounds[name].startswith("rgba")]
+        if candidates:
+            _order, name = max(candidates)
+            return f".{name}", _css_color(backgrounds[name], variables)
     assert "body" in backgrounds, (
         "the stylesheet must declare body's background: it is the surface "
         "every unbanded button is read against")
@@ -3539,7 +3564,7 @@ def _button_census(docs):
     """{(variant tuple, surface label): ring ratio} for every rendered button."""
     css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
     variables = _css_variables(css)
-    backgrounds = _class_backgrounds(css)
+    backgrounds, background_order = _class_backgrounds(css)
     rules = _focus_rules(css)
     census = {}
     for dirpath, _dirnames, filenames in os.walk(docs):
@@ -3551,7 +3576,7 @@ def _button_census(docs):
             for tag, classes, ancestors in walker.found:
                 variant = tuple(c for c in classes if _is_btn_class(c))
                 surface, surface_rgb = _surface_behind(
-                    ancestors, backgrounds, variables)
+                    ancestors, backgrounds, background_order, variables)
                 applicable = _matching_focus_rules(rules, tag, classes, ancestors)
                 winner = applicable[-1][2] if applicable else None
                 width, style, colour, offset = _resolve_outline(
@@ -4422,13 +4447,11 @@ def test_act_now_primary_cta_holds_two_equal_steps(docs):
                             "site", "pages", "act-now.html"), encoding="utf-8").read()
     start = act.index('<div class="ask-steps">')
     end = act.index("</div>", act.index("ask-step", start + 20))
-    steps = act[start:act.index('<div class="prose">')]
+    steps = act[start:act.index('<div class="ask-actions">')]
     assert steps.count('class="ask-step"') == 2
-    # step one: the email action, unchanged label and mechanism (the build
-    # consumes the marker and ships the populated body)
+    # step one keeps its copy and its lede weight; the button itself moved to
+    # the centered actions row (operator directive, 2026-11-25, pinned below)
     assert "<strong>Email the Council</strong>" in steps
-    assert 'data-mailto-body="blockquote"' in src
-    assert "body=" in steps
     # step two: the show-up ask, composed from the banner facts
     assert "<strong>Wear green</strong>" in steps
     assert "come to the City Council meeting" in steps
@@ -4436,6 +4459,146 @@ def test_act_now_primary_cta_holds_two_equal_steps(docs):
     # equal weight: the two-column grid at 720px and above, one column below
     assert re.search(r"\.ask-steps \{[^}]*grid-template-columns: 1fr", css, re.S)
     assert re.search(r"@media \(min-width: 720px\) \{\s*\.ask-steps \{ grid-template-columns: 1fr 1fr; \}", css, re.S)
+
+
+def test_act_now_actions_center_as_one_row(docs):
+    """Operator directive, 2026-11-25 (ledger row 129), verbatim: the page's
+    two CTA buttons center as a row beneath the two ask columns — one row
+    under BOTH columns, not each under its own column — wrapping to a
+    stacked, still-centered pair at mobile width. The Email button therefore
+    leaves the first ask-step, and the actions row is a sibling that follows
+    the whole .ask-steps grid, so both controls sit under both columns. The
+    second control is the Add to Calendar dropdown the same directive adds;
+    its structure is pinned by the calendar tests below.
+    """
+    act = read(docs, "act-now.html")
+    css = read(docs, "styles.css")
+    start = act.index('<div class="ask-steps">')
+    steps = act[start:act.index('<div class="ask-actions">')]
+    actions = act[act.index('<div class="ask-actions">'):act.index('<div class="prose">')]
+    # the button no longer sits under its own column
+    assert 'class="btn btn--cta"' not in steps, (
+        "the Email button still sits inside the ask steps; it belongs in the "
+        "centered actions row beneath both columns (operator directive, 2026-11-25)")
+    # one row under BOTH columns: the actions row follows the whole grid
+    assert steps.count('class="ask-step"') == 2
+    assert actions.count('class="btn btn--cta"') == 1
+    assert '<details class="cal-add">' in actions
+    # the CTA keeps its blockquote-fill mechanism in its new home: the source
+    # page opts in with the marker and the built page ships the populated body
+    assert 'data-mailto-body="blockquote"' in _act_now_source()
+    assert "body=" in actions
+    # centered: the row is a centered wrapping flex row, and below 720px it
+    # stacks into a still-centered column
+    assert re.search(
+        r"\.ask-actions \{[^}]*justify-content: center", css, re.S)
+    assert re.search(r"\.ask-actions \{[^}]*flex-wrap: wrap", css, re.S)
+    stack = re.search(r"@media \(max-width: 719\.9?px\) \{[^}]*\.ask-actions \{[^}]*flex-direction: column", css, re.S)
+    assert stack, "the actions row must stack below 720px (still centered)"
+
+
+def test_act_now_calendar_dropdown_is_native_details(docs):
+    """Operator directive, 2026-11-25 (ledger row 129): an Add to Calendar
+    dropdown with three entries and NO third-party widget or external
+    calendar service script. The mechanism is the native <details>/<summary>
+    element: its keyboard toggle (Enter/Space on the focused summary) and its
+    screen-reader labeling (the summary is a native button-role toggle whose
+    accessible name is its text) are the element's own semantics, so no
+    script and no ARIA repair ships here. Entries are plain verbs.
+    """
+    act = read(docs, "act-now.html")
+    start = act.index('<details class="cal-add">')
+    end = act.index("</details>", start)
+    dropdown = act[start:end]
+    # the native toggle, labeled for screen readers by its own text
+    assert '<summary class="btn btn--light">Add to Calendar</summary>' in dropdown
+    # three entries, plain verbs
+    assert ">Google Calendar</a>" in dropdown
+    assert ">Apple / download .ics</a>" in dropdown
+    assert "Other" in dropdown and "copy link" in dropdown
+    # the Google entry opens in a new tab and cannot leak window references
+    google = re.search(r'<a [^>]*href="https://calendar\.google\.com/[^"]*"[^>]*>', dropdown).group(0)
+    assert 'target="_blank"' in google
+    assert 'rel="noopener"' in google
+    # the .ics entry points at the static asset built into the tree
+    assert 'href="assets/calendar/city-council-workshop-2026-12-01.ics"' in dropdown
+    # the copy-link entry shows the absolute ICS URL as selectable text
+    assert "https://www.protectsouthportland.org/assets/calendar/city-council-workshop-2026-12-01.ics" in dropdown
+    assert "Copy this link into your calendar app." in dropdown
+    # no third-party widget and no external calendar service script: the
+    # page's only script is the staging bar the build stamps on every page,
+    # and no add-to-calendar widget vendor appears anywhere
+    for script in re.findall(r"<script[^>]*src=\"([^\"]+)\"", act):
+        assert script == "assets/js/staging-bar.js", script
+    for vendor in ("addtocalendar", "calendly", "eventbrite", "calendarlabs",
+                   "addevent.com", "script.addthis"):
+        assert vendor not in act.lower(), vendor
+    # the page shows only the recorded start time; the 6:30-8:30 block is the
+    # named duration assumption and lives in the calendar entry alone
+    assert "8:30" not in act
+    assert "6:30 p.m." in act
+
+
+def test_act_now_google_calendar_url_carries_the_right_utc_dates(docs):
+    """Operator directive, 2026-11-25 (ledger row 129): the Google Calendar
+    entry uses the standard no-auth template URL for the fixed event —
+    Tuesday, Dec. 1, 6:30 p.m., City Hall Council Chambers, 25 Cottage Road,
+    timezone America/New_York. December is EST (UTC-5), so 6:30 p.m. local is
+    23:30Z and the two-hour block runs to 01:30Z on Dec. 2.
+    """
+    act = read(docs, "act-now.html")
+    start = act.index('<details class="cal-add">')
+    end = act.index("</details>", start)
+    dropdown = act[start:end]
+    href = re.search(r'href="(https://calendar\.google\.com/[^"]+)"', dropdown).group(1)
+    url = html.unescape(href)
+    assert url.startswith("https://calendar.google.com/render?action=TEMPLATE&")
+    params = dict(part.partition("=")[::2] for part in url.split("?", 1)[1].split("&"))
+    assert params["action"] == "TEMPLATE"
+    assert params["dates"] == "20261201T233000Z/20261202T013000Z"
+    assert "City%20Council%20Workshop" in params["text"]
+    assert "25%20Cottage%20Road" in params["location"]
+    # the invite carries the ask, not stage guidance
+    assert "{{" not in url and "}}" not in url
+
+
+def _act_now_source():
+    return open(os.path.join(ROOT, "site", "pages", "act-now.html"),
+                encoding="utf-8").read()
+
+
+def test_calendar_ics_asset_parses_with_the_right_event(docs):
+    """Operator directive, 2026-11-25 (ledger row 129): the Apple/other-clients
+    entry downloads a static .ics asset shipped in the built tree, TZID
+    America/New_York, carrying SUMMARY, LOCATION, DTSTART and DTEND for the
+    Dec. 1 workshop. Pages serves .ics as text/calendar; the served
+    content-type is verified by the orchestrator's serve turn and is stated
+    as pending in this leg's pull request.
+    """
+    path = os.path.join(docs, "assets", "calendar",
+                        "city-council-workshop-2026-12-01.ics")
+    raw = open(path, "rb").read()
+    text = raw.decode("utf-8")
+    # RFC 5545 wants CRLF
+    assert "\r\n" in text and "\n\n" not in text.replace("\r\n", "")
+    lines = text.replace("\r\n", "\n").splitlines()
+    unfolded = []
+    for line in lines:
+        if line[:1] in (" ", "\t") and unfolded:
+            unfolded[-1] += line[1:]
+        else:
+            unfolded.append(line)
+    joined = "\n".join(unfolded)
+    assert "BEGIN:VCALENDAR" in joined and "END:VCALENDAR" in joined
+    assert "BEGIN:VTIMEZONE" in joined and "TZID:America/New_York" in joined
+    event = joined[joined.index("BEGIN:VEVENT"):joined.index("END:VEVENT")]
+    assert event.count("DTSTART;TZID=America/New_York:20261201T183000") == 1
+    assert event.count("DTEND;TZID=America/New_York:20261201T203000") == 1
+    assert "SUMMARY:City Council workshop (Protect South Portland)" in event
+    # text values escape their commas per RFC 5545; unescape before comparing
+    unescaped = event.replace("\\,", ",")
+    assert "LOCATION:City Hall Council Chambers, 25 Cottage Road, South Portland, ME" in unescaped
+    assert "UID:" in event and "DTSTAMP:" in event
 
 
 def test_act_now_cta_tiles_lead_the_grid(docs):
@@ -4469,8 +4632,15 @@ def test_act_now_cta_tiles_lead_the_grid(docs):
     # follow, and all four carry the same white .card style
     assert body.count('class="card card--glow"') == 2
     assert body.index("the council weighs what to require</h2>") < body.index("Report an odor</h2>") < body.index("Donate</h2>")
-    # the tile actions are the cards' own card__more grammar, not buttons
-    assert 'btn--light' not in act
+    # the tile actions are the cards' own card__more grammar, not buttons.
+    # Recorded correction (2026-11-25, ledger row 129), the operator's
+    # directive: the page gains an Add to Calendar dropdown, and its trigger
+    # renders the previously unrendered `.btn--light` family member on the
+    # panel. The pin's intent is unchanged and still asserted below: the four
+    # cards' actions stay card__more links; the only btn--light on the page is
+    # the calendar summary, never a card action.
+    assert act.count("btn--light") == 1
+    assert '<summary class="btn btn--light">Add to Calendar</summary>' in act
     assert '<a class="card__more" href="share-your-story.html">SHARE YOUR STORY →</a>' in body
     assert '<a class="card__more" href="act-now.html">WORKSHOP DETAILS →</a>' in body
     # the glow is the only difference, and it is built from palette tokens
