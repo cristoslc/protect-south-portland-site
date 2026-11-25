@@ -529,10 +529,15 @@ def page_url(base, page):
     return urllib.parse.urljoin(base if base.endswith("/") else base + "/", page)
 
 
-def fetch_html(url, timeout=20.0):
+def fetch_html(url, timeout=20.0, extra_headers=None):
     """GET one page as text. Raises PayloadFetchError — an environment fault,
-    never a site finding."""
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    never a site finding. extra_headers (ledger row 128): the staging gate's
+    psp_staging cookie header, attached by the scheduled consumers so a gated
+    serve is read exactly as an unlocked reviewer reads it."""
+    headers = {"User-Agent": USER_AGENT}
+    if extra_headers:
+        headers.update(extra_headers)
+    request = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             status = getattr(response, "status", None)

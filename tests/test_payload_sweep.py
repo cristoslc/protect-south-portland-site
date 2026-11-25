@@ -97,7 +97,7 @@ def test_shape_refuses_html_without_the_built_shell():
 
 def test_checked_fetch_raises_loud_on_a_wrong_document(monkeypatch):
     monkeypatch.setattr(uat_payload, "fetch_html",
-                        lambda url: "<html><body>wrong site</body></html>")
+                        lambda url, extra_headers=None: "<html><body>wrong site</body></html>")
     with pytest.raises(AuditInfraError, match="index.html"):
         ps.checked_fetch("index.html", "https://staging.example.org/")
 
@@ -189,8 +189,9 @@ def test_digest_body_renders_verdict_table_and_delta():
 
 def test_findings_exit_zero_and_file_a_report(monkeypatch):
     findings, _ = ps.run_sweep("https://staging.example.org/",
-                               ["act-now.html"], lambda page: MISMATCH_PAGE)
-    monkeypatch.setattr(ps, "run_sweep", lambda base, pages: (findings, {}))
+                               ["act-now.html"], lambda page, extra_headers=None: MISMATCH_PAGE)
+    monkeypatch.setattr(ps, "run_sweep",
+                        lambda base, pages, fetcher=None, extra_headers=None: (findings, {}))
     monkeypatch.setattr(ps, "sweep_pages", lambda: ["act-now.html"])
     assert ps.main(["--skip-issue", "--url", "https://staging.example.org/"]) == 0
 
@@ -199,7 +200,7 @@ def test_infra_failure_is_the_only_nonzero_exit(monkeypatch):
     for fault in (uat_payload.PayloadFetchError("cannot fetch index.html: "
                                                 "status 503"),
                   AuditInfraError("unrecognised page shape for index.html")):
-        def broken(base, pages, fault=fault):
+        def broken(base, pages, fault=fault, extra_headers=None):
             raise fault
 
         monkeypatch.setattr(ps, "run_sweep", broken)
@@ -217,5 +218,7 @@ def test_workflow_sweeps_on_a_weekday_morning_and_files_issues():
     assert "workflow_dispatch:" in text
     assert "concurrency:" in text and "group: payload-sweep" in text
     assert "python3 tools/payload_sweep.py" in text
-    # same non-blocking contract the staging audit's workflow declares
-    assert "secrets." not in text
+    # recorded correction (row 128): the sweep attaches the gate cookie, so
+    # the workflow names the psp_staging passphrase secret (as the audit's
+    # workflow has since row 46)
+    assert "PSP_STAGING_PASSPHRASE: ${{ secrets.PSP_STAGING_PASSPHRASE }}" in text

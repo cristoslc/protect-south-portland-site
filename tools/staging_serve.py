@@ -47,6 +47,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import publish
 import psp_public
 import release_check
 
@@ -55,18 +56,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STAGING_HOST = "staging.protectsouthportland.org"  # ledger row 41
 SERVE_BRANCH = "staging-pages"
 
-# The staging variant of the crawl policy. docs/ ships the tracked
-# Allow-all robots.txt that production serves; the serve branch rewrites
-# it, exactly the way the row-42 staging leg always did.
-STAGING_ROBOTS_TEXT = (
-    "# Staging serve branch — not the production site.\n"
-    "User-agent: *\n"
-    "Disallow: /\n"
-)
-
-# Row 42's honest core, carried into the serve tree: search engines are
-# told to stay out of the preview. Injected after <head> on every page.
-NOINDEX_META = '<meta name="robots" content="noindex, nofollow">'
+# the serve tree's robots variant and noindex injection come from
+# publish.apply_staging_gate (row 42 as amended by row 60; ledger row 128)
 
 
 def require_fresh(diffs):
@@ -82,7 +73,12 @@ def require_fresh(diffs):
             "build, refusing to serve it:\n  " + "\n  ".join(diffs))
 
 
-def prepare_serve_tree(src_docs, dst, cname, base_sha=None):
+GATE_MARKER = publish.GATE_MARKER
+GATE_ROBOTS_TEXT = publish.GATE_ROBOTS_TEXT
+
+
+def prepare_serve_tree(src_docs, dst, cname, base_sha=None, passphrase=None):
+    """... (gate note) ..."""
     """Build the serve tree in dst from the committed docs/ tree.
 
     Copy (minus any CNAME file), scan the copy before injecting anything
@@ -90,7 +86,11 @@ def prepare_serve_tree(src_docs, dst, cname, base_sha=None):
     crawl protection, the noindex meta on every page, .nojekyll, and the
     CNAME that names the staging host. Writes staging-manifest.json (the
     staging preview bar's served time and the fork sha the tree was built
-    from; ledger row 127). Returns the gated page count.
+    from; ledger row 127). Then the row-42 cookie gate rides this same tree:
+    the passphrase resolves from the environment (workspace .env fallback),
+    a serve run refuses loud without one, and publish.apply_staging_gate
+    injects the noindex meta and the gate into every served page (row 128;
+    ledger row 42 as amended by row 60). Returns the gated page count.
     """
     os.makedirs(dst, exist_ok=True)
     for entry in sorted(os.listdir(src_docs)):
@@ -110,29 +110,11 @@ def prepare_serve_tree(src_docs, dst, cname, base_sha=None):
          encoding="utf-8").write(json.dumps(manifest) + "\n")
     psp_public.assert_clean(
         psp_public.scan_tree(dst), "staging serve tree (pre-injection)")
-    open(os.path.join(dst, "robots.txt"), "w", encoding="utf-8").write(
-        STAGING_ROBOTS_TEXT)
-    headless = []
-    count = 0
-    for dirpath, dirnames, filenames in os.walk(dst):
-        dirnames.sort()
-        for name in sorted(filenames):
-            if not name.endswith(".html"):
-                continue
-            path = os.path.join(dirpath, name)
-            text = open(path, encoding="utf-8").read()
-            if "<head>" not in text:
-                headless.append(os.path.relpath(path, dst))
-                continue
-            open(path, "w", encoding="utf-8").write(
-                text.replace("<head>", "<head>\n" + NOINDEX_META, 1))
-            count += 1
-    if headless:
-        raise SystemExit(
-            "staging serve: page(s) carry no <head>, so the noindex meta "
-            "cannot protect them, refusing: " + ", ".join(headless))
     open(os.path.join(dst, "CNAME"), "w", encoding="utf-8").write(cname + "\n")
-    return count
+    if passphrase is None:
+        passphrase = publish.staging_passphrase()
+    gated = publish.apply_staging_gate(dst, passphrase)
+    return gated
 
 
 def _git(*cmd, cwd):

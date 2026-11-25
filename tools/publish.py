@@ -214,7 +214,8 @@ def repo_pages_base(repo):
 GATE_HEAD_BLOCK = r'''<meta name="robots" content="noindex, nofollow">
 <style>
 .staging-gate body{visibility:hidden!important}
-.staging-gate-overlay{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#122a2c;color:#e6f1f1;font:16px/1.5 'Segoe UI',system-ui,sans-serif}
+.staging-gate .staging-bar{visibility:visible!important;position:relative;z-index:2147483647}
+.staging-gate-overlay{position:fixed;inset:0;z-index:2147483646;display:flex;align-items:center;justify-content:center;background:#122a2c;color:#e6f1f1;font:16px/1.5 'Segoe UI',system-ui,sans-serif}
 .staging-gate-card{background:#fff;color:#26383a;padding:22px 26px;border-radius:14px;max-width:22rem;box-shadow:0 2px 14px rgba(0,0,0,.35)}
 .staging-gate-title{margin:0 0 10px;font-weight:800;color:#1d3e40}
 .staging-gate-label{display:block;margin-bottom:6px;font-size:.85rem;color:#5c6b6d}

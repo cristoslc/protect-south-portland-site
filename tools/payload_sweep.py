@@ -32,9 +32,15 @@ shape its committed build has: a real HTML document containing the built
 shell's `<main id="content">` or the map pages' `id="map"`. Anything else
 is an infrastructure failure, not a pass.
 
-Cookieless by design: the rung fetches without the row-42 gate cookie
-(GitHub Pages serves the full HTML regardless; the gate is browser-side),
-so the schedule needs no secrets — same fetch, same rule, same result.
+Gate-aware (ledger row 128, the operator's reversal): the rung attaches
+the same psp_staging cookie the audit attaches, so a gated serve is read
+exactly as an unlocked reviewer reads it, and a missing passphrase against
+the default staging host fails loud instead of sweeping silently. Pages
+serves the full HTML either way — the gate is browser-side — so what each
+fetch sees on a "200-with-curtain" response is the same bytes either
+consumer always saw, and the wrong-document shape rule (<main id="content">
+or the map id) remains the loud catch for anything else the serve might
+produce.
 
 Usage:
   python3 tools/payload_sweep.py                       # sweep staging, file the digest
@@ -54,7 +60,8 @@ import build
 import uat_payload
 from staging_audit import (AuditInfraError, Finding, create_issue,
                            decide_exit, delta, ensure_labels,
-                           extract_previous_findings, last_digest_issue)
+                           extract_previous_findings, gate_extra_headers,
+                           last_digest_issue)
 
 SITE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -95,10 +102,12 @@ def shape_fault(page, markup):
     return None
 
 
-def checked_fetch(page, base):
+def checked_fetch(page, base, extra_headers=None):
     """Fetch one page by URL, refusing a wrong-document 200 (see module
-    docstring). Raises PayloadFetchError / AuditInfraError — both loud."""
-    markup = uat_payload.fetch_html(uat_payload.page_url(base, page))
+    docstring). Raises PayloadFetchError / AuditInfraError — both loud.
+    extra_headers carries the gate cookie header (row 128)."""
+    markup = uat_payload.fetch_html(uat_payload.page_url(base, page),
+                                    extra_headers=extra_headers)
     fault = shape_fault(page, markup)
     if fault:
         raise AuditInfraError(fault)
@@ -119,12 +128,13 @@ def finding_row(finding_text):
     return Finding(id=f"payload:{kind}:{page}:{digest}", title=finding_text)
 
 
-def run_sweep(base, pages, fetcher=None):
+def run_sweep(base, pages, fetcher=None, extra_headers=None):
     """The rung against `base`, shape-checked. Returns digest Findings and
     the per-page reports; any fetch/shape fault raises (loud). `fetcher`
     defaults to the real checked fetch and is injectable for tests."""
     if fetcher is None:
-        fetcher = lambda page: checked_fetch(page, base)  # noqa: E731
+        fetcher = lambda page: checked_fetch(page, base,
+                                             extra_headers=extra_headers)  # noqa: E731
     findings, reports = [], {}
     for page in pages:
         report = uat_payload.inspect_page(fetcher(page), page)
@@ -197,7 +207,10 @@ def main(argv=None):
     pages = sweep_pages()
 
     try:
-        findings, reports = run_sweep(base, pages)
+        # row 128: the gate cookie rides the sweep; a missing passphrase
+        # against the staging host fails loud via gate_extra_headers
+        extra_headers = gate_extra_headers(base)
+        findings, reports = run_sweep(base, pages, extra_headers=extra_headers)
     except (uat_payload.PayloadFetchError, AuditInfraError) as exc:
         print(f"INFRASTRUCTURE FAILURE — {exc}", file=sys.stderr)
         print("Findings are non-blocking by contract; a broken environment is "

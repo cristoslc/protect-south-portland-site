@@ -55,15 +55,17 @@ def test_serve_tree_swaps_domain_and_adds_crawl_protection(tmp_path):
     src = _fixture_docs(tmp_path / "src")
     dst = tmp_path / "serve"
     pages = staging_serve.prepare_serve_tree(
-        str(src), str(dst), "staging.protectsouthportland.org")
+        str(src), str(dst), "staging.protectsouthportland.org",
+        passphrase="serve-tree-test")
     assert pages == 1
     assert (dst / "CNAME").read_text() == "staging.protectsouthportland.org\n"
-    assert (dst / "robots.txt").read_text() == staging_serve.STAGING_ROBOTS_TEXT
+    assert (dst / "robots.txt").read_text() == staging_serve.GATE_ROBOTS_TEXT
     assert "Disallow: /" in (dst / "robots.txt").read_text()
     assert (dst / ".nojekyll").exists()
     served = (dst / "index.html").read_text()
-    assert staging_serve.NOINDEX_META in served
-    assert served.index(staging_serve.NOINDEX_META) < served.index("</head>")
+    # row 128: the noindex rides inside the gate block now (row 42 machinery)
+    assert '<meta name="robots" content="noindex, nofollow">' in served
+    assert served.index('<meta name="robots" content="noindex, nofollow">') < served.index("</head>")
     assert "some-other-host.example" not in served
 
 
@@ -101,7 +103,7 @@ def test_serve_tree_gates_every_page(tmp_path, monkeypatch):
     assert "staging-gate-wrong" in served, "a wrong phrase errors and stays locked"
     assert 'Max-Age=2592000' in served, "the cookie persists 30 days"
     # the robots.txt the serve writes is the staging Disallow-all variant
-    assert (dst / "robots.txt").read_text() == staging_serve.STAGING_ROBOTS_TEXT
+    assert (dst / "robots.txt").read_text() == staging_serve.GATE_ROBOTS_TEXT
 
 
 def test_serve_refuses_loud_without_a_passphrase(tmp_path, monkeypatch):
@@ -129,7 +131,7 @@ def test_serve_tree_writes_the_preview_manifest(tmp_path):
     dst = tmp_path / "serve"
     staging_serve.prepare_serve_tree(
         str(src), str(dst), "staging.protectsouthportland.org",
-        base_sha="abcdef1234567890")
+        base_sha="abcdef1234567890", passphrase="serve-tree-test")
     manifest = json.loads((dst / "staging-manifest.json").read_text())
     assert manifest["head"] == "abcdef1234567890"
     # the serve time is a parseable UTC ISO instant, seconds precision
@@ -144,7 +146,8 @@ def test_a_headless_page_refuses_the_serve(tmp_path):
     src = _fixture_docs(tmp_path / "src", head=False)
     with pytest.raises(SystemExit) as loud:
         staging_serve.prepare_serve_tree(
-            str(src), str(tmp_path / "serve"), "staging.example")
+            str(src), str(tmp_path / "serve"), "staging.example",
+            passphrase="serve-tree-test")
     assert "no <head>" in str(loud.value)
 
 
@@ -293,9 +296,10 @@ def test_cli_prepare_only_run_stands_up_end_to_end():
     The default path prepares and verifies without pushing, which is what
     a local operator run looks like; only --push writes the branch.
     """
+    env = dict(os.environ, PSP_STAGING_PASSPHRASE="cli-e2e-test")
     proc = subprocess.run(
         [sys.executable, os.path.join(ROOT, "tools", "staging_serve.py")],
-        cwd=ROOT, capture_output=True, text=True)
+        cwd=ROOT, capture_output=True, text=True, env=env)
     assert proc.returncode == 0, proc.stderr
     assert "pages prepared" in proc.stdout
     assert "staging.protectsouthportland.org" in proc.stdout
