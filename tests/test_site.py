@@ -3746,6 +3746,49 @@ def test_act_now_secondary_cards_center_both_axes():
             f"the alignment leaked out of the .card-grid--act scope: {sel}")
 
 
+def test_act_now_controls_share_one_middle_axis():
+    """Operator directive, 2026-11-25 (ledger row 142), verbatim: "buttons
+    should be middle-aligned." - the featured block's two per-column controls
+    (EMAIL THE COUNCIL, ADD TO CALENDAR) landed at unequal verticals because
+    the columns' paragraphs have different natural heights and each control
+    sits directly under its own text (the row-129 per-column layout). The fix
+    is structural, not a nudge: above 720px the grid already stretches both
+    columns to the row height, so the ask-step becomes a flex column and the
+    action line's auto margin pins BOTH controls to the same shared bottom
+    axis, with a 14px padding floor keeping the minimum gap. The screenshot's
+    intent (one shared middle axis for the pair) is met; the annotation rule
+    bars reading anything else from the image. Row 129 stands - each control
+    stays in its own column; only the vertical alignment between them
+    changes. The mobile stacked shape is exactly as shipped: the base
+    .ask-step__action rule keeps its own margin and no auto margin exists
+    outside the min-width query.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    assert re.search(r"@media \(min-width: 720px\)[^{]*\{[^@]*?\.ask-step \{ display: flex; flex-direction: column; \}", css, re.S), (
+        "the axis media block is missing")
+    start = css.index(".ask-step { display: flex; flex-direction: column; }")
+    body = css[start:css.index("\n}", start)]
+    assert re.search(r"\.ask-step \{ display: flex; flex-direction: column; \}", css), (
+        "the ask-step must become a flex column above 720px")
+    assert re.search(r"\.ask-step__action \{ margin-top: auto; padding-top: 14px; \}", body), (
+        "the auto margin must pin both controls to the shared bottom axis")
+    assert re.search(r"\.cal-add \{ margin: 0; \}", body), (
+        "the details element's UA margin must be zeroed inside the query so "
+        "the calendar trigger sits on the shared axis")
+    # the mobile shape is untouched: the base rule keeps its fixed margin and
+    # the auto margin exists only inside the min-width query
+    assert re.search(r"\.ask-step__action \{ text-align: center; margin-top: 14px; \}", css), (
+        "the base (mobile) action rule must stay as shipped")
+    pre_rules = css[:start]
+    assert not re.search(r"\.ask-step__action \{[^}]*margin-top: auto", pre_rules), (
+        "the stacked mobile shape must not gain the auto margin")
+    # cascade integrity: the axis block sits AFTER the base rule, so the same
+    # specificity source order gives margin-top: auto the win above 720px
+    assert css.index(".ask-step__action { margin-top: auto") > css.index(
+        ".ask-step__action { text-align: center; margin-top: 14px; }"), (
+        "the axis rules must follow the base action rule in source order")
+
+
 def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
     """Ledger row 95: the family keeps a visible ring wherever it renders.
 
