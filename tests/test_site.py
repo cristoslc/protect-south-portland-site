@@ -342,39 +342,88 @@ def test_site_wide_alert_strip(docs):
     """staging-feedback issue #2 (2026-11-24), the operator's first ask this
     morning with Dec. 1 seven days out: "We need an alert banner at the top
     of the site, on every page, that asks people to come to the 12/1 meeting
-    and wear green."
+    and wear green." Upgraded 2026-11-25 (ledger row 124) by the operator's
+    mobile-screenshot directive, quoted verbatim: "Banner should be sticky /
+    Banner should be under nav / Banner should be dismissible (but not
+    cookies, or short lived so it returns next day) / Shouldn't have so much
+    empty room, not so much sky on Mobile / Banner text more like 'Next
+    event: City council meeting, {{when & where}}. Show up by wearing green!
+    {{Glyph/minor text for more}}'".
 
-    The strip is one element in the shared shell, above the masthead, so
-    every shell-built page carries it; the strip is one link to Act now; the
-    facts match the featured block's wording word for word (the venue per the
-    City Hall ruling); and the two sentences are split because the
-    past-event-invitation rule refuses a date and an invitation verb in one
-    sentence. Persistent, not dismissible: a dismiss needs a stored
-    preference, which the site's nothing-stored rule makes non-trivial.
+    The one banner element stays: restyled and repositioned, never a second
+    banner. The nav comes first and the banner sits directly below it; the
+    copy leads with the event in the operator's shape with a Details link as
+    the glyph; the banner is sticky while the page scrolls; the close button
+    dismisses until local midnight (date-keyed localStorage, no cookies); the
+    dismissal pin is test_alert_banner_dismissal_is_day_keyed. The no-JS page
+    shows the banner and hides the close affordance, so the meeting facts
+    never depend on scripting.
     """
     for name in ("index.html", "act-now.html", "contact.html", "donate.html",
                  "share-your-story.html", "toolkit.html", "newsletter.html"):
         page = read(docs, name)
-        assert page.index('class="alert-strip"') < page.index('<header class="masthead"'), (
-            f"{name}: the strip must sit above the masthead")
-        assert 'href="act-now.html">Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road. Wear green and come to the City Council meeting.</a>' in page, name
-    # the featured block's ask wording agrees with the strip's ask wording
+        # the nav comes first; the banner sits directly below it
+        assert page.index('<header class="masthead"') < page.index('class="alert-strip"'), (
+            f"{name}: the banner must sit below the nav")
+        # the operator's copy, verbatim, with the Details glyph
+        assert "Next event: City Council meeting, Tuesday, Dec. 1 at 6:30 p.m., City Hall Council Chambers, 25 Cottage Road. Show up by wearing green!" in page, name
+        assert '<a class="alert-strip__details" href="act-now.html">Details</a>' in page, name
+        # the close affordance ships hidden and carries a real label
+        assert 'class="alert-strip__close" type="button" aria-label="Dismiss the event banner; it comes back tomorrow" hidden' in page, name
+        # sticky while the page scrolls, in the shared stylesheet
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    start = css.index(".alert-strip {")
+    block = css[start:css.index("}", start)]
+    assert "position: sticky" in block and "top: 0" in block, "the banner must stick while the page scrolls"
+    assert "var(--orange-dark)" in block
+    assert "color: #fff" in block
+    assert not re.findall(r"#[0-9a-fA-F]{3,8}\b", block.replace("color: #fff", "")), (
+        "the banner introduces a literal colour")
+    # the day-key dismissal: the stored key is the local date string, the load
+    # check hides only when the stored day equals today, so tomorrow's
+    # mismatch returns the banner (behavioral proof in the leg's manifest)
+    for page_name in ("index.html", "act-now.html"):
+        page = read(docs, page_name)
+        assert "psp-event-banner-day" in page, page_name
+        assert "new Date().toDateString()" in page, page_name
+        assert "if (stored === today) { strip.hidden = true; return; }" in page, page_name
+    # the no-JS path: the banner has no hidden attribute in the served markup
+    # (it shows without scripting; only the script reveals the close button)
+    idx = read(docs, "index.html")
+    assert '<div class="alert-strip" id="alert-strip">' in idx
+    # the featured block's facts agree with the banner's facts (wording
+    # divergence named: the operator's comma form vs the block's "in")
     act = read(docs, "act-now.html")
-    assert "Wear green and come to the City Council meeting" in act
     assert "Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road" in act
     # the map subtree is chrome-free by construction and stays outside the shell
     map_dir = os.path.join(docs, "map")
     if os.path.exists(os.path.join(map_dir, "map.html")):
         map_html = open(os.path.join(map_dir, "map.html"), encoding="utf-8").read()
         assert "alert-strip" not in map_html
-    # the styling is tokens, measured in the leg's manifest
-    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
-    start = css.index(".alert-strip {")
-    block = css[start:css.index("}", start)]
-    assert "var(--orange-dark)" in block
-    assert "color: #fff" in block
-    assert not re.findall(r"#[0-9a-fA-F]{3,8}\b", block.replace("color: #fff", "")), (
-        "the strip introduces a literal colour")
+
+
+def test_alert_banner_dismissal_is_day_keyed(docs):
+    """Ledger row 124 (2026-11-25), the operator's dismissal rule: "Banner
+    should be dismissible (but not cookies, or short lived so it returns next
+    day)." The named return rule is DISMISSED UNTIL LOCAL MIDNIGHT: the click
+    stores the local date string; the load hides the banner only while the
+    stored day equals today, so a dismissal today still shows the banner under
+    a faked tomorrow date — tomorrow's toDateString mismatches the stored day
+    and the banner returns. No cookies, no consent machinery; the banner is
+    the only thing the key controls. The behavioral proof (dismiss, reload,
+    banner hidden; store yesterday's day, reload, banner back) is captured and
+    read in tests/evidence/alert-banner-2026-11-25/."""
+    idx = read(docs, "index.html")
+    # the click path stores the day AT CLICK TIME (so a dismissal at 11:59 p.m.
+    # stores that day, and the next day's load mismatches)
+    assert "localStorage.setItem(KEY, new Date().toDateString())" in idx
+    # the load path compares the stored day against TODAY'S day, not a fixed
+    # string, so the rule is day-keyed end to end
+    assert "var today = new Date().toDateString();" in idx
+    assert "if (stored === today) { strip.hidden = true; return; }" in idx
+    # nothing else is stored and nothing is sent: the key is write-only state
+    assert idx.count("psp-event-banner-day") == 1
+    assert "document.cookie" not in idx
 
 
 def test_homepage_hero_card_is_centered_on_desktop(docs):

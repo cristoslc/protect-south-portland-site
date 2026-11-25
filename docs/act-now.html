@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<a class="alert-strip" href="act-now.html">Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road. Wear green and come to the City Council meeting.</a>
 
 <a class="skip-link" href="#content">Skip to content</a>
 <header class="masthead">
@@ -53,6 +52,27 @@
   </div>
 </header>
 
+<div class="alert-strip" id="alert-strip">
+  <p class="alert-strip__text">Next event: City Council meeting, Tuesday, Dec. 1 at 6:30 p.m., City Hall Council Chambers, 25 Cottage Road. Show up by wearing green! <a class="alert-strip__details" href="act-now.html">Details</a></p>
+  <button class="alert-strip__close" type="button" aria-label="Dismiss the event banner; it comes back tomorrow" hidden>&times;</button>
+</div>
+<script>
+(function () {
+  var strip = document.getElementById('alert-strip');
+  if (!strip) return;
+  var KEY = 'psp-event-banner-day';
+  var close = strip.querySelector('.alert-strip__close');
+  if (close) close.hidden = false;
+  var today = new Date().toDateString();
+  var stored = null;
+  try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
+  if (stored === today) { strip.hidden = true; return; }
+  if (close) close.addEventListener('click', function () {
+    try { localStorage.setItem(KEY, new Date().toDateString()); } catch (e) { /* storage refused: the banner returns on the next visit, nothing is stored */ }
+    strip.hidden = true;
+  });
+})();
+</script>
 <main id="content">
 <section class="section page-head">
   <div class="wrap">

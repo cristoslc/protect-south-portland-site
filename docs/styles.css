@@ -1022,19 +1022,87 @@ blockquote {
    the family's own hover step. No new colour. */
 
 .alert-strip {
-  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
   background: var(--orange-dark);
   color: #fff;
   text-align: center;
-  text-decoration: none;
-  font-weight: 700;
   font-size: 0.92rem;
-  padding: 8px 16px;
+  padding: 8px 40px 8px 16px;
 }
 
-.alert-strip:hover { background: var(--orange-darker); color: #fff; }
+.alert-strip__text { margin: 0; }
+
+.alert-strip__text strong { font-weight: 700; }
+
+.alert-strip__details {
+  color: #fff;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.alert-strip__details:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* the close affordance exists only when scripting runs: the markup ships it
+   with the hidden attribute, the banner script reveals it, so the no-JS page
+   shows the banner and loses nothing */
+.alert-strip__close[hidden] { display: none; }
+
+.alert-strip__close {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.alert-strip__close:hover { background: var(--orange-darker); }
+
+.alert-strip__close:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+.alert-strip:hover { background: var(--orange-darker); }
 
 .alert-strip:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* ---------- the banner's sticky surface, measured (2026-11-25) ----------
+
+   The strip is the site's one banner element, restyled and repositioned by
+   the operator's mobile-screenshot directive (2026-11-25): sticky at the
+   viewport top while the page scrolls, directly below the nav in DOM order.
+   Its surface is opaque var(--orange-dark) with white text, so the contrast
+   over whatever scrolls beneath it is the strip's own measured pair, not a
+   composite. */
+
+/* ---------- less sky on the phone (2026-11-25) ----------
+
+   The operator's mobile screenshot: "Shouldn't have so much empty room, not
+   so much sky on Mobile". The 2026-11-24 composition deliberately kept ~400
+   of the frame's 898 rows clear above the card at every width; on a phone
+   that reads as a tall empty sky. This phone-only counterpart to the
+   desktop's 41.125vw cap cuts the room the card arrives through: the top
+   padding drops from 495px to 300px, so the card starts 195px sooner and the
+   sky above the lighthouse shrinks with the band. The desktop and tablet
+   rules below are untouched, and the 41.125vw cap still binds at ultrawide
+   exactly as the composition leg sized it. */
+
+@media (max-width: 700px) {
+  .hero__inner { padding: 300px 14px 16px; }
+}
 
 /* ---------- hero card, centered on desktop (2026-11-24) ----------
 
