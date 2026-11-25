@@ -377,6 +377,36 @@ def test_site_wide_alert_strip(docs):
         "the strip introduces a literal colour")
 
 
+def test_homepage_hero_card_is_centered_on_desktop(docs):
+    """staging-feedback issue #4 (2026-11-24), the filer's ask verbatim: "Hero
+    card should be roughly centered, vertically and horizontally. See red
+    outline in this screenshot." / "Hero card is offset at bottom and
+    slightly left."
+
+    The fix is geometry on the band, not a re-crop: the 41.125vw cap rule
+    stays whole, object-fit and object-position are untouched, and from
+    1200px up the card centers on both axes with equal padding above and
+    below. The centered card stands beside the lighthouse (the card's left
+    edge lands at (viewport - 828) / 2, measured against the tower at
+    x ~ 60-250), so the tower reads in the clear at any card height, and the
+    sails pass behind the card's translucent fill the way the filer's own
+    outline drew them. Below 1200 the tablet and phone keep the shipped
+    composition: there the card is 728px of a 768px window, so a centered
+    card would sit behind the tower instead of beside it."""
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    # the centered geometry is scoped above 1200px and keeps the cap rule
+    assert "@media (min-width: 1200px) {\n  .hero__inner { padding: 170px 20px 170px; align-items: center; justify-content: center; }\n}" in css
+    assert "min-height: 41.125vw" in css, (
+        "the row-112 cap rule must stay whole — this leg is geometry on the band, not a re-crop")
+    assert re.search(r"object-position: 20% 100%", css), (
+        "the focal point does not move")
+    # the centered card's equal gaps and the lighthouse-beside reading are
+    # measured in the leg's manifest; the CSS-side check is the scoping
+    start = css.index("@media (min-width: 1200px) {\n  .hero__inner")
+    assert css[start:].count("hero__inner") == 1, (
+        "the centered block is one rule, kept clearly separated")
+
+
 def test_toolkit_reference_page(docs):
     """Ruling on `dec_inuqu6bhpw6r`, option one-page ("One reference page,
     durable chapters only"), ledger row 78: `toolkit.html` carries four

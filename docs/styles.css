@@ -1035,3 +1035,35 @@ blockquote {
 .alert-strip:hover { background: var(--orange-darker); color: #fff; }
 
 .alert-strip:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* ---------- hero card, centered on desktop (2026-11-24) ----------
+
+   The feedback board's outline (issue #4): the card reads offset,
+   bottom-left of a tall hero. Measured at 1369: the card's left gap is
+   154.5px against a right gap of 386.5px, because the card anchors to the
+   left edge of its own container while the container centers in the
+   viewport. From 1200px up the card centers on both axes: equal padding
+   above and below, `justify-content: center` for the horizontal, and
+   `align-items: center` to seat the card between the two bands when the
+   41.125vw cap makes slack at ultrawide widths (at 1920 the cap binds
+   exactly as it was sized to: region 789.6px, 240 hidden source rows, the
+   card centered in the remaining ~20px of slack).
+
+   Why this holds the composition it moves: the composition leg's clear band
+   keeps the lighthouse's lantern clear of the card because the left-anchored
+   card sits under the tower. The centered card stands BESIDE the tower
+   instead (the card's left edge lands at (viewport - 828) / 2 ≈ 270px at
+   1369, measured against the tower at x ≈ 60-250), so the tower reads at
+   full darkness at any card height, and the sails pass behind the card's
+   translucent fill — the same shape the filer drew in the outline, where
+   the sails read through the tint. Below 1200 the tablet and phone keep
+   the shipped composition: there the card is 728px of a 768px window, so
+   a centered card would sit behind the tower instead of beside it.
+
+   Nothing about the crop moves: object-fit and object-position are
+   untouched, the 41.125vw cap rule above stays whole, and the card's own
+   fill and ink are unchanged, so the measured contrasts carry. */
+
+@media (min-width: 1200px) {
+  .hero__inner { padding: 170px 20px 170px; align-items: center; justify-content: center; }
+}
