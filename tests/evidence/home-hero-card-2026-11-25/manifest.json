@@ -1,0 +1,66 @@
+{
+  "leg": "ledger row 131, homepage hero card (2026-11-25): copy split, inline CTA placement, mission line demoted",
+  "base": "branch bb/homepage-hero-card-2026-11-25-thr_a2rnqnzfnz cut from origin/main a8453bc (4fe95f5 verified inside its history)",
+  "capture_tool": "tools/capture_hero_card.sh (local http server over the leg's built docs/; bb browser-automation headless Chrome, viewport set per width, hero section bounding rect cropped with 8px pad)",
+  "breakpoints": [
+    412,
+    1440
+  ],
+  "hero_rects_css_px": {
+    "before": {
+      "412": {
+        "x": 0,
+        "y": 195,
+        "w": 412,
+        "h": 1034.03125
+      },
+      "1440": {
+        "x": 0,
+        "y": 114.0625,
+        "w": 1440,
+        "h": 788.921875
+      }
+    },
+    "after": {
+      "412": {
+        "x": 0,
+        "y": 195,
+        "w": 412,
+        "h": 922.890625
+      },
+      "1440": {
+        "x": 0,
+        "y": 114.0625,
+        "w": 1440,
+        "h": 739.109375
+      }
+    }
+  },
+  "mission_rect_css_px": {
+    "412": {
+      "x": 35,
+      "y": 993.140625,
+      "w": 342,
+      "h": 91.75
+    },
+    "1440": {
+      "x": 333,
+      "y": 614.296875,
+      "w": 774,
+      "h": 45.875
+    }
+  },
+  "files": {
+    "before": [
+      "before-hero-412.png",
+      "before-hero-1440.png"
+    ],
+    "after": [
+      "after-hero-412.png",
+      "after-hero-1440.png"
+    ]
+  },
+  "read": true,
+  "read_notes": "all four captures read: BEFORE 1440/412 show the Act now button alone at the card's left edge under a four-sentence meta paragraph carrying the dropped ask, and the mission line at full body size; AFTER 1440 shows the button inline after \"Email the Council and tell them now is the time to act!\", paragraph one ending at \"Wear green!\", and the mission line smaller and dimmer under its divider; AFTER 412 shows the same split with the button riding the wrapped ask line. No clipping, no overlap, the lighthouse stays clear of the card at both widths.",
+  "measurements": "measurements-contrast.json"
+}

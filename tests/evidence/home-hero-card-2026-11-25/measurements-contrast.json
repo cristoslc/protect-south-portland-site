@@ -1,0 +1,77 @@
+{
+  "leg": "ledger row 131, homepage hero card, mission line demotion (2026-11-25)",
+  "subject": ".hero__mission rendered at font-size 0.85rem, color rgba(255, 255, 255, 0.75); floor is the 4.5:1 AA body-text ratio",
+  "method": "live measurement in the served page: the hero photo canvas-sampled under the rendered mission line rect (every 2 CSS px), each sample composited with the card fill rgb(18,42,44) at the shipped alpha 0.8, then WCAG 2.x contrast of the mission ink (white at 0.75 alpha composited over that background pixel) against the brightest, darkest and mean composite. Cross-checked against the row-98 evidence global worst case #415556 (photo/fill/alpha unchanged): 5.3:1.",
+  "widths": {
+    "412": {
+      "mission_rect_css_px": {
+        "x": 35,
+        "y": 993.140625,
+        "w": 342,
+        "h": 91.75
+      },
+      "samples": 7866,
+      "composite": {
+        "brightest": [
+          50,
+          66,
+          53
+        ],
+        "darkest": [
+          27,
+          43,
+          36
+        ],
+        "mean": [
+          37,
+          55,
+          41
+        ]
+      },
+      "contrast_mission_white_075": {
+        "brightest": 6.83,
+        "darkest": 8.95,
+        "mean": 7.88
+      }
+    },
+    "1440": {
+      "mission_rect_css_px": {
+        "x": 333,
+        "y": 614.296875,
+        "w": 774,
+        "h": 45.875
+      },
+      "samples": 8901,
+      "composite": {
+        "brightest": [
+          65,
+          80,
+          82
+        ],
+        "darkest": [
+          15,
+          34,
+          35
+        ],
+        "mean": [
+          27,
+          47,
+          43
+        ]
+      },
+      "contrast_mission_white_075": {
+        "brightest": 5.6,
+        "darkest": 9.73,
+        "mean": 8.6
+      }
+    }
+  },
+  "global_worst_case_check": {
+    "composite": [
+      65,
+      85,
+      86
+    ],
+    "contrast_mission_white_075": 5.3
+  }
+}
