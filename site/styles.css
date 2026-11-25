@@ -1053,7 +1053,12 @@ blockquote {
 
 /* the close affordance exists only when scripting runs: the markup ships it
    with the hidden attribute, the banner script reveals it, so the no-JS page
-   shows the banner and loses nothing */
+   shows the banner and loses nothing. The banner's own hidden state needs the
+   same guard: the flex rule above is author-origin and would otherwise
+   override the browser's built-in [hidden] rule, so a dismissed banner would
+   keep rendering (found by the round-1 review, 2026-11-25) */
+.alert-strip[hidden] { display: none; }
+
 .alert-strip__close[hidden] { display: none; }
 
 .alert-strip__close {
