@@ -1,0 +1,20 @@
+{
+  "leg": "crawler-gate-2026-11-25 (ledger row 128, takeover by thr_ek55rgznha per dec_jwdxt4ulkggt option a, corpus dl-20261125T150634-2180)",
+  "date": "2026-11-25",
+  "branch": "bb/crawler-gate-2026-11-25-thr_ek55rgznha",
+  "base": "87c67e9 (provenance: bb/crawler-gate-2026-11-25-thr_p257b4jc9k; red-first pin commit 2b3efd2)",
+  "serve_tree": "docs/ gated via staging_serve.prepare_serve_tree with a CAPTURE-ONLY throwaway passphrase (gate-capture-2026-throwaway, never shipped: its sha256 exists only inside these PNG captures, no repo byte carries it); staging-manifest.json present, so the staging bar's Last updated line renders for real",
+  "host": "staging.protectsouthportland.localhost:8097 (Chromium maps *.localhost to loopback, so the bar's root-domain matcher hits and the origin is trustworthy: crypto.subtle and the Secure psp_staging cookie both work)",
+  "captures": [
+    {"file": "gate-locked-412.png", "width": 412, "shows": "curtain page with the staging preview bar visible ABOVE it (the fixed interplay constraint: the bar stays visible while locked); no phrase entered, body hidden behind the curtain"},
+    {"file": "gate-locked-1440.png", "width": 1440, "shows": "same locked state at desktop width: bar on top with Last updated + serve sha, Staging review card centered"},
+    {"file": "gate-unlocked-412.png", "width": 412, "shows": "after entering the correct phrase in the REAL form (fill + click on .staging-gate-submit, no cookie shortcut): cookie psp_staging set, overlay removed, page revealed, bar still on top over the nav"},
+    {"file": "gate-unlocked-1440.png", "width": 1440, "shows": "unlocked desktop page: nav, event banner, hero all visible under the bar; curtain gone"},
+    {"file": "gate-wrong-phrase-1440.png", "width": 1440, "shows": "wrong phrase submitted: error line 'Access phrase not recognized.' shown, page stays locked"}
+  ],
+  "read_before_report": true,
+  "observations": [
+    "the staging bar's nowrap Last updated span clips horizontally at 412 in BOTH gated and unlocked captures: pre-existing bar-leg styling (.staging-bar__updated white-space:nowrap), untouched by this leg per the fixed constraints",
+    "the manifest serve time in the captures (2026-11-25T15:10:46+00:00) names the capture serve run, not a live deploy"
+  ]
+}
