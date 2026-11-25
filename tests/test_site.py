@@ -380,7 +380,10 @@ def test_site_wide_alert_strip(docs):
     start = css.index(".alert-strip {")
     block = css[start:css.index("}", start)]
     assert "position: sticky" in block and "top: 0" in block, "the banner must stick while the page scrolls"
-    assert "var(--orange-dark)" in block
+    # row 135 recorded correction (2026-11-25): the banner's fill moved from
+    # --orange-dark to --red-kite-dark with the visual-brand experiment; the
+    # white-ink pin and the no-literal-colour pin are unchanged.
+    assert "var(--red-kite-dark)" in block
     assert "color: #fff" in block
     assert not re.findall(r"#[0-9a-fA-F]{3,8}\b", block.replace("color: #fff", "")), (
         "the banner introduces a literal colour")
@@ -6026,3 +6029,178 @@ def test_uat_payload_divergence_names_a_payload_that_runs_past_the_copy():
     assert f"runs {len(extra)} characters past the displayed copy" in findings[0], \
         findings[0]
 
+
+
+# ---- visual-brand experiment (staging), ledger row 135 (2026-11-25) ---------
+# Operator directive, verbatim in substance: "Let's experiment with closer
+# compliance. Update our visual and voice guides and try Lato on the site
+# (with appropriately contrasting typeface for headlines), the highlight hue,
+# and the accent hue. Staging only, don't push to prod."
+#
+# The experiment's shape, as pinned here: Lato carries the body (self-hosted
+# woff2, OFL licenses in-tree, no third-party font request anywhere), Bitter
+# carries the headlines, the council-packet highlight colour R37 G94 B124
+# (#255e7c) takes the link/highlight roles from --teal-700, and a red-kite red
+# replaces the orange accent family sitewide while the teal masthead/nav
+# family stays. Every changed pair is recomputed from the shipped tokens the
+# way the ring pins above do, so a figure cannot drift from its token.
+
+FONT_HOSTS = ("fonts.googleapis.com", "fonts.gstatic.com", "use.typekit.net",
+              "cloud.typography.com", "cdn.jsdelivr.net", "unpkg.com")
+
+
+def _css_block(css, opener):
+    start = css.index(opener)
+    return css[start:css.index("}", start)]
+
+
+def test_visual_brand_experiment_fonts_are_self_hosted_with_licenses():
+    """Row 135: three @font-face rules, relative woff2 srcs, licenses in-tree.
+
+    The pipeline forbids third-party requests adding to page weight, so a
+    font CDN is banned by name and every src must be a relative assets/fonts
+    URL whose file actually exists beside the stylesheet's source, with the
+    OFL license text each face ships under.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    faces = re.findall(r"@font-face\s*\{([^}]*)\}", css)
+    found = set()
+    for body in faces:
+        family = re.search(r'font-family:\s*"([^"]+)"', body).group(1)
+        weight = re.search(r"font-weight:\s*(\d+)", body).group(1)
+        src = re.search(r'url\("?([^)"]+)"?\)', body).group(1)
+        found.add((family, weight))
+        assert src.startswith("assets/fonts/"), (
+            f"{family} {weight}: src {src!r} must be a relative assets/fonts URL")
+        assert src.endswith(".woff2") and "http" not in src, (
+            f"{family} {weight}: src {src!r} must be a local woff2")
+        assert os.path.exists(os.path.join(ROOT, "site", src)), (
+            f"{family} {weight}: {src} is referenced but not in tree")
+        assert "font-display: swap" in body, (
+            f"{family} {weight}: the swap rule keeps text visible while the "
+            "font loads")
+    assert found == {("Lato", "400"), ("Lato", "700"), ("Bitter", "700")}, found
+    for license_file in ("OFL-Lato.txt", "OFL-Bitter.txt"):
+        path = os.path.join(ROOT, "site", "assets", "fonts", license_file)
+        assert os.path.exists(path), f"the license file {license_file} ships in-tree"
+        assert "Open Font License" in open(path, encoding="utf-8").read()
+
+
+def test_visual_brand_experiment_no_external_font_host_in_sheet_or_pages(docs):
+    """Row 135: no built page or the stylesheet may name a font CDN host."""
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    built_css = open(os.path.join(docs, "styles.css"), encoding="utf-8").read()
+    pages = [name for name in os.listdir(docs) if name.endswith(".html")]
+    assert pages, "the build produced no pages to scan"
+    for host in FONT_HOSTS:
+        assert host not in css and host not in built_css
+        for name in pages:
+            assert host not in open(os.path.join(docs, name), encoding="utf-8").read(), (
+                f"{name}: built pages must not reference the font host {host}")
+    for woff in ("lato-400.woff2", "lato-700.woff2", "bitter-700.woff2"):
+        assert os.path.exists(os.path.join(docs, "assets", "fonts", woff)), (
+            f"{woff} must be copied into the build's assets/fonts")
+
+
+def test_visual_brand_experiment_type_roles_lato_body_bitter_headlines():
+    """Row 135: the body stack leads with Lato and keeps the old fallbacks;
+    the heading stack leads with Bitter and falls back to system serifs."""
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    body_font = re.search(
+        r"body\s*\{[^}]*font-family:\s*([^;]+);", css, re.S).group(1)
+    assert body_font.startswith('"Lato"'), body_font
+    assert "Avenir Next" in body_font and "system-ui" in body_font, (
+        "the fallback stack keeps Avenir Next/system-ui for visitors who "
+        "cannot fetch the woff2")
+    heading_font = re.search(
+        r"h1, h2, h3, h4\s*\{[^}]*font-family:\s*([^;]+);", css, re.S).group(1)
+    assert heading_font.startswith('"Bitter"'), heading_font
+    assert "Georgia" in heading_font and "serif" in heading_font, (
+        "the headline fallback is a serif stack, not the body's sans")
+
+
+def test_visual_brand_experiment_tokens_replace_the_orange_family():
+    """Row 135: the highlight and red-kite tokens exist; no --orange token
+    remains; every retargeted consumer names its new token."""
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    variables = _css_variables(css)
+    # the council-packet highlight colour, R37 G94 B124
+    assert _css_color(variables["--highlight"], variables) == (37, 94, 124)
+    assert "--red-kite" in variables and "--red-kite-dark" in variables
+    assert "--red-kite-darker" in variables
+    for legacy in ("--orange", "--orange-dark", "--orange-darker"):
+        assert legacy not in variables, (
+            f"{legacy} must leave the palette with the experiment; a token "
+            "that lingers invites a half-retargeted consumer back")
+    assert "--orange" not in css, (
+        "no --orange consumer may survive the retarget, not even in a comment "
+        "that a later reader could copy back into a rule")
+
+    # the accent roles the operator named
+    masthead = _css_block(css, ".masthead {")
+    assert "border-bottom: 4px solid var(--red-kite)" in masthead
+    pill = _css_block(css, ".main-nav .nav-cta > a {")
+    assert "var(--red-kite-dark)" in pill
+    assert "var(--red-kite-darker)" in _css_block(css, ".main-nav .nav-cta > a:hover {")
+    cta = _css_block(css, ".btn--cta {")
+    assert "var(--red-kite-dark)" in cta
+    assert "var(--red-kite-darker)" in _css_block(css, ".btn--cta:hover {")
+    alert = _css_block(css, ".alert-strip {")
+    assert "var(--red-kite-dark)" in alert
+    assert "var(--red-kite-darker)" in _css_block(css, ".alert-strip:hover {")
+    strip_link = _css_block(css, ".action-strip a {")
+    assert "var(--red-kite-dark)" in strip_link
+    placeholder = _css_block(css, ".placeholder-block {")
+    assert "var(--red-kite)" in placeholder
+    assert "var(--red-kite-dark)" in _css_block(css, ".placeholder-block strong {")
+
+    # the highlight roles move off --teal-700; the hover keeps the family
+    links = _css_block(css, "\na {")
+    assert "var(--highlight)" in links
+    assert "var(--teal-900)" in _css_block(css, "\na:hover {")
+
+    # the teal masthead family stays, and the staging bar keeps its tokens
+    assert "background: var(--teal-900)" in masthead
+    assert "color: var(--teal-700)" in _css_block(css, "\nh3 {")
+    staging_bar = _css_block(css, ".staging-bar {")
+    assert "background: var(--cyan-soft)" in staging_bar
+    assert "1px dashed var(--teal-700)" in staging_bar
+
+
+def test_visual_brand_experiment_contrast_recomputes_from_the_tokens():
+    """Row 135: every changed pair is recomputed from the shipped tokens.
+
+    The floors: 4.5:1 for text (the CTA label, alert strip, action-strip
+    links, placeholder strong, the highlight roles), measured on the surface
+    each role actually renders on.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    v = _css_variables(css)
+    white = (255, 255, 255)
+    pairs = (
+        ("--highlight", "--paper", "links on white"),
+        ("--highlight", "--mist", "links on the mist band"),
+        ("--highlight", "--teal-100", "links on the callout tint"),
+        ("--highlight", "--cyan-soft", "links on the callout fill"),
+        ("--red-kite-dark", "--cyan-soft", "action-strip links"),
+        ("--red-kite-darker", "--cyan-soft", "action-strip link hover"),
+    )
+    for fg_token, bg_token, role in pairs:
+        ratio = _contrast_ratio(_css_color(v[fg_token], v),
+                                _css_color(v[bg_token], v))
+        assert ratio >= 4.5, (
+            f"{role}: {fg_token} on {bg_token} measures {ratio:.2f}:1; "
+            "the experiment's floor is WCAG AA text at 4.5:1")
+    for role, fg, bg in (
+            ("CTA and alert white ink", white, _css_color(v["--red-kite-dark"], v)),
+            ("CTA and alert hover ink", white, _css_color(v["--red-kite-darker"], v)),
+            ("body ink on paper (unchanged)", _css_color(v["--ink"], v), white),
+    ):
+        ratio = _contrast_ratio(fg, bg)
+        assert ratio >= 4.5, f"{role} measures {ratio:.2f}:1"
+    # the bright red is decorative only (the 4px rule, the dashed placeholder
+    # border), but record its figure anyway so the PR can name it
+    rule_ratio = _contrast_ratio(_css_color(v["--red-kite"], v), white)
+    assert rule_ratio >= 3.0, (
+        f"the masthead rule measures {rule_ratio:.2f}:1 against the page; "
+        "the non-text floor of SC 1.4.11 is 3:1 even for decoration")

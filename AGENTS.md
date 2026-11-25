@@ -95,6 +95,8 @@ The operator's directive, verbatim (2026-11-24):
 
 **Scope: every copy leg on every built page, forward from today.** This is the register the Dec. 1 ask already writes in; the homepage lead ("We know more than ever… join us… write… attend… wear green") is the reference example. The copy document could not carry this section (the service account is read-only there), so this section and its pull request are the record until the doc is next updated by human hands; a future update to the copy document SHOULD [RFC 2119] mirror this section's four paragraphs.
 
+**Voice alignment with the comms doc (2026-11-25).** The PSP Comms Team doc's Content Guidelines tab opens with the tone line "Respectful, trustworthy, collaborative, optimistic" — the same register the paragraphs above pin for site copy, so the two documents agree rather than compete. The comms doc's mobilization toolkits tell speakers to "remind the city council of our demands"; that wording is channel register, not a content conflict: a toolkit addresses internal mobilization, while the site extends a public invitation ("write", "attend", "wear green"). No site copy leg imports "demands" wording from comms drafts. The doc's accessibility guidance ("Use plain language, high contrast colors, and easy-to-read fonts") is already binding here through the suite's contrast floor and the typography pins; the visual-brand experiment's token changes (section above) were measured against those floors, not beside them.
+
 ## Design input discipline: annotations, not mockups (operator directive, 2026-11-25)
 
 **Screenshots and sketches are annotations of intent, never pixel-exact specs.** Any image routed to a leg as design input — the operator's, a child's, a filer's — answers "what should exist" and "roughly where", and nothing more. Legs MUST NOT [RFC 2119] sample an annotation's colors, geometry, or proportions as design tokens; implementation builds in the site's real design system (existing tokens, spacing, the suite's contrast floor). Written on the operator's line, verbatim:
@@ -102,6 +104,18 @@ The operator's directive, verbatim (2026-11-24):
 > these are just annotations, not high-fidelity mockups.
 
 Where an annotation conflicts with the suite's contrast, accessibility, or layout rules, the rules win and the PR names the divergence.
+
+## Visual-brand experiment (staging only, operator directive 2026-11-25)
+
+**This is an experiment the operator can end by reverting tokens.** The directive, verbatim in substance: "Let's experiment with closer compliance. Update our visual and voice guides and try Lato on the site (with appropriately contrasting typeface for headlines), the highlight hue, and the accent hue. Staging only, don't push to prod." It lives in `site/styles.css` tokens and `site/assets/fonts/` plus the pins in `tests/test_site.py`; no page markup changed. It is staging-scoped: no production action of any kind belongs to this leg, and the normal staging cycle (branch, PR, merge to main, fork serve) is its entire delivery surface.
+
+**Type.** Lato carries the body (400 and 700, self-hosted woff2 in `site/assets/fonts/`, the OFL license files in-tree beside the files; no third-party font request anywhere — the font CDN hosts are banned by name in `test_visual_brand_experiment_no_external_font_host_in_sheet_or_pages`). Lato is the comms doc's council-packet face. The headline face is this leg's pick: **Bitter**, a slab serif (700, same self-hosting rule). Why Bitter: the directive asked for an "appropriately contrasting typeface for headlines", and a slab serif contrasts with Lato's humanist sans on structure rather than size alone; it keeps the sturdy civic-print feel of the council packet Lato comes from; and Bitter was drawn for screen text sizes, so it survives the site's 18px-root scale. The fallback stacks keep Avenir Next/system-ui on the body and Georgia/serif on headlines, so a visitor who never fetches the woff2 reads the same layout.
+
+**Highlight.** `--highlight: #255e7c` — the council packet's R37 G94 B124 — takes the link/highlight roles from `--teal-700`: 7.07:1 on white, measured (6.72:1 on `--mist`, 6.11:1 on `--teal-100`, 6.17:1 on `--cyan-soft`; the `--teal-700` it replaced measured 5.88:1 on white).
+
+**Accent.** A red-kite red replaces the orange family sitewide. The comms doc's Visual Brand tab describes a red kite as connected to Bug Light and the tanks, with "Red = South Portland/Red Riots but also can signal an alert in the air" — intent, not a spec (see the design-input rule above); the tokens are this leg's recorded mapping: `--red-kite: #c93a2e` for the decorative reds (the 4px masthead rule, the dashed placeholder border), `--red-kite-dark: #a02b23` for every text-bearing fill and link (CTA fills, the alert strip, the action-strip links), mirroring the old `--orange-dark` pattern, and `--red-kite-darker: #87211b` as the hover step. Every former `--orange-*` consumer was retargeted deliberately and named in the leg's pull request. Where intent met the suite's floors, the floors won and the PR names it: the old orange hover on the action strip measured 3.48:1 on `--cyan-soft`, under AA, and its red replacement measures 8.10:1.
+
+**The teal masthead family stays** as the doc's "Greens/Blues = environment" primary: the masthead and nav fills, h1/h2 and the h3-look headings keep their teal tokens; only the link/highlight role moved off `--teal-700`.
 
 ## Staging audit — non-blocking, automated (2026-10-15)
 

@@ -1,6 +1,16 @@
 /* Protect South Portland — static site styles.
-   Palette mirrors the live site's Wix theme: dark-teal masthead family with an
-   orange call-to-action accent. Plain CSS, mobile-first. */
+   Palette mirrors the live site's Wix theme: dark-teal masthead family with a
+   red-kite call-to-action accent. Plain CSS, mobile-first.
+
+   Visual-brand experiment, staging only (operator directive 2026-11-25,
+   the change-request ledger's row 135): Lato carries the body, Bitter the headlines (both
+   self-hosted woff2 with their OFL licenses in site/assets/fonts/); the
+   council-packet highlight colour R37 G94 B124 (#255e7c) takes the
+   link/highlight roles from --teal-700; a red-kite red replaces the orange
+   accent family. The teal masthead/nav family stays as the comms doc's
+   greens/blues primary. The operator ends the experiment by reverting these
+   tokens; the fallback stacks below keep Avenir Next/system-ui so a visitor
+   who never fetches the woff2 reads the same layout. */
 
 :root {
   --teal-950: #122a2c;
@@ -9,15 +19,49 @@
   --teal-600: #3a7c80;
   --teal-100: #e4f1f1;
   --cyan-soft: #d5f6f6;
-  --orange: #de5021;
-  --orange-dark: #b8401a;
-  --orange-darker: #9c3615;
+  /* the comms doc's council-packet highlight colour (R37 G94 B124), measured
+     7.07:1 on white -- it takes the link/highlight roles from --teal-700 */
+  --highlight: #255e7c;
+  /* the red-kite accent family, replacing the orange family, operator directive 2026-11-25):
+     bright for decorative rules only; the dark steps carry text */
+  --red-kite: #c93a2e;
+  --red-kite-dark: #a02b23;
+  --red-kite-darker: #87211b;
   --ink: #26383a;
   --muted: #5c6b6d;
   --line: #dde8e8;
   --paper: #ffffff;
   --mist: #f6fafa;
   --shadow: 0 2px 10px rgba(29, 62, 64, 0.12);
+}
+
+/* Self-hosted faces (2026-11-25 visual-brand experiment): the woff2 files live in
+   assets/fonts/ beside the built stylesheet, so no third-party font request
+   ever leaves this origin. Lato is the comms doc's council-packet face; the
+   OFL license text ships beside each file. */
+
+@font-face {
+  font-family: "Lato";
+  src: url("assets/fonts/lato-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lato";
+  src: url("assets/fonts/lato-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bitter";
+  src: url("assets/fonts/bitter-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 * { box-sizing: border-box; }
@@ -35,9 +79,17 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Avenir Next", Avenir, "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Lato", "Avenir Next", Avenir, "Segoe UI", system-ui, -apple-system, sans-serif;
   font-size: 1rem;
   line-height: 1.65;
+}
+
+/* Headlines take the experiment's contrasting face: Bitter, a slab serif,
+   against Lato's humanist sans (2026-11-25 visual-brand experiment). The serif fallback keeps a
+   headline a headline if the woff2 never arrives. */
+
+h1, h2, h3, h4 {
+  font-family: "Bitter", Georgia, "Times New Roman", serif;
 }
 
 img { max-width: 100%; height: auto; }
@@ -48,7 +100,7 @@ img { max-width: 100%; height: auto; }
 
 .masthead {
   background: var(--teal-900);
-  border-bottom: 4px solid var(--orange);
+  border-bottom: 4px solid var(--red-kite);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -101,12 +153,14 @@ img { max-width: 100%; height: auto; }
 }
 
 /* Act now is the only pill in the header: filled, far right, and never
-   confusable with the page you are already on. The fill is --orange-dark so
-   the white 16.2px/800 label clears AA at 5.55:1 (white on --orange was
-   3.98:1); the hover steps darker still (white on --orange-darker, 7.11:1). */
-.main-nav .nav-cta > a { background: var(--orange-dark); color: #fff; font-weight: 800;
+   confusable with the page you are already on. The fill is --red-kite-dark so
+   the white 16.2px/800 label clears AA at 7.33:1 (the bright red-kite red
+   measured 4.99:1 with white ink); the hover steps darker still (white on
+   --red-kite-darker, 9.28:1). Visual-brand experiment, 2026-11-25; the orange family's pairs
+   were 5.55:1 and 7.11:1. */
+.main-nav .nav-cta > a { background: var(--red-kite-dark); color: #fff; font-weight: 800;
   padding: 0.4rem 0.95rem; border-radius: 999px; }
-.main-nav .nav-cta > a:hover { background: var(--orange-darker); color: #fff; }
+.main-nav .nav-cta > a:hover { background: var(--red-kite-darker); color: #fff; }
 .main-nav .nav-cta > a[aria-current="page"] { box-shadow: none; outline: 2px solid #fff; outline-offset: 2px; }
 .main-nav a[aria-current="page"] { box-shadow: inset 0 -3px 0 currentColor; }
 
@@ -224,10 +278,11 @@ img { max-width: 100%; height: auto; }
   }
 
   /* The phone menu panel is white, so the menu links take dark ink. The
-     Act now pill keeps the white label on the --orange-dark fill from its
+     Act now pill keeps the white label on the --red-kite-dark fill from its
      base rule, so it gets no text-color or hover override here: a
-     dark-orange label on the orange fill measured 1.39:1 (header
-     contrast fix, 2026-11-23). */
+     dark-red label on the bright red fill would be near-unreadable (the
+     header contrast fix, 2026-11-23, measured the old orange pair at
+     1.39:1; the red family's bright/dark split is wider still). */
 
   .main-nav a { color: var(--teal-900); }
   .main-nav a:hover { background: var(--teal-100); color: var(--teal-900); }
@@ -427,11 +482,11 @@ img { max-width: 100%; height: auto; }
   cursor: pointer;
 }
 
-/* White on --orange is 3.98:1; white on --orange-dark is 5.55:1, and
-   the hover steps darker still */
+/* White on the bright red-kite red is 4.99:1; white on --red-kite-dark is
+   7.33:1, and the hover steps darker still (2026-11-25 experiment) */
 
-.btn--cta { background: var(--orange-dark); color: #fff; }
-.btn--cta:hover { background: var(--orange-darker); }
+.btn--cta { background: var(--red-kite-dark); color: #fff; }
+.btn--cta:hover { background: var(--red-kite-darker); }
 
 .btn--ghost { background: transparent; color: var(--teal-900); border-color: var(--teal-900); }
 .btn--ghost:hover { background: var(--teal-100); }
@@ -468,7 +523,7 @@ img { max-width: 100%; height: auto; }
    the built pages actually put a button on (`hero`, `footer`) plus
    `section--teal`, the site's one dark band component, so a button that
    lands there later is legible instead of dark-on-dark. `.btn--cta` keeps
-   its orange fill; the ring sits outside the fill on the band, never on it.
+   its red-kite fill; the ring sits outside the fill on the band, never on it.
 
    The `hero` member replaced `banner` on 2026-11-24, when the homepage's Act
    now CTA moved out of the solid banner and into the hero's floating card.
@@ -640,7 +695,11 @@ p { margin: 0 0 1em; }
 
 .lede { font-size: 1.13rem; }
 
-a { color: var(--teal-700); }
+/* Links carry the experiment's highlight colour (2026-11-25 visual-brand experiment): the
+   council-packet R37 G94 B124, measured 7.07:1 on white (the --teal-700 it
+   replaced measured 5.88:1). The hover keeps the teal family's dark step. */
+
+a { color: var(--highlight); }
 
 a:hover { color: var(--teal-900); }
 
@@ -837,8 +896,9 @@ blockquote {
 .footer__donate .btn { margin-top: 6px; }
 
 /* the footer's link color out-specifies .btn--cta and left the DONATE
-   button #bfeaf4-on-orange-dark (4.30:1, Lighthouse-found 2026-10-15);
-   the CTA keeps white on the orange fill (5.55:1) */
+   button #bfeaf4 on the old #b8401a fill (4.30:1, Lighthouse-found
+   2026-10-15); the CTA keeps white on its dark red-kite fill (7.33:1,
+   2026-11-25 experiment) */
 
 .footer .btn--cta { color: #fff; }
 
@@ -930,9 +990,14 @@ blockquote {
   color: var(--ink);
 }
 
-.action-strip a { color: var(--orange-dark); font-weight: 800; }
+/* Row 135 (2026-11-25): the links take the dark red-kite step, 6.40:1 on
+   --cyan-soft; the hover darkens to --red-kite-darker at 8.10:1. The old
+   #de5021 on --cyan-soft) measured 3.48:1, under AA for this
+   16.6px/800 text, so the retarget fixes a standing miss rather than
+   trading one accent for another. */
+.action-strip a { color: var(--red-kite-dark); font-weight: 800; }
 
-.action-strip a:hover { color: var(--orange); text-decoration: none; }
+.action-strip a:hover { color: var(--red-kite-darker); text-decoration: none; }
 
 .action-strip p {
   margin: 0;
@@ -943,15 +1008,15 @@ blockquote {
 /* ---------- placeholder blocks (operator decisions) ---------- */
 
 .placeholder-block {
-  border: 2px dashed var(--orange);
-  background: #fdf1ec;
+  border: 2px dashed var(--red-kite);
+  background: #fdf2f0;
   border-radius: 12px;
   padding: 14px 16px;
   color: var(--ink);
   margin: 1.2em 0;
 }
 
-.placeholder-block strong { color: var(--orange-dark); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; display: block; margin-bottom: 4px; }
+.placeholder-block strong { color: var(--red-kite-dark); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; display: block; margin-bottom: 4px; }
 
 .page-head { padding: 40px 0 10px; }
 
@@ -978,10 +1043,10 @@ blockquote {
    The featured block is the green panel itself (2026-11-24 swap): the
    campaign teal field takes the site's one dark-band precedent
    (`.section--teal`, `--teal-900` fill, white ink, 11.5:1) and the white
-   island inside it is gone. The CTA keeps its orange `.btn--cta` fill
+   island inside it is gone. The CTA keeps its red-kite `.btn--cta` fill
    because that is the site's own dark-band button convention (the hero
    card and the footer both put `.btn--cta` on dark teal, white on
-   `--orange-dark` measured 5.55:1), so the panel carries one control in
+   `--red-kite-dark` measured 7.33:1, row 135), so the panel carries one control in
    the family's measured treatment instead of inventing a second. The
    panel's call to action holds two steps of equal weight: a two-column
    grid at 720px and above, stacked below it, both steps in the same lede
@@ -1042,7 +1107,7 @@ blockquote {
    colour. The second control is the Add to Calendar dropdown, a native
    <details>/<summary> — no script and no third-party calendar service. The
    trigger renders the family's `.btn--light` (white fill, `--teal-900` ink,
-   11.57:1), the panel's secondary treatment beside the orange `.btn--cta`;
+   11.57:1), the panel's secondary treatment beside the red-kite `.btn--cta`;
    its focus ring rides the `.callout--ask` override above (cyan-soft, 10.10:1
    on the panel). The menu is a white panel in the site's card grammar
    (`--paper` fill, 2px `--teal-900` border at 11.57:1 non-text, the standing
@@ -1055,6 +1120,26 @@ blockquote {
    viewport (max-width against the viewport), and the second column is wide
    enough for the menu's 280px floor at every width the two-column grid
    serves, so the per-column shape keeps the menu reachable everywhere. */
+||||||| parent of 25ed14f (site: the staging visual-brand experiment, Lato body with Bitter headlines, the council-packet highlight #255e7c on links, and a red-kite red accent replacing the orange family (operator directive 2026-11-25, ledger row 135))
+   The operator's directive moves the page's two CTA buttons into ONE centered
+   row beneath the two ask columns (not one control under each column),
+   wrapping to a stacked, still-centered pair at mobile width. The row is a
+   plain wrapping flex row: centered above 720px by justify-content, stacked
+   below it by the same column stacking the ask steps already use. The second
+   control is the Add to Calendar dropdown, a native <details>/<summary> —
+   no script and no third-party calendar service. The trigger renders the
+   family's `.btn--light` (white fill, `--teal-900` ink, 11.57:1), the panel's
+   secondary treatment beside the red-kite `.btn--cta`; its focus ring rides the
+   `.callout--ask` override above (cyan-soft, 10.10:1 on the panel). The menu
+   is a white panel in the site's card grammar (`--paper` fill, 2px
+   `--teal-900` border at 11.57:1 non-text, the standing shadow, 14px radius):
+   menu links are `--teal-900` on white at 11.57:1 and the one muted hint line
+   is `--muted` on white at 5.56:1 — every pair clears the suite's 4.5:1 text
+   floor and the border clears the 3:1 non-text floor, measured against the
+   WCAG_COMPLIANCE.md contract (no annotation colour is sampled; see the
+   design-input discipline in AGENTS.md). The dropdown centers on its trigger
+   and never overflows a 412px viewport (max-width against the viewport), so
+   the stacked pair keeps the menu reachable at mobile width. */
 
 .ask-step__action { text-align: center; margin-top: 14px; }
 
@@ -1152,15 +1237,16 @@ blockquote {
 
    One element in the shared shell, above the masthead on every page. The
    ask is time-sensitive (the Dec. 1 meeting), so the strip takes the
-   palette's loudest on-palette treatment: the `--orange-dark` fill with
+   palette's loudest on-palette treatment: the `--red-kite-dark` fill with
    white ink, the pair every dark band's call-to-action already uses,
-   measured white on `--orange-dark` at 5.55:1. Slim by construction: one
+   measured white on `--red-kite-dark` at 7.33:1 (row 135, 2026-11-25; the
+   old orange pair measured 5.55:1). Slim by construction: one
    line of 0.92rem text, centered, sitting above a dark masthead it must
    read against. The whole strip is one link, so its keyboard ring is the
    site's one focus convention, 3px solid with a 2px outward offset, in
    white at 5.55:1 on the fill; when the strip is focused at the very top
    of the viewport the ring's top sliver sits past the edge and the rest of
-   the ring stays plainly visible. The hover darkens to `--orange-darker`,
+   the ring stays plainly visible. The hover darkens to `--red-kite-darker`,
    the family's own hover step. No new colour. */
 
 .alert-strip {
@@ -1181,7 +1267,7 @@ blockquote {
   justify-content: center;
   gap: 8px;
   flex-wrap: wrap;
-  background: var(--orange-dark);
+  background: var(--red-kite-dark);
   color: #fff;
   text-align: center;
   font-size: 0.92rem;
@@ -1227,11 +1313,11 @@ blockquote {
   cursor: pointer;
 }
 
-.alert-strip__close:hover { background: var(--orange-darker); }
+.alert-strip__close:hover { background: var(--red-kite-darker); }
 
 .alert-strip__close:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 
-.alert-strip:hover { background: var(--orange-darker); }
+.alert-strip:hover { background: var(--red-kite-darker); }
 
 .alert-strip:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 
@@ -1240,7 +1326,7 @@ blockquote {
    The strip is the site's one banner element, restyled and repositioned by
    the operator's mobile-screenshot directive (2026-11-25): sticky at the
    viewport top while the page scrolls, directly below the nav in DOM order.
-   Its surface is opaque var(--orange-dark) with white text, so the contrast
+   Its surface is opaque var(--red-kite-dark) with white text, so the contrast
    over whatever scrolls beneath it is the strip's own measured pair, not a
    composite. */
 
