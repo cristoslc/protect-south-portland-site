@@ -13,48 +13,54 @@
       "page": "about.html",
       "width": 1440,
       "file": "after-about-1440.png",
-      "bytes": 2392374,
-      "sha256": "834e10d9091ed631b50c739d59892ba814eb0caa679d76ecc5072a2c655f7243"
+      "bytes": 2371047,
+      "sha256": "7eed6cd08efc84915f8ebc17384f7755140eb4711e2691d8daa73f1dc79a9504",
+      "freshness": "retaken on the post-row-141 rebase head (main carried the row-131 hero card, row-139/140 act-now copy, rows 132/133/136/141 chrome)"
     },
     {
       "leg": "after",
       "page": "about.html",
       "width": 412,
       "file": "after-about-412.png",
-      "bytes": 1034346,
-      "sha256": "9dabf419196f517ffbd5ae8891a3af160be10e001c4701d6881b202ff4f195cd"
+      "bytes": 1029030,
+      "sha256": "ef948253527bb87f79edbc268a2fb3a034d7dfdb7832dfb24ce1fedb46d916f9",
+      "freshness": "retaken on the post-row-141 rebase head (main carried the row-131 hero card, row-139/140 act-now copy, rows 132/133/136/141 chrome)"
     },
     {
       "leg": "after",
       "page": "act-now.html",
       "width": 1440,
       "file": "after-act-now-1440.png",
-      "bytes": 1066905,
-      "sha256": "ec0459e77f04b9692b482f90d21a0bb640bb50bfac5fb7943beaf64a9139490a"
+      "bytes": 1085593,
+      "sha256": "d437bdde28e01402e15c4f638a849841bf5bd77b43f3b2a29c25730aeead4787",
+      "freshness": "retaken on the post-row-141 rebase head (main carried the row-131 hero card, row-139/140 act-now copy, rows 132/133/136/141 chrome)"
     },
     {
       "leg": "after",
       "page": "act-now.html",
       "width": 412,
       "file": "after-act-now-412.png",
-      "bytes": 804346,
-      "sha256": "cf8395de703ee9e3889fd09e4f1e36554aa1b68c0f6e97406766f3bee842b492"
+      "bytes": 821631,
+      "sha256": "4811ad98d0f0719ec7b45137eb3507f29f727aa2fe252cd6caf7488cf557904a",
+      "freshness": "retaken on the post-row-141 rebase head (main carried the row-131 hero card, row-139/140 act-now copy, rows 132/133/136/141 chrome)"
     },
     {
       "leg": "after",
       "page": "index.html",
       "width": 1440,
       "file": "after-index-1440.png",
-      "bytes": 3101127,
-      "sha256": "0743879cc7d4560d43beed7b7e49ab450525dd4426da5c72128b86c3662ce533"
+      "bytes": 3065028,
+      "sha256": "1def9b9c88d391a7aa3ee20963002ab6226e573bdc197df296603c44879f46c8",
+      "freshness": "retaken on the post-row-141 rebase head (main carried the row-131 hero card, row-139/140 act-now copy, rows 132/133/136/141 chrome)"
     },
     {
       "leg": "after",
       "page": "index.html",
       "width": 412,
       "file": "after-index-412.png",
-      "bytes": 1075536,
-      "sha256": "c1d846be6114e79f8d30a57b354f6e59e25b3141094d339ca5de80254206e578"
+      "bytes": 1055143,
+      "sha256": "6307944647f0c694e05bc3740bff186ed1b91dcb281eb4819126ab90cabdb04a",
+      "freshness": "retaken on the post-row-141 rebase head (main carried the row-131 hero card, row-139/140 act-now copy, rows 132/133/136/141 chrome)"
     },
     {
       "leg": "before",
@@ -152,15 +158,15 @@
     "staging bar --ink on --cyan-soft (unchanged)": "10.73:1"
   },
   "annotation_rule": "the comms doc's Visual Brand tab color/font prose is intent, not spec; built in real tokens ('greens/blues = environment' keeps the teal family; 'yellow = hope' is not implemented - no yellow enters the palette; 'a red kite... can signal an alert' maps to the red-kite accent family). Where intent met the suite's floors the floors won and the PR names it: the old orange action-strip hover measured 3.48:1 on --cyan-soft.",
-  "suite": "284 passed, 1 skipped (repo venv, tests/, rebased head)",
-  "scanner": "0 violations across the 91 built files in docs/ (psp_public.scan_tree)",
+  "suite": "293 passed, 1 skipped (repo venv, tests/, rebased head)",
+  "scanner": "0 violations across the built tree (re-run below)",
   "method": "bb browser-automation headless Chrome, full-page screenshots, viewport per width, network-idle + 700ms settle (uat_snapshots.capture)",
   "capture_notes": {
     "round_1_finding_2": "the round-1 get-involved captures were byte-identical to act-now because get-involved.html is a redirect stub (build.py REDIRECTS, retired 2026-11-24), not because the script took the wrong page; the secondary page in this manifest is about.html, a real page, and every capture's page field names the page its image came from",
     "dedupe_guard": "all 12 PNGs assert byte-distinct at manifest write time",
     "act_now_freshness": "all after captures retaken on the rebased head (main carried the row-129/130 act-now rewrites and the row-132/133 chrome)"
   },
-  "rebase": "rebased onto origin/main b0364c6 (0fc8670 row-133 bar, b25b302 row-132 z-index 40 kept with this leg's red retargets, 46199b4 + b0364c6 act-now copy); no layer value changed",
+  "rebase": "second rebase onto origin/main 31778ed (rows 131, 132/133, 133-fix, 136, 139, 140, 141): main's z-40 alert strip and bar-format rules kept alongside this leg's red retargets, no layer value changed; the per-column ask-controls comment resolves to main's corrected shape with this leg's one word (the CTA is the red-kite pill); a diff3 base section the first resolution left behind was excised; after captures retaken on the new head",
   "round_1_findings_and_fixes": {
     "finding_1_hover_ink": "FIXED: a:hover (0,1,1) outranked .btn--cta and .alert-strip__details (0,1,0), so hovered CTAs and the Details link rendered --teal-900 on the red fill. Both hover rules now declare color: #fff; new cascade pin test_hover_ink_stays_white_on_the_red_hover_fills (red-first); live hover proof on the rebased build:",
     "hover_live_proof": {
