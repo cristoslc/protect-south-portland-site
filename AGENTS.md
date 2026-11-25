@@ -83,6 +83,18 @@ The operator's directive, verbatim (2026-11-24):
 
 **Each check exists because it was caught failing once, and the history is carried with the rule.** The failures are the stale board claims, the premature close on issue #3, and the wall-of-text comment. They are named in `AGENTS-RETRO-agent-invented-pages.md` and in the incident record's tradition: named, dated, and carried, so the next reader knows these are earned rules, not decoration.
 
+## Brand voice (operator directive, 2026-11-24)
+
+**Site copy is forward-looking.** Every copy leg SHOULD [RFC 2119] talk about what this community is doing next, not relitigate what already happened. History appears only in the past tense where it earns its place, and the page moves to the ask quickly. Written on the operator's line, verbatim:
+
+> and we probably need a Brand Voice adjustment to talk about that forward-looking aspect, approaching the work with joy, etc.
+
+**Approach the work with joy.** Copy SHOULD [RFC 2119] frame invitations rather than alarms: the meeting is a gathering ("come, wear green"), the archive is a shared record being built, the action is neighbors acting together, not doom and not blame-forward framing. Frightening facts are stated plainly and factually when they must be (the benzene readings, the fenceline data), but the voice a reader hears is hopeful and concrete.
+
+**The verbs are concrete and active.** Copy SHOULD [RFC 2119] ask in second person where natural ("you're invited", "wear green and come") and use active verbs: write, come, call, sign, share, wear green. Campaign-as-subject abstractions stand in for no reader's action.
+
+**Scope: every copy leg on every built page, forward from today.** This is the register the Dec. 1 ask already writes in; the homepage lead ("We know more than ever… join us… write… attend… wear green") is the reference example. The copy document could not carry this section (the service account is read-only there), so this section and its pull request are the record until the doc is next updated by human hands; a future update to the copy document SHOULD [RFC 2119] mirror this section's four paragraphs.
+
 ## Staging audit — non-blocking, automated (2026-10-15)
 
 `tools/staging_audit.py` audits the staging mirror on a schedule and files one digest issue per run on this repo, labeled `staging-audit` + `accessibility` (create-if-absent). Schedule: weekday mornings ~13:15 UTC plus manual `workflow_dispatch`, via `.github/workflows/staging-audit.yml`. Per run it checks every public page for HTTP 200, runs Lighthouse accessibility (desktop) on all pages plus a mobile pass on `index.html`, re-checks the typography floor against the `styles.css` staging actually serves (root `112.5%` + body `1rem` — the same contract `test_typography_older_visitor_floor` pins on the source file), and diffs its findings against the previous run's digest, read from the machine JSON block inside the last `staging-audit` issue.
