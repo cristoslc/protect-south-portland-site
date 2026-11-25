@@ -61,6 +61,8 @@ The audience is the operator and future readers, so the register is the reports-
 
 Authorship is stated where it matters. An agent-authored comment or PR body does not imply that a human reviewed, approved, or read anything it does not name. When a PR body describes a review, it names the reviewer thread and the verdict's sha, the way the gate reports do. When a comment carries a ruling, it quotes the ruling verbatim with its decision id.
 
+A comment longer than about ten lines is shaped — a one-line lead, facts as short bullets, the evidence link and hash at the end — because a wall of text hides its own verification.
+
 Scope: this applies to every issue, PR body, review comment, and commit message an agent writes on the site repo and the workspace repos, forward from the ruling's date (2026-11-24). Existing comments are not retroactively rewritten. A comment whose content a future reader would misread as human-verified gets a correction reply, not an edit.
 
 ## Staging audit — non-blocking, automated (2026-10-15)
