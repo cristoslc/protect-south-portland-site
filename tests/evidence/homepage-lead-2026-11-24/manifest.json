@@ -1,0 +1,18 @@
+{
+  "leg": "Homepage first section becomes the newcomer's call to action (staging-feedback issue #3, ledger row 117)",
+  "date": "2026-11-24",
+  "branch": "bb/homepage-lead-thr_p257b4jc9k",
+  "base": "d99b351 (origin/main; leg one merged and verified live)",
+  "issue_ask_verbatim": "It seems like the first section on the home page should include a call to action that will be clear to people who are just joining this issue. / The first sentence on the homepage may be confusing to people who are new to this issue—why did the Oct. 27 no vote matter? I wonder if we could start with the call to action and the workshop to come:",
+  "filer_rewrite_directed_nearly_verbatim": "We know more than ever about how the tank farms are effecting this community. Join us in urging the council to take the strongest action possible. Write to the city council today and attend the next city council workshop Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road. Wear green! Email the Council and tell them now is the time to act.",
+  "as_built": "The hero card's meta line — the Oct. 27 no-vote history — is replaced by the filer's paragraph: the typo fixed in passing ('effecting' to 'affecting'), and one sentence split on purpose because the past-event-invitation pin refuses a date and an invitation verb in one sentence: 'Write to the city council today and attend the next city council workshop. It is Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road.' Everything else in the card is byte-for-byte unchanged: the headline, the hero ask ('Email the Council and ask it to require better technology at the tank farms.'), the Act now button, and the mission sign-off. The Oct. 27 outcome stays on the page where it belongs, in the 'Now is the time to act' callout's first bullet.",
+  "bold_facility_names": "South Portland Terminal (on Lincoln Street) and Citgo (on Mechanic Street) never moved: both bold names live in the readings paragraph in the tank-farms section, further down the same page, byte-for-byte unchanged. Somewhere on the page, exactly where they were.",
+  "named_divergence": "The homepage's own wear-green ask is now the filer's 'Wear green!' while the alert strip above the masthead and the act-now featured block keep the verb-pair wording ('Wear green and come to the City Council meeting.'); the facts agree everywhere, and the filer's wording is the instruction, so the divergence is operator-directed and named in the PR.",
+  "pins": "Two pins retargeted as recorded corrections with the instruction cited in their docstrings: test_the_wear_green_ask_agrees_between_banner_and_act_now (the homepage ask is the filer's line; the facts agreement still asserted), and test_homepage_and_tank_farms_lead_with_the_next_workshop (hero_lead now reads the filer's opening; the ruling it guards — live date, real ask, no invitation to a past event — unchanged and reasserted).",
+  "checks": {
+    "suite": "253 passed, 1 skipped",
+    "scanner": "psp_public.scan_tree('docs') == []"
+  },
+  "captures": "the hero card before and after at 412 and 1440, top of page, read before reporting",
+  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}

@@ -4234,16 +4234,29 @@ def test_the_wear_green_ask_agrees_between_banner_and_act_now(docs):
     hero__meta when the banner became the hero) and the featured panel's
     show-up step must agree on the ask's verbs and every fact: the date, the
     time and the venue (City Hall Council Chambers, 25 Cottage Road, ruling
-    dec_huccqekz7fjt). Any divergence is a named finding, not a style choice."""
+    dec_huccqekz7fjt). Any divergence is a named finding, not a style choice.
+
+    2026-11-24 (ledger row 117), retargeted as a recorded correction: the
+    operator directed the homepage's first text to the feedback-board filer's
+    rewrite, nearly verbatim, so the hero's own ask sentence is now the
+    filer's "Wear green!" line rather than the verb-pair sentence the strip
+    and the featured block carry. The pin's intent is unchanged and still
+    asserted: the homepage carries the wear-green ask and every fact, and the
+    facts agree everywhere. The wording divergence is operator-directed (the
+    filer's paragraph is the instruction) and named in the PR.
+    """
     act = read(docs, "act-now.html")
     idx = read(docs, "index.html")
-    # the banner's composed ask, verbatim
-    assert "Wear green and come to the meeting." in idx
+    # the filer's lead under the headline, with its wear-green ask
+    assert "We know more than ever about how the tank farms are affecting" in idx
+    assert "Wear green!" in idx
     # the featured panel's show-up step carries the same verbs and all facts
     assert "Wear green" in act and "come to the City Council meeting" in act
     for fact in ("Tuesday, Dec. 1", "6:30 p.m.", "City Hall Council Chambers, 25 Cottage Road"):
         assert fact in idx, fact
         assert fact in act, fact
+    # the alert strip carries the same facts on every page, so nothing contradicts
+    assert "Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road" in act
     # act-now's own detailed paragraph keeps the same facts, so nothing on
     # the page contradicts the ask
     assert act.count("City Hall Council Chambers") >= 2
@@ -4315,16 +4328,14 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
     # 2026-11-20: the live fact changed from "no date set" to the Dec. 1
     # workshop, so the pinned banner text moves with it. The rule is unchanged:
     # lead with what is true now, keep the ask, never an invitation to the past.
-    # 2026-11-24 (ledger row 98): the banner is retired into the hero card, and
-    # the operator's instruction for that card is to carry the same current-ask
-    # material as the Act now page. The two sentences the pin reads therefore
-    # move with the copy: the Oct. 27 outcome plus the Dec. 1 workshop, the
-    # venue included per decision dec_huccqekz7fjt, and the ask unchanged.
-    # The ruling is what the pin guards, not the old sentence: a live date, a
-    # real ask, no invitation to a past event.
-    hero_state = ("The Council took no vote at its Oct. 27 workshop on tank "
-                  "emissions. The next one is Tuesday, Dec. 1 at 6:30 p.m. in "
-                  "City Hall Council Chambers, 25 Cottage Road.")
+    # 2026-11-24 (ledger row 117), retargeted as a recorded correction: the
+    # operator directed the hero's first text to the feedback-board filer's
+    # rewrite, so the live date and the ask now lead as the filer's paragraph,
+    # and the Oct. 27 outcome lives in the "Now is the time to act" callout's
+    # bullet below (past_state reads it there). The ruling is unchanged: a
+    # live date, a real ask, no invitation to a past event.
+    hero_lead = ("We know more than ever about how the tank farms are "
+                 "affecting this community.")
     hero_ask = ("Email the Council and ask it to require better technology at "
                 "the tank farms.")
     bullet_state = ("The Council plans its next workshop for Tuesday, Dec. 1 "
@@ -4336,10 +4347,16 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
     # emphasis inside these sentences without weakening the ruling they pin.
     idx_text = reading_text(idx)
     tank_text = reading_text(tank)
-    assert hero_state in idx_text
+    assert hero_lead in idx_text
     assert hero_ask in idx_text
     assert bullet_state in idx_text
     assert past_state in idx_text
+    # the filer's workshop sentence carries the facts without inviting a past
+    # event, and the two bold facility names survive in the readings paragraph
+    assert ("Write to the city council today and attend the next city council "
+            "workshop") in idx_text
+    assert "Wear green!" in idx_text
+    assert idx_text.count("South Portland Terminal") >= 1 and "Citgo on Mechanic Street" in idx_text
     assert "require better technology at the tank farms" in idx
     assert "make public what special counsel advises" in idx
     assert "637 Highland Ave" not in idx
