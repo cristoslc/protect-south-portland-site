@@ -1,0 +1,206 @@
+{
+  "date": "2026-11-25",
+  "leg": "visual-brand experiment, staging only",
+  "directive_verbatim_in_substance": "Let's experiment with closer compliance. Update our visual and voice guides and try Lato on the site (with appropriately contrasting typeface for headlines), the highlight hue, and the accent hue. Staging only, don't push to prod.",
+  "ledger_row": 135,
+  "branch": "bb/visual-brand-experiment-thr_6qdz472i6v",
+  "leg_commit": "8266440 (the implementation commit; this evidence commit lands on top)",
+  "before_build": "origin/main 21145f6 (worktree .worktrees/visual-experiment-before, docs/ fresh build)",
+  "after_build": "this branch, docs/ fresh build, served over 127.0.0.1 http",
+  "captures": [
+    {
+      "leg": "before",
+      "page": "index.html",
+      "width": 412,
+      "file": "before-index-412.png",
+      "bytes": 1067354,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "6767d946e362637d8682e2fa903d7cee8e6871f5b7f33b72ee4d476b4c5e8ffe"
+    },
+    {
+      "leg": "before",
+      "page": "index.html",
+      "width": 1440,
+      "file": "before-index-1440.png",
+      "bytes": 3094648,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "4d2d271773ea20a42eb2c8d08d1a23a8d70acf351be60e4d64341b0fc9aab549"
+    },
+    {
+      "leg": "before",
+      "page": "act-now.html",
+      "width": 412,
+      "file": "before-act-now-412.png",
+      "bytes": 818759,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "bb27d9179c564f002e6e92c4d248eb4e218b4cbf713069ee9f439ca1d86c4c7c"
+    },
+    {
+      "leg": "before",
+      "page": "act-now.html",
+      "width": 1440,
+      "file": "before-act-now-1440.png",
+      "bytes": 1081666,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "282c3730955b160b634d72497e29aa3fa7eda3b6ff6651cbec797966682dc17a"
+    },
+    {
+      "leg": "before",
+      "page": "get-involved.html",
+      "width": 412,
+      "file": "before-get-involved-412.png",
+      "bytes": 818759,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "bb27d9179c564f002e6e92c4d248eb4e218b4cbf713069ee9f439ca1d86c4c7c"
+    },
+    {
+      "leg": "before",
+      "page": "get-involved.html",
+      "width": 1440,
+      "file": "before-get-involved-1440.png",
+      "bytes": 1081666,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "282c3730955b160b634d72497e29aa3fa7eda3b6ff6651cbec797966682dc17a"
+    },
+    {
+      "leg": "after",
+      "page": "index.html",
+      "width": 412,
+      "file": "after-index-412.png",
+      "bytes": 1075536,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "c1d846be6114e79f8d30a57b354f6e59e25b3141094d339ca5de80254206e578"
+    },
+    {
+      "leg": "after",
+      "page": "index.html",
+      "width": 1440,
+      "file": "after-index-1440.png",
+      "bytes": 3101127,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "0743879cc7d4560d43beed7b7e49ab450525dd4426da5c72128b86c3662ce533"
+    },
+    {
+      "leg": "after",
+      "page": "act-now.html",
+      "width": 412,
+      "file": "after-act-now-412.png",
+      "bytes": 846138,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "30b38acb18253057d4a354ca0c84707f5b40d5bf70e1b510f7ca42a64873e4fa"
+    },
+    {
+      "leg": "after",
+      "page": "act-now.html",
+      "width": 1440,
+      "file": "after-act-now-1440.png",
+      "bytes": 1100262,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "2a7cb701b06e9d08becd756722f664ba1116da0a184f982672155335da8890f5"
+    },
+    {
+      "leg": "after",
+      "page": "get-involved.html",
+      "width": 412,
+      "file": "after-get-involved-412.png",
+      "bytes": 846138,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "30b38acb18253057d4a354ca0c84707f5b40d5bf70e1b510f7ca42a64873e4fa"
+    },
+    {
+      "leg": "after",
+      "page": "get-involved.html",
+      "width": 1440,
+      "file": "after-get-involved-1440.png",
+      "bytes": 1100262,
+      "probe": {
+        "overlay": false,
+        "main": true
+      },
+      "sha256": "2a7cb701b06e9d08becd756722f664ba1116da0a184f982672155335da8890f5"
+    }
+  ],
+  "font_loading_proof": {
+    "lato400": true,
+    "lato700": true,
+    "bitter700": true,
+    "fontResources": [
+      "http://127.0.0.1:8138/assets/fonts/lato-400.woff2",
+      "http://127.0.0.1:8138/assets/fonts/lato-700.woff2",
+      "http://127.0.0.1:8138/assets/fonts/bitter-700.woff2"
+    ],
+    "externalFontHosts": [],
+    "bodyFont": "Lato, \"Avenir Next\", Avenir, \"Segoe UI\", system-ui, -apple-system, sans-serif",
+    "h1Font": "Bitter, Georgia, \"Times New Roman\", serif"
+  },
+  "font_files": {
+    "site/assets/fonts/lato-400.woff2": "Lato regular 400, latin subset, OFL license OFL-Lato.txt in-tree",
+    "site/assets/fonts/lato-700.woff2": "Lato bold 700, latin subset, OFL license OFL-Lato.txt in-tree",
+    "site/assets/fonts/bitter-700.woff2": "Bitter bold 700 (headline face), latin subset, OFL license OFL-Bitter.txt in-tree"
+  },
+  "external_font_hosts_in_built_pages": "none (banned by test_visual_brand_experiment_no_external_font_host_in_sheet_or_pages; runtime resource audit above shows only same-origin woff2 requests)",
+  "token_map": {
+    "--highlight: #255e7c (new)": "link/highlight roles, from --teal-700; council packet R37 G94 B124",
+    "--red-kite: #c93a2e (new)": "decorative reds: the 4px masthead rule (was --orange), the placeholder dashed border (was --orange)",
+    "--red-kite-dark: #a02b23 (new)": "CTA fills (nav pill, .btn--cta), alert-strip fill, action-strip links, placeholder strong (all were --orange-dark)",
+    "--red-kite-darker: #87211b (new)": "hover step everywhere the dark fill is used (was --orange-darker); the action-strip hover was --orange",
+    "removed": [
+      "--orange #de5021",
+      "--orange-dark #b8401a",
+      "--orange-darker #9c3615"
+    ],
+    "kept": "--teal-950/900/700/600/100, --cyan-soft, masthead/nav fills, h1/h2/h3 heading inks, the staging bar's cyan-soft pair, the row-42 gate files untouched"
+  },
+  "measured_contrast": {
+    "body ink #26383a on white (unchanged)": "12.29:1",
+    "--highlight on --paper (links)": "7.07:1",
+    "--highlight on --mist": "6.72:1",
+    "--highlight on --teal-100": "6.11:1",
+    "--highlight on --cyan-soft": "6.17:1",
+    "--teal-700 on white (the replaced pair, for the record)": "5.88:1",
+    "white on --red-kite-dark (CTA fill, alert fill)": "7.33:1 (was 5.55:1 on --orange-dark)",
+    "white on --red-kite-darker (hover)": "9.28:1 (was 7.11:1 on --orange-darker)",
+    "--red-kite-dark on --cyan-soft (action-strip links)": "6.40:1 (was 4.84:1)",
+    "--red-kite-darker on --cyan-soft (action-strip hover)": "8.10:1 (the old --orange hover was 3.48:1, under AA; the retarget fixes it)",
+    "--red-kite-dark on the placeholder tint #fdf2f0": "6.68:1",
+    "--red-kite rule vs white page (decorative)": "4.99:1",
+    "staging bar --ink on --cyan-soft (unchanged)": "10.73:1"
+  },
+  "annotation_rule": "the comms doc's Visual Brand tab color/font prose is intent, not spec; built in real tokens ('greens/blues = environment' keeps the teal family; 'yellow = hope' is not implemented - no yellow enters the palette; 'a red kite... can signal an alert' maps to the red-kite accent family). Where intent met the suite's floors the floors won and the PR names it: the old orange action-strip hover measured 3.48:1 on --cyan-soft.",
+  "suite": "277 passed, 1 skipped (repo venv, tests/ at this head)",
+  "scanner": "0 violations across the 91 built files in docs/ (psp_public.scan_tree)",
+  "method": "bb browser-automation headless Chrome, full-page screenshots, viewport per width, network-idle + 700ms settle (uat_snapshots.capture)"
+}
