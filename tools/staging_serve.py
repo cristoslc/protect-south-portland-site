@@ -40,6 +40,7 @@ import argparse
 import datetime
 import os
 import shutil
+import json
 import subprocess
 import sys
 import tempfile
@@ -81,13 +82,15 @@ def require_fresh(diffs):
             "build, refusing to serve it:\n  " + "\n  ".join(diffs))
 
 
-def prepare_serve_tree(src_docs, dst, cname):
+def prepare_serve_tree(src_docs, dst, cname, base_sha=None):
     """Build the serve tree in dst from the committed docs/ tree.
 
     Copy (minus any CNAME file), scan the copy before injecting anything
     (the same order the publish staging leg used), then write the staging
     crawl protection, the noindex meta on every page, .nojekyll, and the
-    CNAME that names the staging host. Returns the gated page count.
+    CNAME that names the staging host. Writes staging-manifest.json (the
+    staging preview bar's served time and the fork sha the tree was built
+    from; ledger row 127). Returns the gated page count.
     """
     os.makedirs(dst, exist_ok=True)
     for entry in sorted(os.listdir(src_docs)):
@@ -99,6 +102,12 @@ def prepare_serve_tree(src_docs, dst, cname):
         else:
             shutil.copy2(src, os.path.join(dst, entry))
     open(os.path.join(dst, ".nojekyll"), "w").write("")
+    manifest = {"served": datetime.datetime.now(
+        datetime.timezone.utc).isoformat(timespec="seconds")}
+    if base_sha:
+        manifest["head"] = base_sha
+    open(os.path.join(dst, "staging-manifest.json"), "w",
+         encoding="utf-8").write(json.dumps(manifest) + "\n")
     psp_public.assert_clean(
         psp_public.scan_tree(dst), "staging serve tree (pre-injection)")
     open(os.path.join(dst, "robots.txt"), "w", encoding="utf-8").write(
@@ -291,8 +300,9 @@ def main():
     require_fresh(release_check.fresh_tree_diffs(args.src_docs))
     dst = tempfile.mkdtemp(prefix="psp-serve-")
     try:
-        pages = prepare_serve_tree(args.src_docs, dst, args.cname)
         base_sha = _git("rev-parse", "HEAD", cwd=ROOT)[1]
+        pages = prepare_serve_tree(args.src_docs, dst, args.cname,
+                                   base_sha=base_sha)
         if args.push:
             sha = push_serve_branch(dst, args.branch, ROOT, base_sha,
                                     cname=args.cname)

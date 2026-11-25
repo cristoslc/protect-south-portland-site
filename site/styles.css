@@ -758,6 +758,27 @@ blockquote {
    baseline when the cards sit side by side */
 .report-actions__card p:last-child { margin: auto 0 0; }
 
+/* ---------- staging preview bar (2026-11-25, operator directive) ----------
+
+   User-visible meta chrome for the staging host only: the script in
+   assets/js/staging-bar.js matches the root domain
+   staging.protectsouthportland.<tld> and injects this bar above the nav;
+   production, localhost and review checkouts render nothing. Muted and
+   dashed so it is unmistakably not the campaign banner it sits above.
+   In document flow (it scrolls away; not sticky). */
+
+.staging-bar {
+  background: var(--cyan-soft);
+  border-bottom: 1px dashed var(--teal-700);
+  color: var(--ink);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  padding: 6px 16px;
+  text-align: center;
+}
+
+.staging-bar__updated { white-space: nowrap; }
+
 /* ---------- contact / council lists ---------- */
 
 .contact-list { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 40px; }

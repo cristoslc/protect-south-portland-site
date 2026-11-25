@@ -496,6 +496,82 @@ def test_no_petition_styling_or_campaign_remains(docs):
             f"{name}: no petition reference remains in user-facing copy")
 
 
+def test_staging_bar_ships_on_every_page(docs):
+    """Ledger row 127 (2026-11-25), the operator's directive verbatim: "on the
+    staging site ONLY, need the staging warning + last updated bar at top,
+    above nav, non-dismissable. Maybe do it as a js injection feature toggled
+    on the site url (match only root domain staging.protectsouthportland.*)".
+
+    One script, shipped in the same built bytes as production - the toggle is
+    the URL, not the build - so no served tree diverges. The script ships on
+    every page; the BAR renders only under the matcher."""
+    script = open(os.path.join(ROOT, "site", "assets", "js", "staging-bar.js"),
+                  encoding="utf-8").read()
+    built = open(os.path.join(docs, "assets", "js", "staging-bar.js"),
+                 encoding="utf-8").read()
+    assert script == built, "the built staging-bar bytes must match the source"
+    for name in html_files(docs):
+        if name in REDIRECT_PAGES:
+            continue
+        page = read(docs, name)
+        assert '<script src="assets/js/staging-bar.js" defer></script>' in page, name
+        # the bar markup itself ships NOWHERE in the served bytes - it is
+        # JS-injected under the matcher only
+        assert "staging preview. this is not the live site" not in page.lower(), name
+        assert 'class="staging-bar"' not in page, name
+
+
+def test_staging_bar_matches_only_the_staging_host(docs):
+    """The matcher is the toggle: the root domain staging.protectsouthportland
+    with any top-level domain hits (the operator's "hostname variants still
+    hit"); production www/host variants, bare domains, localhost previews,
+    file:// (empty hostname) and attacker suffixes do not. The Python pin
+    mirrors the JS pattern exactly and the JS file must carry that exact
+    token, so the tested rule is the shipped rule."""
+    js = open(os.path.join(docs, "assets", "js", "staging-bar.js"),
+              encoding="utf-8").read()
+    token = "/^staging\\.protectsouthportland\\.[a-z]{2,}$/i"
+    assert token in js, "the shipped matcher must be the tested pattern"
+    match = re.fullmatch(r"staging\.protectsouthportland\.[a-z]{2,}",
+                         "placeholder", re.I)
+    assert match is None  # the pin's own helper sanity
+    hits = ["staging.protectsouthportland.org", "staging.protectsouthportland.com",
+            "staging.protectsouthportland.localhost",
+            "STAGING.PROTECTSOUTHPORTLAND.ORG"]
+    misses = ["www.protectsouthportland.org", "protectsouthportland.org",
+              "protectsouthportland.com", "localhost", "127.0.0.1",
+              "staging.example.com", "www.staging.protectsouthportland.org",
+              "staging.protectsouthportland.org.evil.com", ""]
+    for host in hits:
+        assert re.fullmatch(r"staging\.protectsouthportland\.[a-z]{2,}", host, re.I), host
+    for host in misses:
+        assert not re.fullmatch(r"staging\.protectsouthportland\.[a-z]{2,}", host, re.I), host
+
+
+def test_staging_bar_is_not_dismissable(docs):
+    """Non-dismissable per the directive: no close affordance anywhere in the
+    emitted markup, no state stored (localStorage/sessionStorage/cookies are
+    absent from the script), and the bar carries the warning in the brand
+    voice with the manifest-backed "last updated" fact. In document flow -
+    the pin binds the insert to sit after the matcher guard, so nothing
+    renders off the staging host."""
+    js = open(os.path.join(docs, "assets", "js", "staging-bar.js"),
+              encoding="utf-8").read()
+    code = re.sub(r"/\*.*?\*/", " ", js, flags=re.S)  # comments are record, not code
+    assert "close" not in code.lower(), "no close affordance"
+    assert "button" not in code.lower(), "no button, dismissable or otherwise"
+    assert "localStorage" not in code and "sessionStorage" not in code
+    assert "document.cookie" not in code, "nothing stored, period"
+    assert "Staging preview. This is not the live site; the live site is protectsouthportland.org." in js
+    assert "Last updated: " in js
+    # the matcher guard returns before any DOM insertion: find the guard and
+    # check every bar-creation call sits after it
+    guard = js.index("if (!STAGING_HOST.test(window.location.hostname)) return;")
+    insert = js.index("insertBefore(bar, masthead)")
+    prepend = js.index("document.body.prepend(bar)")
+    assert guard < insert and guard < prepend
+
+
 def test_toolkit_reference_page(docs):
     """Ruling on `dec_inuqu6bhpw6r`, option one-page ("One reference page,
     durable chapters only"), ledger row 78: `toolkit.html` carries four

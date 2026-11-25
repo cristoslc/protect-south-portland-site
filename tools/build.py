@@ -220,6 +220,7 @@ SHELL = """<!DOCTYPE html>
 <body>
 {nav}
 {alert}
+<script src="assets/js/staging-bar.js" defer></script>
 <main id="content">
 {body}
 </main>

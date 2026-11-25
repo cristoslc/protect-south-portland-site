@@ -23,6 +23,8 @@ tree's shape and the branch's append-only discipline with zero network:
   tag is bookkeeping.
 """
 
+import datetime
+import json
 import os
 import subprocess
 import sys
@@ -61,6 +63,29 @@ def test_serve_tree_swaps_domain_and_adds_crawl_protection(tmp_path):
     assert staging_serve.NOINDEX_META in served
     assert served.index(staging_serve.NOINDEX_META) < served.index("</head>")
     assert "some-other-host.example" not in served
+
+
+def test_serve_tree_writes_the_preview_manifest(tmp_path):
+    """Ledger row 127 (2026-11-25), the operator's staging-bar directive: the
+    bar's "last updated" fact comes from staging-manifest.json, written by
+    prepare_serve_tree into the SERVE tree (not the repo build) at serve time
+    with the serve time and the fork sha the tree was built from. The built
+    docs/ bytes therefore carry no volatile timestamp, so production and
+    staging serve byte-identical trees and release freshness stays
+    idempotent."""
+    src = _fixture_docs(tmp_path / "src")
+    dst = tmp_path / "serve"
+    staging_serve.prepare_serve_tree(
+        str(src), str(dst), "staging.protectsouthportland.org",
+        base_sha="abcdef1234567890")
+    manifest = json.loads((dst / "staging-manifest.json").read_text())
+    assert manifest["head"] == "abcdef1234567890"
+    # the serve time is a parseable UTC ISO instant, seconds precision
+    datetime.datetime.fromisoformat(manifest["served"])
+    assert manifest["served"].endswith("+00:00")
+    # and the served PAGE is the manifest's only channel: the timestamp lives
+    # in no page's markup
+    assert "served" not in (dst / "index.html").read_text()
 
 
 def test_a_headless_page_refuses_the_serve(tmp_path):
