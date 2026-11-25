@@ -1,0 +1,21 @@
+{
+  "leg": "The Current ask lead ships the operator's row-130 rewrite with the mandated corrections",
+  "date": "2026-11-25",
+  "branch": "bb/act-now-lead-rewrite-2026-11-25",
+  "base": "46199b4 (origin/main, carrying the merged redundancy leg; the write phase opened on the orchestrator's go)",
+  "target_text_directive_verbatim": "The City Council is consider what -- if any -- action to take with the tank farms. Staff and special counsel will be delivering a report at an upcoming workshop.",
+  "corrections_named": {
+    "grammar": "the directive's typo 'is consider' ships as 'is considering' (broken grammar never ships); a typo guard pin asserts the uncorrected string never appears",
+    "typography": "the double-hyphen dashes ship as the page's own spaced em-dash entity convention, 'what &mdash; if any &mdash; action', matching the councilor list ('Name &mdash; District') and the calendar menu ('Other &mdash; copy link'); the page-copy em-dash allowance extends to entities, the GitHub-voice ban on agent-authored dash text is untouched"
+  },
+  "lead_label_decision": "the bold 'Current ask:' label is DROPPED: the green box now opens on the ask sentence itself, and the two ask-steps carry their own bold labels (Email the Council / Wear green), so the preface added a third layer of labels without adding a fact; named here and in the PR",
+  "replaced": "the old lead's two sentences ('The council is weighing what to require at the tank farms, and staff and special counsel report at the City Council workshop...' + 'Email the Council using the message below, or your own words.')",
+  "fact_survival_reverified_on_post_redundancy_page": {
+    "date_time_venue": "survives twice: the wear-green step ('The meeting is Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road.') and the workshop section ('Tuesday, Dec. 1 at 6:30 p.m.' with 'Arrive by 6:15 to fill the room.'); the lead's copy of these facts was a third telling, so dropping it deduplicates",
+    "email_instruction": "survives in the ask-step lede ('Email the Council and ask it to require better technology...'), the mailto CTA button, and the ready-to-send flow ('Start with the ready-to-send message above, then send to the addresses below.')"
+  },
+  "pins": "red-first: four pins retargeted plus one new pin (test_act_now_lead_is_the_row130_rewrite), all five shown failing on the unchanged tree at 46199b4 (5 failed, 14 passed in the selected run), green after the byte change; the forward-sentence count retargets 1 to 0 on act-now (the about page keeps its own copy under its own pin)",
+  "checks": {"suite": "278 passed, 1 skipped (main at 46199b4 sits at 277 after the merged chrome legs; this leg adds the one new pin)", "scanner": "[]", "release_check": "publication-clean", "visual_check": "clean"},
+  "captures": "lead-after-412.png / lead-after-1440.png with measured lead text, bold-run count 0 (label dropped), font size, read before reporting",
+  "not_done": "not published, not merged; report before merging per the order"
+}

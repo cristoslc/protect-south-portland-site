@@ -2081,8 +2081,12 @@ def test_act_now_current_ask_and_relocation(docs):
     # "specifically, I meant that we should be forward-looking, not referencing
     # the Oct 27 meeting. Don't repeat homepage text that's not directly
     # relevant to that goal." Retargeted from asserting the Oct. 27 retelling
-    # to asserting the forward ask it became.
-    assert "The council is weighing what to require at the tank farms" in act
+    # to asserting the forward ask it became. Retargeted again 2026-11-25
+    # (row 130): the operator's target lead with its mandated corrections -
+    # "The City Council is considering what - if any - action to take with
+    # the tank farms" (grammar: "is considering"; typography: the page's own
+    # spaced em-dash entity convention)
+    assert "The City Council is considering what" in act
     assert "Oct. 27" not in act
     # recorded correction (2026-11-25, ledger row 125), the operator's directive
     # verbatim: 'remove "sign the petition" language, petition was already
@@ -2127,12 +2131,12 @@ def test_act_now_workshop_is_past_tense(docs):
     # ledger row 125: the count is 2 — the Current ask and the forward
     # workshop card that replaced the petition card both open with the same
     # forward sentence, deliberately the same words
-    # recorded correction (2026-11-25, ledger row 129): the operator ruled
-    # "agreed — remove it. The page should carry the primary ask in the green
-    # box plus three secondary asks, not a fourth invented to fill a slot",
-    # so the secondary card that repeated the forward sentence is gone and
-    # the sentence appears once, in the featured box
-    assert act.count("The council is weighing what to require at the tank farms") == 1
+    # recorded corrections: the operator's row-129 redundancy ruling removed
+    # the card that repeated the forward sentence, and the row-130 lead
+    # rewrite then replaced the lead itself with the City-Council wording, so
+    # the "council is weighing" phrasing no longer appears on act-now at all
+    # (the about page keeps its own copy, pinned by the about-page test)
+    assert act.count("The council is weighing what to require at the tank farms") == 0
     assert "Dec. 1: the council weighs what to require" not in act
     assert "WORKSHOP DETAILS" not in act
     assert "The council&rsquo;s next workshop is" in act
@@ -4480,7 +4484,10 @@ def test_act_now_featured_panel_is_the_green_field(docs):
     panel = act[start:end]
     assert "ask-island" not in act and "ask-island" not in css, (
         "the white island is gone; the panel IS the green field")
-    assert "Current ask:" in panel
+    # recorded correction (2026-11-25, ledger row 130): the bold "Current
+    # ask:" label dropped with the lead rewrite - the green box opens on the
+    # ask sentence itself and the two ask-steps carry their own bold labels
+    assert "Current ask:" not in panel
     assert "<strong>Email the Council</strong>" in panel
     assert "<strong>Wear green</strong>" in panel
     # the source page opts the CTA into the build's blockquote fill, and the
@@ -4770,9 +4777,9 @@ def test_act_now_past_tense_and_one_email_action(docs):
     act = read(docs, "act-now.html")
     # 2026-11-24: read the tag-stripped text, so emphasis markup can move
     # inside the sentence without the ruling pin breaking on a <strong>.
-    assert "The council is weighing what to require at the tank farms" in reading_text(act)
+    assert "The City Council is considering what — if any — action to take with the tank farms" in reading_text(act)
+    assert "Staff and special counsel will be delivering a report at an upcoming workshop." in reading_text(act)
     assert "Oct. 27" not in act
-    assert "staff and special counsel report at the City Council workshop" in act
     assert "Dec. 1" in act
     assert "no date has been set" not in act
     assert "require better technology at the tank farms" in act
@@ -4869,6 +4876,31 @@ def test_about_workshop_is_past_tense(docs):
     assert "took no vote" not in about
     assert "Come to the City Council workshop" not in about
     assert "637 Highland Ave" not in about
+
+
+def test_act_now_lead_is_the_row130_rewrite(docs):
+    # ledger row 130 (2026-11-25), write phase: the operator's target text
+    # verbatim with two mandated corrections - (1) grammar, the directive's
+    # typo ships as "is considering"; (2) typography, the double-hyphen
+    # dashes ship as the page's own spaced em-dash entity convention (the
+    # councilor list and the calendar menu use "Name &mdash; District"), with
+    # the site's em-dash allowance on page copy only; and (3) the fact check
+    # it mandated: the lead's date, time, venue and the email instruction
+    # survive elsewhere on this page, asserted below
+    act = read(docs, "act-now.html")
+    # the corrected target text, verbatim
+    assert "The City Council is considering what &mdash; if any &mdash; action to take with the tank farms. Staff and special counsel will be delivering a report at an upcoming workshop." in act
+    # the directive typo guard: the uncorrected "is consider" never ships
+    assert "City Council is consider " not in act
+    # the lead label decision: the bold "Current ask:" label is dropped, the
+    # box opens on the ask itself (named in the PR)
+    assert "Current ask:" not in act
+    # survival (a): the date, time and venue live in the wear-green step
+    assert "The meeting is Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road." in act
+    # survival (b): the email instruction lives in the ask-step lede and the
+    # ready-to-send flow
+    assert "<strong>Email the Council</strong> and ask it to require better technology" in act
+    assert "Start with the ready-to-send message above, then send to the addresses below." in act
 
 
 def test_punchlist_a5_campaign_card_is_current(docs):
