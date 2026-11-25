@@ -4437,8 +4437,17 @@ def test_about_workshop_is_past_tense(docs):
     # The reviewer caught this variant on 2026-11-05: "Come to the ... workshop
     # on Tuesday, Oct. 27 ... and email the Council before it." Same retired
     # invitation class, different verb, so the sitewide guard was widened.
+    # Retargeted 2026-11-24 (ledger row 123): the operator superseded the scope
+    # ruling, verbatim: "no, the homepage should already have been edited to
+    # not include the Oct 27 explicit reference -- ALL CTA and ask-adjacent
+    # copy should be forward looking, as in the new voice guide", so the
+    # about page's current-focus paragraph no longer retells the Oct. 27
+    # no-vote; it reads "The council is weighing what to require at the tank
+    # farms, and its next workshop is Tuesday, Dec. 1".
     about = read(docs, "about.html")
-    assert "The Council took no vote at its Oct. 27 workshop" in about
+    assert "The council is weighing what to require at the tank farms" in about
+    assert "Oct. 27" not in about
+    assert "took no vote" not in about
     assert "Come to the City Council workshop" not in about
     assert "637 Highland Ave" not in about
 

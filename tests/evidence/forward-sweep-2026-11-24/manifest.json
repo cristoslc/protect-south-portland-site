@@ -1,0 +1,20 @@
+{
+  "leg": "Generalized forward-looking sweep of every page, superseding the earlier scope correction (operator ruling, ledger row 123)",
+  "date": "2026-11-24",
+  "branch": "bb/forward-sweep-thr_p257b4jc9k",
+  "base": "999e553 (origin/main: the row-121 forward revision as merged, which already carried the homepage and act-now forwards)",
+  "operator_ruling_verbatim": "no, the homepage should already have been edited to not include the Oct 27 explicit reference -- ALL CTA and ask-adjacent copy should be forward looking, as in the new voice guide",
+  "supersedes": "row 121's scope correction ('not on the homepage, sorry, on the Act Now page'); reversion PR #113 was closed as superseded before review completed, with the operator's words quoted on it",
+  "sweep_results": [
+    {"place": "homepage callout, first bullet", "read": "The Council is weighing what to require at the tank farms. Staff and special counsel are returning to the December workshop with options to choose from:", "state": "already forward via merged PR #111; zero Oct. 27 on the page (count 0)"},
+    {"place": "act-now, Current ask + workshop line", "read": "The council is weighing what to require at the tank farms, and staff and special counsel report at the City Council workshop on Tuesday, Dec. 1 ... / The council's next workshop is Tuesday, Dec. 1 at 6:30 p.m. ...", "state": "already forward via #111 / #109; count 0"},
+    {"place": "about.html, 'What we're doing now' paragraph (current-focus, ask-adjacent: it links straight to the map/data and Act now)", "read_before": "The Council took no vote at its Oct. 27 workshop; the options it asked for return at the workshop it plans for Tuesday, Dec. 1.", "read_after": "The council is weighing what to require at the tank farms, and its next workshop is Tuesday, Dec. 1.", "state": "changed in this leg (2-sentence retell, no date, no vote, no no-vote wording)"},
+    {"place": "toolkit.html 'Build Power' first bullet (advocacy guidance with a packing-the-room ask on a date)", "read_before": "Packing the room on Oct. 27 and getting the city council to take a strong stance moving is key.", "read_after": "Packing the room at the Dec. 1 workshop and getting the city council to take a strong stance going forward is key.", "state": "changed in this leg"},
+    {"place": "toolkit.html personal-stories bullet (STAY, judged historical)", "read": "Several residents shared theirs at the Oct 27 city council meeting, such as asthma, headaches, and preschool-age kids smelling the tanks ...", "state": "kept: past-tense testimony context inside personal-stories guidance, no ask or invitation attached to the date; named here per the ruling, flagged to the operator as removable on one word if the judgment is wrong"}
+  ],
+  "remaining_mentions_tree_wide": "docs/toolkit.html count 1 (the kept line-204 mention); every other built page counts 0; the two FAQ answers on the toolkit page that once named the Oct. 27 workshop no longer carry the date (verified by the same sweep)",
+  "pins": "test_about_workshop_is_past_tense retargeted to the forward line with the operator's ruling in the comment; the about page's Oct. 27 and no-vote strings now pinned absent; all other Oct-27-adjacent pins already retargeted by the merged #111/#121 work",
+  "checks": {"suite": "255 passed, 1 skipped", "scanner": "[]"},
+  "captures": "about 'What we're doing now' at 412 and 1440, toolkit 'Build Power' bullet at 412 and 1440, all after, read before reporting",
+  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}
