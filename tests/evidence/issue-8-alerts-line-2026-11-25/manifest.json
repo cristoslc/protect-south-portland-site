@@ -1,0 +1,14 @@
+{
+  "leg": "Issue staging-website-feedback#8: the alerts sentence loses the mid-sentence page-name capitalization (ledger row 138)",
+  "date": "2026-11-25",
+  "issue": "https://github.com/Protect-South-Portland/staging-website-feedback/issues/8",
+  "provenance": "found by the full-class copy reviewer on PR cristoslc/protect-south-portland-site#109, out of that PR's scope; triaged to thr_t9dvrarnfz by the orchestrator",
+  "branch": "bb/issue-8-alerts-line-thr_t9dvrarnfz",
+  "base": "b0364c6 (origin/main at leg start; the row-135 Lato experiment not yet landed, so tokens are current)",
+  "sender_suggestion_substance": "the sentence reads \"Follow our alerts to Act now and attend City Council meetings\" and the mid-sentence capitalized \"Act now\" reads oddly; suggestions were \"Follow our alerts and act now\" or linking the page name properly",
+  "wording_choice_named": "Follow our alerts and act now: come to City Council meetings and workshops. - the filer's phrase kept and lowercased (the oddity was the mid-sentence PAGE-NAME capitalization, not the phrase), tied to a concrete second-person verb per Brand Voice: come",
+  "alerts_link_check": "the sentence itself carries no link on record; the alerts path is the mailto workshop-alerts link in the preceding paragraph, byte-identical and pinned",
+  "pins": "one new red-first pin test_issue8_alerts_line_reads_clean (the new sentence present, the flagged capitalization absent, the alerts mailto facts byte-identical); suite 279 passed, 1 skipped (278 baseline); scanner []; release_check clean",
+  "captures": ["before-412.jpg / before-1440.jpg - the shipped sentence from a detached b0364c6 build", "after-412.jpg / after-1440.jpg - the reworked sentence at both breakpoints; read before reporting"],
+  "not_done": "not published, not merged; report-before-merge; the shared root checkout and the gate/bar/serve files untouched; issue #7 picked up separately and sequenced after this leg"
+}

@@ -3664,6 +3664,25 @@ def _button_census(docs):
     return census
 
 
+def test_issue8_alerts_line_reads_clean(docs):
+    """Board issue staging-website-feedback#8 (the copy reviewer's finding on
+    PR #109): the alerts sentence carried the page's own name mid-sentence —
+    "Follow our alerts to Act now and attend City Council meetings" — and the
+    capitalized "Act now" reads oddly there. The wording choice under Brand
+    Voice keeps the filer's phrase lowercase and ties it to a concrete verb:
+    "Follow our alerts and act now: come to City Council meetings and
+    workshops." The alerts path itself is the workshop-alerts mailto in the
+    preceding paragraph; it stays byte-identical.
+    """
+    act = read(docs, "act-now.html")
+    assert "Follow our alerts and act now: come to City Council meetings and workshops." in act
+    assert "to Act now and attend" not in act, (
+        "the mid-sentence page-name capitalization the reviewer flagged must not return")
+    # the alerts link facts stay untouched
+    assert 'href="mailto:protectsouthportland@gmail.com?subject=Workshop%20alerts"' in act
+    assert "with &ldquo;Workshop alerts&rdquo; in the subject line" in act
+
+
 def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
     """Ledger row 95: the family keeps a visible ring wherever it renders.
 
