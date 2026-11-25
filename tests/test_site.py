@@ -3716,6 +3716,40 @@ def test_issue8_alerts_line_reads_clean(docs):
     assert "with &ldquo;Workshop alerts&rdquo; in the subject line" in act
 
 
+def test_act_now_secondary_cards_center_both_axes():
+    """Experiment leg, operator directive (ledger row 140), verbatim in
+    substance: "try making all these white asks centered horizontally and
+    vertically" on the three secondary ask cards of act-now's card grid.
+    "Try" makes this an experiment: one contiguous scoped CSS block, shipped
+    alone, that the operator can revert in one commit if the look fails on
+    their mobile read. The screenshot's card grid marked WHICH cards, never
+    geometry, so the alignment is built from the grid's own flex column and
+    carries no new colour and no contrast change. The row-129 span rule
+    stands untouched: the story card's content centers within the spanned
+    width. Scoped to .card-grid--act so no other page's cards move: no
+    unscoped .card or .card__body rule may carry the alignment.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    # both axes, inside the single experiment scope
+    assert re.search(
+        r"\.card-grid--act \.card \{[^}]*justify-content: center", css, re.S), (
+        "the cards' flex column must center content vertically within the card")
+    assert re.search(
+        r"\.card-grid--act \.card__body \{[^}]*text-align: center", css, re.S), (
+        "heading, paragraph and action link must center horizontally")
+    # (the row-129/130 span rule for the story card keeps its own pin; the
+    # experiment must not touch it, and the scoped-stripped check below
+    # proves this block adds nothing outside .card-grid--act)
+    # scope isolation: no other page's cards pick the alignment up
+    for sel in (r"(?:^|\n)\.card \{[^}]*text-align: center", r"\.card__body \{[^}]*text-align: center",
+                r"(?:^|\n)\.card \{[^}]*justify-content: center", r"\.card__body \{[^}]*justify-content: center"):
+        bare = re.search(sel, css)
+        # remove the scoped experiment hits before judging the bare ones
+        scoped_stripped = re.sub(r"\.card-grid--act [^{]*\{[^}]*\}", "", css)
+        assert not re.search(sel, scoped_stripped), (
+            f"the alignment leaked out of the .card-grid--act scope: {sel}")
+
+
 def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
     """Ledger row 95: the family keeps a visible ring wherever it renders.
 

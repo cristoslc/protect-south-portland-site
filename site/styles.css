@@ -1119,6 +1119,26 @@ blockquote {
 
 .card--glow { box-shadow: 0 0 0 4px var(--cyan-soft), var(--shadow); }
 
+/* ---------- experiment (2026-11-25, row 140): the three white ask
+   cards center both axes ----------------------------------------------
+
+   Operator directive, verbatim in substance: "try making all these white
+   asks centered horizontally and vertically." One contiguous scoped block,
+   shipped alone so the operator can revert the experiment in one token
+   change if the look fails on their mobile read. The grid's cards are
+   already flex columns, so the vertical axis is justify-content: center on
+   the card and the horizontal axis is text-align: center on the body —
+   heading, paragraph and action link center, and the spanned story card
+   centers within the spanned width (the row 129 span rule above is
+   untouched). Scoped to .card-grid--act, so no other page's cards move,
+   and it carries no colour: every contrast pair on the page is unchanged. */
+
+.card-grid--act .card { justify-content: center; }
+
+.card-grid--act .card__body { text-align: center; }
+
+/* ---------- end experiment (row 140) ---------- */
+
 /* ---------- site-wide alert strip (2026-11-24) ----------
 
    One element in the shared shell, above the masthead on every page. The

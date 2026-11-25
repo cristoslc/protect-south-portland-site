@@ -1,0 +1,15 @@
+{
+  "leg": "Experiment: the three secondary ask cards center both axes on act-now (ledger row 140)",
+  "date": "2026-11-25",
+  "branch": "bb/act-now-cards-center-experiment-thr_t9dvrarnfz",
+  "base": "f973a29 (origin/main at write time; the per-column send-back PR #134 merged since, so the write phase ran on the merged tree; the row-135 Lato experiment PR #131 NOT landed, so tokens are current per the lane's read-main-at-write-time note)",
+  "operator_directive_substance": "try making all these white asks centered horizontally and vertically - 'try' makes it an experiment: build it, capture it, and ship it as its own commit the operator can revert with one token change if the look fails on their mobile read",
+  "queue_context": "the lane confirmed the order cards-centering first, then issues #8/#7; issues #8/#7 write phases ran already under the orchestrator's dispatch (PRs #135/#136 open, act-now.html copy regions only) - this leg touches styles.css only, so zero byte overlap with the two open PRs; merges stay sequenced by the lane",
+  "change": "ONE contiguous scoped CSS block in site/styles.css: .card-grid--act .card { justify-content: center; } (the cards are already flex columns, so this centers content vertically within the grid-stretched card) and .card-grid--act .card__body { text-align: center; } (heading, paragraph and action link center horizontally). The row-129/130 span rule is untouched: the story card's content centers within the spanned width. Revert = remove the one block between the experiment banners, or revert the single commit.",
+  "annotation_discipline": "the screenshot's card grid marked WHICH cards, never geometry or colour; both axes are built from the grid's own flex system; no new colour and no contrast change of any kind",
+  "pin": "red-first test_act_now_secondary_cards_center_both_axes: the two scoped rules present; no unscoped .card / .card__body rule may carry the alignment (other pages' cards unaffected); the span rule keeps its existing row-130 pin",
+  "scanner_note": "the first CSS comment draft cited 'ledger row 140' and 'row-129' (hyphenated) and the publish scanner flagged both as internal-reference markers in the public stylesheet, which also failed the scan-based gate/serve pins loud - rephrased to the shipped spaced convention ('row 140', 'row 129') and the scanner is clean again; the scanner working as designed, nothing weakened",
+  "checks": {"suite": "279 passed, 1 skipped (278 baseline + 1 experiment pin)", "scanner": "[]", "release_check": "freshness and publication-clean"},
+  "captures": ["before-412.jpg / before-1440.jpg - left-aligned card contents, served from a detached f973a29 build", "after-412.jpg / after-1440.jpg - every card's heading, paragraph and action link centered horizontally, and the odor/donate pair's content vertically centered within their equal-stretch cards; read before reporting"],
+  "not_done": "not published, not merged; report-before-merge; the shared root checkout and the gate/bar/serve files untouched"
+}
