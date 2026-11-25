@@ -96,7 +96,7 @@ NAV_BODY = """
 # petition and offers the Report an odor child page.
 FOOTER_BODY = """
 <div class="action-strip" role="note">
-  <p><a href="act-now.html">Report every odor. Sign the petition.</a></p>
+  <p><a href="act-now.html">Report every odor.</a></p>
 </div>
 <footer class="footer">
   <div class="wrap footer__grid">

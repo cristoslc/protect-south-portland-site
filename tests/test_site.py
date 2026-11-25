@@ -1813,7 +1813,11 @@ def test_homepage_top_is_forward_looking(docs):
 DATED_PHRASE = "Next: City Council workshop - Tuesday, Oct. 27, 6 p.m., South Portland High School."
 # Ruling A (2026-11-05): the fallback call to action that replaces it in the
 # shared footer strip on every page.
-ACTION_PHRASE = "Report every odor. Sign the petition."
+ACTION_PHRASE = "Report every odor."
+# Recorded correction (2026-11-25, ledger row 125), the operator's directive
+# verbatim: 'remove "sign the petition" language, petition was already
+# delivered' — the petition sentence left the shared footer strip; the odor
+# sentence is the fallback call to action that remains.
 # the internal DATED marker lives only in tools/build.py as a Python comment;
 # the served HTML must never carry it (release-gate rule 4, reviewer R1)
 DATED_COMMENT = "DATED: remove after 2026-10-27 workshop"
@@ -1822,6 +1826,9 @@ PETITION_URL = (
     "https://docs.google.com/forms/d/e/"
     "1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform"
 )
+# Recorded correction (2026-11-25, ledger row 125): the petition was delivered,
+# so the form URL is no longer offered from any page; the pins below assert its
+# ABSENCE where they once asserted its presence.
 
 MIRRORED_PDFS = (
     "hem3-report-summary.pdf",
@@ -1873,25 +1880,28 @@ def test_act_now_in_header_nav(docs):
 def test_action_strip_every_page(docs):
     # Ruling A (2026-11-05): the dated workshop strip is retired. The footer
     # strip now carries the fallback call to action, linked to the page that
-    # branches into both odor paths and the petition. Since the 2026-11-24
-    # page-set revision that page is act-now.html: it carries the petition and
-    # offers the Report an odor child page, so the strip's target is never a
-    # retired URL.
+    # branches into the odor paths. Since the 2026-11-24 page-set revision that
+    # page is act-now.html. Recorded correction (2026-11-25, ledger row 125),
+    # the operator's directive verbatim: 'remove "sign the petition" language,
+    # petition was already delivered' — the petition sentence left the strip
+    # and the strip's target still branches into the odor path.
     for name in html_files(docs):
         if name in REDIRECT_PAGES:
             continue
         page = read(docs, name)
         assert DATED_PHRASE not in page, f"{name}: the retired Oct. 27 strip is still present"
         assert ACTION_PHRASE in page, name
+        assert "Sign the petition" not in page, (
+            f"{name}: the delivered petition's sign language is retired (row 125)")
         assert DATED_COMMENT not in page, f"{name}: internal DATED comment leaked into served HTML"
         assert 'class="action-strip"' in page, name
         assert re.search(
-            r'<a href="act-now\.html">Report every odor\. Sign the petition\.</a>',
+            r'<a href="act-now\.html">Report every odor\.</a>',
             page), name
-    # and the target really is the branch page: the petition plus the way to
-    # report an odor both live there
+    # and the target really is the branch page: the way to report an odor
+    # lives there, and the petition form is offered nowhere
     act = read(docs, "act-now.html")
-    assert PETITION_URL in act, "the strip promises the petition"
+    assert PETITION_URL not in act, "the delivered petition's form is retired (row 125)"
     assert 'href="report-an-odor.html"' in act, "the strip promises the odor path"
 
 
@@ -1912,7 +1922,11 @@ def test_act_now_current_ask_and_relocation(docs):
     # to asserting the forward ask it became.
     assert "The council is weighing what to require at the tank farms" in act
     assert "Oct. 27" not in act
-    assert PETITION_URL in act
+    # recorded correction (2026-11-25, ledger row 125), the operator's directive
+    # verbatim: 'remove "sign the petition" language, petition was already
+    # delivered' — the delivered petition's form is offered nowhere on the page
+    assert PETITION_URL not in act
+    assert "Sign the petition" not in act
     # 2026-11-24 (ledger row 113): the operator ruled "we should provide the
     # emails for all of these, like `see the Sentry's website for the
     # submissions address`", so the letter-to-the-editor block carries the
@@ -1948,7 +1962,10 @@ def test_act_now_workshop_is_past_tense(docs):
     # forward opener into both. The high-school address that served only the
     # past night stays gone, as does every invitation to a past event.
     act = read(docs, "act-now.html")
-    assert act.count("The council is weighing what to require at the tank farms") == 1
+    # ledger row 125: the count is 2 — the Current ask and the forward
+    # workshop card that replaced the petition card both open with the same
+    # forward sentence, deliberately the same words
+    assert act.count("The council is weighing what to require at the tank farms") == 2
     assert "The council&rsquo;s next workshop is" in act
     assert "Make plans to come to the City Council workshop" not in act
     assert "Attend the City Council workshop" not in act
@@ -4208,7 +4225,11 @@ def test_act_now_action_links_are_the_cards(docs):
     for href in ("donate.html", "report-an-odor.html", "share-your-story.html"):
         assert body.count(f'href="{href}"') == 1, (
             f"{href} must have exactly one way through the page body now")
-    assert body.count('href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform"') == 1
+    # recorded correction (2026-11-25, ledger row 125): the delivered
+    # petition's form is offered nowhere; the forward card links to the page's
+    # own workshop facts instead
+    assert body.count('href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform"') == 0
+    assert body.count('href="act-now.html"') >= 1
     assert '<a class="card__more" href="donate.html">DONATE →</a>' in body
     assert '<a class="card__more" href="report-an-odor.html">REPORT AN ODOR →</a>' in body
 
@@ -4327,19 +4348,23 @@ def test_act_now_cta_tiles_lead_the_grid(docs):
     assert "We want to hear your voice" in story
     assert 'href="share-your-story.html"' in story
 
-    petition = body[body.index("Sign the petition</h2>"):body.index("SIGN THE PETITION →</a>")]
-    assert "Climate Resilience Petition" in petition
-    assert "share it with all your contacts in South Portland" in petition
-    assert 'href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform"' in petition
+    # recorded correction (2026-11-25, ledger row 125), the operator's
+    # directive verbatim: 'remove "sign the petition" language, petition was
+    # already delivered' — the petition card became a forward Dec. 1 workshop
+    # card; no signature count is invented (none reachable on record)
+    petition = body[body.index("the council weighs what to require</h2>"):body.index("WORKSHOP DETAILS →</a>")]
+    assert "The council is weighing what to require at the tank farms" in petition
+    assert "Show up Tuesday, Dec. 1 at 6:30 p.m. at City Hall, 25 Cottage Road" in petition
+    assert "SIGN" not in petition and "petition" not in petition.lower()
 
     # the glowing cards are the grid's first two children; the text cards
     # follow, and all four carry the same white .card style
     assert body.count('class="card card--glow"') == 2
-    assert body.index("Sign the petition</h2>") < body.index("Report an odor</h2>") < body.index("Donate</h2>")
+    assert body.index("the council weighs what to require</h2>") < body.index("Report an odor</h2>") < body.index("Donate</h2>")
     # the tile actions are the cards' own card__more grammar, not buttons
     assert 'btn--light' not in act
     assert '<a class="card__more" href="share-your-story.html">SHARE YOUR STORY →</a>' in body
-    assert '<a class="card__more" href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform">SIGN THE PETITION →</a>' in body
+    assert '<a class="card__more" href="act-now.html">WORKSHOP DETAILS →</a>' in body
     # the glow is the only difference, and it is built from palette tokens
     assert ".card--glow { box-shadow: 0 0 0 4px var(--cyan-soft), var(--shadow); }" in css
     assert not re.search(r"\.card--glow \{[^}]*background", css, re.S), (
