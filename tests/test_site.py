@@ -6204,3 +6204,42 @@ def test_visual_brand_experiment_contrast_recomputes_from_the_tokens():
     assert rule_ratio >= 3.0, (
         f"the masthead rule measures {rule_ratio:.2f}:1 against the page; "
         "the non-text floor of SC 1.4.11 is 3:1 even for decoration")
+
+
+def test_hover_ink_stays_white_on_the_red_hover_fills():
+    """Round-1 review finding, ledger row 135: `a:hover` (0,1,1) outranks the
+    `.btn--cta` and `.alert-strip__details` base rules (0,1,0), so a hovered
+    CTA and the alert strip's Details link rendered `--teal-900` ink over the
+    red hover fill (1.25:1 and 1.58:1, live-confirmed by the reviewer). A
+    hover rule that declares only a background cannot win the ink back, so
+    both hover rules MUST declare white themselves: a declared color in a
+    (0,2,0) hover rule beats the (0,1,1) `a:hover` every time, and the pin
+    refuses any future edit that drops the declaration. The rendered pair on
+    the hover fill is recomputed from the token, so the comment figure and
+    the pin cannot drift apart.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    v = _css_variables(css)
+
+    def rule_decls(opener):
+        block = _css_block(css, opener)
+        return _css_declarations(block[block.index("{") + 1:])
+
+    cta_hover = rule_decls(".btn--cta:hover {")
+    assert cta_hover.get("color", "").strip() == "#fff", (
+        ".btn--cta:hover must declare color: #fff; without it a:hover "
+        "(0,1,1) outranks the base rule and the hovered CTA renders teal "
+        "ink on the red fill")
+    assert cta_hover.get("background") == "var(--red-kite-darker)"
+    details_hover = rule_decls(".alert-strip__details:hover {")
+    assert details_hover.get("color", "").strip() == "#fff", (
+        ".alert-strip__details:hover must declare color: #fff for the same "
+        "cascade reason as the CTA hover")
+    # the base rules keep their white ink too, so the resting pair holds
+    assert "color: #fff" in _css_block(css, ".btn--cta {")
+    assert "color: #fff" in _css_block(css, ".alert-strip__details {")
+    ratio = _contrast_ratio((255, 255, 255),
+                            _css_color(v["--red-kite-darker"], v))
+    assert ratio >= 4.5, (
+        f"white on the red hover fill measures {ratio:.2f}:1; the hover "
+        "label is 15.2px/800, under the large-text threshold, so AA wants 4.5:1")

@@ -155,7 +155,7 @@ img { max-width: 100%; height: auto; }
 /* Act now is the only pill in the header: filled, far right, and never
    confusable with the page you are already on. The fill is --red-kite-dark so
    the white 16.2px/800 label clears AA at 7.33:1 (the bright red-kite red
-   measured 4.99:1 with white ink); the hover steps darker still (white on
+   measured 5.09:1 with white ink); the hover steps darker still (white on
    --red-kite-darker, 9.28:1). Visual-brand experiment, 2026-11-25; the orange family's pairs
    were 5.55:1 and 7.11:1. */
 .main-nav .nav-cta > a { background: var(--red-kite-dark); color: #fff; font-weight: 800;
@@ -482,11 +482,16 @@ img { max-width: 100%; height: auto; }
   cursor: pointer;
 }
 
-/* White on the bright red-kite red is 4.99:1; white on --red-kite-dark is
+/* White on the bright red-kite red is 5.09:1; white on --red-kite-dark is
    7.33:1, and the hover steps darker still (2026-11-25 experiment) */
 
 .btn--cta { background: var(--red-kite-dark); color: #fff; }
-.btn--cta:hover { background: var(--red-kite-darker); }
+
+/* The hover declares its own white ink: a:hover (0,1,1) outranks the base
+   rule (0,1,0), so a background-only hover let the label render teal on the
+   red fill at 1.25:1 (round-1 review of the 2026-11-25 experiment, live-
+   confirmed in Chrome). White on --red-kite-darker is 9.28:1. */
+.btn--cta:hover { background: var(--red-kite-darker); color: #fff; }
 
 .btn--ghost { background: transparent; color: var(--teal-900); border-color: var(--teal-900); }
 .btn--ghost:hover { background: var(--teal-100); }
@@ -1244,7 +1249,7 @@ blockquote {
    line of 0.92rem text, centered, sitting above a dark masthead it must
    read against. The whole strip is one link, so its keyboard ring is the
    site's one focus convention, 3px solid with a 2px outward offset, in
-   white at 5.55:1 on the fill; when the strip is focused at the very top
+   white at 7.33:1 on the fill; when the strip is focused at the very top
    of the viewport the ring's top sliver sits past the edge and the rest of
    the ring stays plainly visible. The hover darkens to `--red-kite-darker`,
    the family's own hover step. No new colour. */
@@ -1285,6 +1290,12 @@ blockquote {
   margin-left: 8px;
   white-space: nowrap;
 }
+
+/* The Details link declares its hover ink for the same cascade reason as
+   the CTA hover: a:hover (0,1,1) beats this rule's base (0,1,0), and the
+   unfixed hover rendered teal on the red fill at 1.58:1 (round-1 review,
+   2026-11-25). White on --red-kite-darker is 9.28:1. */
+.alert-strip__details:hover { color: #fff; }
 
 .alert-strip__details:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 

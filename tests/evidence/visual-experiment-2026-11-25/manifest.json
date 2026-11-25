@@ -9,88 +9,36 @@
   "after_build": "this branch, docs/ fresh build, served over 127.0.0.1 http",
   "captures": [
     {
-      "leg": "before",
-      "page": "index.html",
-      "width": 412,
-      "file": "before-index-412.png",
-      "bytes": 1067354,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "6767d946e362637d8682e2fa903d7cee8e6871f5b7f33b72ee4d476b4c5e8ffe"
-    },
-    {
-      "leg": "before",
-      "page": "index.html",
+      "leg": "after",
+      "page": "about.html",
       "width": 1440,
-      "file": "before-index-1440.png",
-      "bytes": 3094648,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "4d2d271773ea20a42eb2c8d08d1a23a8d70acf351be60e4d64341b0fc9aab549"
-    },
-    {
-      "leg": "before",
-      "page": "act-now.html",
-      "width": 412,
-      "file": "before-act-now-412.png",
-      "bytes": 818759,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "bb27d9179c564f002e6e92c4d248eb4e218b4cbf713069ee9f439ca1d86c4c7c"
-    },
-    {
-      "leg": "before",
-      "page": "act-now.html",
-      "width": 1440,
-      "file": "before-act-now-1440.png",
-      "bytes": 1081666,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "282c3730955b160b634d72497e29aa3fa7eda3b6ff6651cbec797966682dc17a"
-    },
-    {
-      "leg": "before",
-      "page": "get-involved.html",
-      "width": 412,
-      "file": "before-get-involved-412.png",
-      "bytes": 818759,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "bb27d9179c564f002e6e92c4d248eb4e218b4cbf713069ee9f439ca1d86c4c7c"
-    },
-    {
-      "leg": "before",
-      "page": "get-involved.html",
-      "width": 1440,
-      "file": "before-get-involved-1440.png",
-      "bytes": 1081666,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "282c3730955b160b634d72497e29aa3fa7eda3b6ff6651cbec797966682dc17a"
+      "file": "after-about-1440.png",
+      "bytes": 2392374,
+      "sha256": "834e10d9091ed631b50c739d59892ba814eb0caa679d76ecc5072a2c655f7243"
     },
     {
       "leg": "after",
-      "page": "index.html",
+      "page": "about.html",
       "width": 412,
-      "file": "after-index-412.png",
-      "bytes": 1075536,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "c1d846be6114e79f8d30a57b354f6e59e25b3141094d339ca5de80254206e578"
+      "file": "after-about-412.png",
+      "bytes": 1034346,
+      "sha256": "9dabf419196f517ffbd5ae8891a3af160be10e001c4701d6881b202ff4f195cd"
+    },
+    {
+      "leg": "after",
+      "page": "act-now.html",
+      "width": 1440,
+      "file": "after-act-now-1440.png",
+      "bytes": 1066905,
+      "sha256": "ec0459e77f04b9692b482f90d21a0bb640bb50bfac5fb7943beaf64a9139490a"
+    },
+    {
+      "leg": "after",
+      "page": "act-now.html",
+      "width": 412,
+      "file": "after-act-now-412.png",
+      "bytes": 804346,
+      "sha256": "cf8395de703ee9e3889fd09e4f1e36554aa1b68c0f6e97406766f3bee842b492"
     },
     {
       "leg": "after",
@@ -98,59 +46,63 @@
       "width": 1440,
       "file": "after-index-1440.png",
       "bytes": 3101127,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
       "sha256": "0743879cc7d4560d43beed7b7e49ab450525dd4426da5c72128b86c3662ce533"
     },
     {
       "leg": "after",
-      "page": "act-now.html",
+      "page": "index.html",
       "width": 412,
-      "file": "after-act-now-412.png",
-      "bytes": 846138,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "30b38acb18253057d4a354ca0c84707f5b40d5bf70e1b510f7ca42a64873e4fa"
+      "file": "after-index-412.png",
+      "bytes": 1075536,
+      "sha256": "c1d846be6114e79f8d30a57b354f6e59e25b3141094d339ca5de80254206e578"
     },
     {
-      "leg": "after",
+      "leg": "before",
+      "page": "about.html",
+      "width": 1440,
+      "file": "before-about-1440.png",
+      "bytes": 2372229,
+      "sha256": "be7b062ed3d7b10381ebf6e1851edad4c32a1fcdee97ca5de4f74387dbffbe47"
+    },
+    {
+      "leg": "before",
+      "page": "about.html",
+      "width": 412,
+      "file": "before-about-412.png",
+      "bytes": 1017914,
+      "sha256": "e7c747829678f1980f4c83cd810b6cf6cfbd6bdad9bd9c44ca70043b9125bb69"
+    },
+    {
+      "leg": "before",
       "page": "act-now.html",
       "width": 1440,
-      "file": "after-act-now-1440.png",
-      "bytes": 1100262,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "2a7cb701b06e9d08becd756722f664ba1116da0a184f982672155335da8890f5"
+      "file": "before-act-now-1440.png",
+      "bytes": 1081666,
+      "sha256": "282c3730955b160b634d72497e29aa3fa7eda3b6ff6651cbec797966682dc17a"
     },
     {
-      "leg": "after",
-      "page": "get-involved.html",
+      "leg": "before",
+      "page": "act-now.html",
       "width": 412,
-      "file": "after-get-involved-412.png",
-      "bytes": 846138,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "30b38acb18253057d4a354ca0c84707f5b40d5bf70e1b510f7ca42a64873e4fa"
+      "file": "before-act-now-412.png",
+      "bytes": 818759,
+      "sha256": "bb27d9179c564f002e6e92c4d248eb4e218b4cbf713069ee9f439ca1d86c4c7c"
     },
     {
-      "leg": "after",
-      "page": "get-involved.html",
+      "leg": "before",
+      "page": "index.html",
       "width": 1440,
-      "file": "after-get-involved-1440.png",
-      "bytes": 1100262,
-      "probe": {
-        "overlay": false,
-        "main": true
-      },
-      "sha256": "2a7cb701b06e9d08becd756722f664ba1116da0a184f982672155335da8890f5"
+      "file": "before-index-1440.png",
+      "bytes": 3094648,
+      "sha256": "4d2d271773ea20a42eb2c8d08d1a23a8d70acf351be60e4d64341b0fc9aab549"
+    },
+    {
+      "leg": "before",
+      "page": "index.html",
+      "width": 412,
+      "file": "before-index-412.png",
+      "bytes": 1067364,
+      "sha256": "8264573f260ee04b5eb08fa45e4f82787cbb063a84cb155acb05720859418d28"
     }
   ],
   "font_loading_proof": {
@@ -196,11 +148,28 @@
     "--red-kite-dark on --cyan-soft (action-strip links)": "6.40:1 (was 4.84:1)",
     "--red-kite-darker on --cyan-soft (action-strip hover)": "8.10:1 (the old --orange hover was 3.48:1, under AA; the retarget fixes it)",
     "--red-kite-dark on the placeholder tint #fdf2f0": "6.68:1",
-    "--red-kite rule vs white page (decorative)": "4.99:1",
+    "--red-kite rule vs white page (decorative)": "5.09:1",
     "staging bar --ink on --cyan-soft (unchanged)": "10.73:1"
   },
   "annotation_rule": "the comms doc's Visual Brand tab color/font prose is intent, not spec; built in real tokens ('greens/blues = environment' keeps the teal family; 'yellow = hope' is not implemented - no yellow enters the palette; 'a red kite... can signal an alert' maps to the red-kite accent family). Where intent met the suite's floors the floors won and the PR names it: the old orange action-strip hover measured 3.48:1 on --cyan-soft.",
-  "suite": "277 passed, 1 skipped (repo venv, tests/ at this head)",
+  "suite": "284 passed, 1 skipped (repo venv, tests/, rebased head)",
   "scanner": "0 violations across the 91 built files in docs/ (psp_public.scan_tree)",
-  "method": "bb browser-automation headless Chrome, full-page screenshots, viewport per width, network-idle + 700ms settle (uat_snapshots.capture)"
+  "method": "bb browser-automation headless Chrome, full-page screenshots, viewport per width, network-idle + 700ms settle (uat_snapshots.capture)",
+  "capture_notes": {
+    "round_1_finding_2": "the round-1 get-involved captures were byte-identical to act-now because get-involved.html is a redirect stub (build.py REDIRECTS, retired 2026-11-24), not because the script took the wrong page; the secondary page in this manifest is about.html, a real page, and every capture's page field names the page its image came from",
+    "dedupe_guard": "all 12 PNGs assert byte-distinct at manifest write time",
+    "act_now_freshness": "all after captures retaken on the rebased head (main carried the row-129/130 act-now rewrites and the row-132/133 chrome)"
+  },
+  "rebase": "rebased onto origin/main b0364c6 (0fc8670 row-133 bar, b25b302 row-132 z-index 40 kept with this leg's red retargets, 46199b4 + b0364c6 act-now copy); no layer value changed",
+  "round_1_findings_and_fixes": {
+    "finding_1_hover_ink": "FIXED: a:hover (0,1,1) outranked .btn--cta and .alert-strip__details (0,1,0), so hovered CTAs and the Details link rendered --teal-900 on the red fill. Both hover rules now declare color: #fff; new cascade pin test_hover_ink_stays_white_on_the_red_hover_fills (red-first); live hover proof on the rebased build:",
+    "hover_live_proof": {
+      "ctaHoverColor": "rgb(255, 255, 255)",
+      "ctaHoverBg": "rgb(135, 33, 27)",
+      "detailsHoverColor": "rgb(255, 255, 255)",
+      "detailsHoverBg": "rgb(160, 43, 35)"
+    },
+    "stale_citation": "FIXED: the alert-strip comment's focus-ring figure now reads 7.33:1 (was the old 5.55:1)",
+    "finding_3_figure": "CORRECTED: --red-kite on white is 5.09:1, not 4.99:1 (styles.css comments and this manifest)"
+  }
 }
