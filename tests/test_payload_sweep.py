@@ -102,6 +102,28 @@ def test_checked_fetch_raises_loud_on_a_wrong_document(monkeypatch):
         ps.checked_fetch("index.html", "https://staging.example.org/")
 
 
+# ---- row 128 delta fixes (thr_cip6wf9r3h): the gate marker is required ----
+
+def test_checked_fetch_requires_the_gate_marker_on_the_staging_host(monkeypatch):
+    # a 200 with the built shell but no gate marker: the crawl gate died or
+    # the host is not staging — environment fault, loud, never a clean bill
+    monkeypatch.setattr(uat_payload, "fetch_html",
+                        lambda url, extra_headers=None: MISMATCH_PAGE)
+    with pytest.raises(AuditInfraError) as loud:
+        ps.checked_fetch("index.html",
+                         "https://staging.protectsouthportland.org/",
+                         extra_headers={"Cookie": "psp_staging=x"})
+    assert "gate" in str(loud.value)
+
+
+def test_checked_fetch_skips_the_marker_on_an_overridden_base(monkeypatch):
+    # file: and localhost targets are not the gated staging host: a local
+    # build (or any overridden base) is a legitimate ungated sweep target
+    monkeypatch.setattr(uat_payload, "fetch_html",
+                        lambda url, extra_headers=None: MISMATCH_PAGE)
+    assert ps.checked_fetch("index.html", "file:docs/") == MISMATCH_PAGE
+
+
 # ---------- findings and their stable ids ----------
 
 def test_finding_row_id_is_stable_and_names_kind_and_page():

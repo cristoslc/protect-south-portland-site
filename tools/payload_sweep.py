@@ -57,10 +57,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build
+import publish
 import uat_payload
 from staging_audit import (AuditInfraError, Finding, create_issue,
                            decide_exit, delta, ensure_labels,
-                           extract_previous_findings, gate_extra_headers,
+                           extract_previous_findings, gate_expected,
+                           gate_extra_headers,
                            last_digest_issue)
 
 SITE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -105,12 +107,22 @@ def shape_fault(page, markup):
 def checked_fetch(page, base, extra_headers=None):
     """Fetch one page by URL, refusing a wrong-document 200 (see module
     docstring). Raises PayloadFetchError / AuditInfraError — both loud.
-    extra_headers carries the gate cookie header (row 128)."""
+    extra_headers carries the gate cookie header (row 128). A 200 whose
+    bytes carry no gate marker on the gated staging host is an environment
+    fault too (row 128 delta fix, thr_cip6wf9r3h): the crawl gate died or
+    the host is not staging — loud, never a clean bill."""
     markup = uat_payload.fetch_html(uat_payload.page_url(base, page),
                                     extra_headers=extra_headers)
     fault = shape_fault(page, markup)
     if fault:
         raise AuditInfraError(fault)
+    if gate_expected(base) and publish.GATE_MARKER not in markup:
+        raise AuditInfraError(
+            f"unrecognised staging shape for {page}: the 200 document "
+            f"carries no {publish.GATE_MARKER!r} gate marker — the row-42 "
+            "crawl gate is not live on the served tree (row 128), so this "
+            "is not the staging the sweep is contracted to read; refusing "
+            "loud")
     return markup
 
 
