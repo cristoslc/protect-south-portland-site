@@ -63,6 +63,22 @@ Authorship is stated where it matters. An agent-authored comment or PR body does
 
 Scope: this applies to every issue, PR body, review comment, and commit message an agent writes on the site repo and the workspace repos, forward from the ruling's date (2026-11-24). Existing comments are not retroactively rewritten. A comment whose content a future reader would misread as human-verified gets a correction reply, not an edit.
 
+## Issue and board checks (operator directive, 2026-11-24)
+
+**The orchestrating thread (L0) and the lane lieutenant (L1) are each responsible for the checks below, and neither relies on the child that builds the work to self-report them.** L0 is the orchestrator that dispatches a leg; L1 is the lane lieutenant that runs it. The child threads that do the building stay outside the check loop: their reports are inputs, never verification. The reports-must-match-the-tree section above started this division; this section names who owns which half of it.
+
+The operator's directive, verbatim (2026-11-24):
+
+> you (as L0) and @thread:thr_g57ekquphp (as L1) are responsible for these checks. capture that in the project's agents.md/spokes
+
+**Three checks are carried here, each earned by a failure that was caught once:**
+
+- **Tree against report.** L0 MUST [RFC 2119] verify every status claim by call on its 15-minute cycle: open PRs, mirror and fork shas, worktree writes, issue-thread states. L1 MUST [RFC 2119] verify its own tree before every report it sends. A claim the tree contradicts is corrected in the same turn, with the difference between a lost message and a missed instruction stated when it matters.
+- **Issue work.** An agent picking up a board issue MUST [RFC 2119] self-assign it and post a pickup comment (working on the fix, what will ship, where) before its first commit. It re-checks the issue thread at first commit, before publish, and at close. A mid-work comment is answered in the thread, folded into the leg with attribution, or filed as its own issue; it is never silently dropped. A premature close is reopened the moment the miss is seen.
+- **Comment shape.** A comment longer than about ten lines is shaped: a one-line lead, the facts as short bullets, the evidence link and hash at the end. A fix is edited in place rather than stacked as a second comment.
+
+**Each check exists because it was caught failing once, and the history is carried with the rule.** The failures are the stale board claims, the premature close on issue #3, and the wall-of-text comment. They are named in `AGENTS-RETRO-agent-invented-pages.md` and in the incident record's tradition: named, dated, and carried, so the next reader knows these are earned rules, not decoration.
+
 ## Staging audit — non-blocking, automated (2026-10-15)
 
 `tools/staging_audit.py` audits the staging mirror on a schedule and files one digest issue per run on this repo, labeled `staging-audit` + `accessibility` (create-if-absent). Schedule: weekday mornings ~13:15 UTC plus manual `workflow_dispatch`, via `.github/workflows/staging-audit.yml`. Per run it checks every public page for HTTP 200, runs Lighthouse accessibility (desktop) on all pages plus a mobile pass on `index.html`, re-checks the typography floor against the `styles.css` staging actually serves (root `112.5%` + body `1rem` — the same contract `test_typography_older_visitor_floor` pins on the source file), and diffs its findings against the previous run's digest, read from the machine JSON block inside the last `staging-audit` issue.
