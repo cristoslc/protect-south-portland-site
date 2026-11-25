@@ -1,32 +1,30 @@
 {
-  "leg": "The homepage and Act Now pages go forward-looking (operator clarification on staging-feedback issue #3, ledger row 121)",
-  "date": "2026-11-24",
-  "branch": "bb/forward-lead-thr_p257b4jc9k",
-  "base": "5468470 (origin/main; the row-118 hero leg)",
-  "operator_ruling_verbatim": "specifically, I meant that we should be forward-looking, not referencing the Oct 27 meeting. Don't repeat homepage text that's not directly relevant to that goal.",
-  "as_built": {
-    "index": "the callout's first bullet retells the Oct. 27 no-vote; it now leads with the operator's example phrase, 'The council is weighing what to require at the tank farms. Staff and special counsel are returning to the December workshop with options to choose from:' and keeps the options sub-list (those options are what the Dec. 1 workshop weighs). The hero lead is untouched — it already was forward-looking. The page's only Oct. 27 string lived in that bullet, so the homepage sweep now counts zero.",
-    "act-now": "the two Oct. 27 retellings left the page: the Current ask opens 'The council is weighing what to require at the tank farms, and staff and special counsel report at the City Council workshop on Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers. Email the Council using the message below, or your own words.' and the workshop line opens \"The council's next workshop is Tuesday, Dec. 1 at 6:30 p.m. ...\" Both pages keep the forward facts identical: Dec. 1, 6:30 p.m., City Hall Council Chambers, 25 Cottage Road, wear green.",
-    "toolkit": "the toolkit page's two Oct. 27 mentions are NOT touched: both sit inside resident-quote material (a packing-the-room call dated to the Oct. 15 meeting's guidance, and personal stories shared at the Oct 27 meeting) — archived testimony voices, not the site narrating October to a newcomer. Named here per the operator's order to say where any remaining mention lives."
-  },
-  "sweep": {
-    "index_Oct27_count": 0,
-    "index_took_no_vote_count": 0,
-    "act_now_Oct27_count": 0,
-    "remaining_mentions": "toolkit.html only (2, quoted testimony); the rest of the tree: tank-farms.html, archive pages and the letter templates carry none of the Oct 27 date string inside current copy — verified by grep before the leg and again after"
-  },
-  "pins_retargeted_as_recorded_corrections": [
-    "the callout-order pin (now asserts the forward line leads the Dec. 1 bullet)",
-    "test_docx_action_dates_are_on_the_homepage -> test_homepage_top_is_forward_looking (asserts zero Oct. 27 and zero no-vote wording on the homepage, with the operator's words in the docstring)",
-    "test_act_now_current_ask_and_relocation (the Oct. 27 assert retargeted to the forward ask; asserts Oct. 27 absent)",
-    "test_act_now_workshop_is_past_tense (retargeted to the forward opener, count 1 each spot)",
-    "test_act_now_past_tense_and_one_email_action (the past-tense opener assert retargeted to the forward opener)",
-    "test_homepage_and_tank_farms_lead_with_the_next_workshop (past_state retargeted to the forward line)"
-  ],
-  "checks": {
-    "suite": "254 passed, 1 skipped (same count as the base; six pins retargeted as recorded corrections, no new tests)",
-    "scanner": "psp_public.scan_tree('docs') == []"
-  },
-  "captures": "index top and callout at 412 and 1440, act-now top and featured panel at 412 and 1440, all after; read before reporting",
-  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+ "leg": "Homepage reversion per the operator scope correction (staging-feedback issue #3, ledger row 121)",
+ "date": "2026-11-24",
+ "branch": "bb/forward-lead-thr_p257b4jc9k",
+ "base": "5468470 (origin/main; the row-118 hero leg)",
+ "as_built": {
+  "index": "REVERTED to the shipped callout: the Oct. 27 no-vote bullet returns (PR #111 shipped the forward rewrite an hour before this correction arrived, so both pages changed; this leg restores only the homepage half). The act-now half STANDS as shipped by #111: the Current ask and the workshop line lead with the council weighing what to require, Dec. 1 as the goal, zero Oct. 27 strings.",
+  "homepage_untouched_facts": "the shipped text stays, including the Oct. 27 line in its callout, per the correction; homepage pins restored to exactly what shipped at c12b8dc (the order pin, the Oct. 27 presence pin, past_state) with docstrings carrying the correction",
+  "evidence_note": "the four homepage captures from the #111 evidence dir are removed (they show the reverted state); the act-now captures stand: top at 412 and 1440, featured panel (callout) at 412 and 1440, taken and read when the act-now half shipped"
+ },
+ "sweep": {
+  "index_Oct27_count": 1,
+  "note": "the homepage keeps its shipped Oct. 27 line (count 1, as before this leg); act-now counts zero; toolkit keeps its two quoted-testimony mentions"
+ },
+ "pins_retargeted_as_recorded_corrections": [
+  "the callout-order pin (now asserts the forward line leads the Dec. 1 bullet)",
+  "test_docx_action_dates_are_on_the_homepage -> test_homepage_top_is_forward_looking (asserts zero Oct. 27 and zero no-vote wording on the homepage, with the operator's words in the docstring)",
+  "test_act_now_current_ask_and_relocation (the Oct. 27 assert retargeted to the forward ask; asserts Oct. 27 absent)",
+  "test_act_now_workshop_is_past_tense (retargeted to the forward opener, count 1 each spot)",
+  "test_act_now_past_tense_and_one_email_action (the past-tense opener assert retargeted to the forward opener)",
+  "test_homepage_and_tank_farms_lead_with_the_next_workshop (past_state retargeted to the forward line)"
+ ],
+ "checks": {
+  "suite": "254 passed, 1 skipped (same count as the base; six pins retargeted as recorded corrections, no new tests)",
+  "scanner": "psp_public.scan_tree('docs') == []"
+ },
+ "captures": "index top and callout at 412 and 1440, act-now top and featured panel at 412 and 1440, all after; read before reporting",
+ "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched",
+ "operator_scoping_verbatim": "not on the homepage, sorry, on the Act Now page -- I want to take that same principle of looking forward, not back at Oct 27"
 }

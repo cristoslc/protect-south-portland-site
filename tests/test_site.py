@@ -1251,10 +1251,12 @@ def test_row33_oct15_meeting_copy_published(docs):
     assert 'href="assets/files/tank-talk-flyer.pdf"' not in idx, "the event-only flyer link is dropped"
     flyer = os.path.join(ROOT, "docs", "assets", "files", "tank-talk-flyer.pdf")
     assert os.path.exists(flyer), "the Tank Talk flyer stays archived in the built tree"
-    # the surviving bullets keep their order: the forward campaign line leads
-    # the callout and the Dec. 1 workshop follows it (row 121)
+    # the surviving bullets keep their order: the Dec. 1 workshop follows the
+    # Oct. 27 report that explains why the Council has options to consider
+    # (the homepage keeps its shipped callout; scope correction 2026-11-24,
+    # row 121: the operator's ruling applies act-now only)
     callout_pos = idx_text.index("Now is the time to act")
-    assert idx_text.index("The Council is weighing what to require at the tank farms", callout_pos) < \
+    assert idx_text.index("The City Council took no vote at its Oct. 27 workshop", callout_pos) < \
         idx_text.index("The Council plans its next workshop for", callout_pos)
     # the scan ban is retired: no event markers remain to reject it
     assert tuple(FORBIDDEN_EVENT_MARKERS) == ()
@@ -1736,20 +1738,16 @@ def test_embed_url_is_the_public_embedding(docs):
         assert 'src="map/embed.html"' in read(docs, name), name
 
 
-def test_homepage_top_is_forward_looking(docs):
-    """Recorded correction (2026-11-24), the operator's ruling verbatim on
-    staging-feedback #3: "specifically, I meant that we should be
-    forward-looking, not referencing the Oct 27 meeting. Don't repeat homepage
-    text that's not directly relevant to that goal." The vote is history; the
-    page stops narrating October: the sweep below pins the count of "Oct. 27"
-    and no-vote wording to zero across the whole homepage (the top section and
-    the callout carried the only mentions), and the venue address stays gone
-    with the invitation (operator ruling, 2026-11-05). The history survives in
-    the ledger (row 121) and this docstring, not on the page."""
+def test_docx_action_dates_are_on_the_homepage(docs):
+    """The Oct. 27 date survives as a past fact; the venue address left with
+    the invitation (operator ruling, 2026-11-05). The operator's forward-
+    looking ruling of 2026-11-24 was scoped to the Act Now page by their own
+    correction, verbatim: "not on the homepage, sorry, on the Act Now page --
+    I want to take that same principle of looking forward, not back at Oct 27"
+    (ledger row 121), so the homepage keeps its shipped callout line and this
+    pin ships as it always did."""
     idx = read(docs, "index.html")
-    assert "Oct. 27" not in idx
-    assert "took no vote" not in idx
-    assert "The Council is weighing what to require at the tank farms" in idx
+    assert "Oct. 27" in idx
     assert "637 Highland Ave" not in idx
 
 
@@ -1855,7 +1853,10 @@ def test_act_now_current_ask_and_relocation(docs):
     # "specifically, I meant that we should be forward-looking, not referencing
     # the Oct 27 meeting. Don't repeat homepage text that's not directly
     # relevant to that goal." Retargeted from asserting the Oct. 27 retelling
-    # to asserting the forward ask it became.
+    # to asserting the forward ask it became. Same day, the operator scoped it
+    # to this page, verbatim: "not on the homepage, sorry, on the Act Now page
+    # -- I want to take that same principle of looking forward, not back at
+    # Oct 27".
     assert "The council is weighing what to require at the tank farms" in act
     assert "Oct. 27" not in act
     assert PETITION_URL in act
@@ -1891,7 +1892,10 @@ def test_act_now_workshop_is_past_tense(docs):
     # not referencing the Oct 27 meeting. Don't repeat homepage text that's not
     # directly relevant to that goal." The Oct. 27 retelling left the page; the
     # two spots that carried it now lead forward, so the pin follows the
-    # forward opener into both. The high-school address that served only the
+    # forward opener into both. The operator then scoped the ruling to this
+    # page, verbatim: "not on the homepage, sorry, on the Act Now page -- I
+    # want to take that same principle of looking forward, not back at Oct 27",
+    # so the homepage keeps its shipped callout line. The high-school address that served only the
     # past night stays gone, as does every invitation to a past event.
     act = read(docs, "act-now.html")
     assert act.count("The council is weighing what to require at the tank farms") == 1
@@ -4393,20 +4397,20 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
     # 2026-11-24 (ledger row 117), retargeted as a recorded correction: the
     # operator directed the hero's first text to the feedback-board filer's
     # rewrite, so the live date and the ask now lead as the filer's paragraph.
-    # 2026-11-24 (ledger row 121), retargeted again as a recorded correction:
-    # the operator ruled "specifically, I meant that we should be
-    # forward-looking, not referencing the Oct 27 meeting. Don't repeat
-    # homepage text that's not directly relevant to that goal." The callout's
-    # no-vote bullet retired; past_state now reads the forward campaign line
-    # the operator's example named. The ruling is unchanged: a live date, a
-    # real ask, no invitation to a past event.
+    # 2026-11-24 (ledger row 121): the operator's forward-looking ruling of
+    # that day was SCOPE-CORRECTED by their own words, verbatim: "not on the
+    # homepage, sorry, on the Act Now page -- I want to take that same
+    # principle of looking forward, not back at Oct 27", so the homepage keeps
+    # its shipped callout bullet and past_state reads it as shipped. The
+    # ruling is unchanged: a live date, a real ask, no invitation to a past
+    # event.
     hero_lead = ("We know more than ever about how the tank farms are "
                  "affecting this community.")
     hero_ask = ("Email the Council and ask it to require better technology at "
                 "the tank farms.")
     bullet_state = ("The Council plans its next workshop for Tuesday, Dec. 1 "
                     "at 6:30 p.m.")
-    past_state = ("The Council is weighing what to require at the tank farms")
+    past_state = ("The City Council took no vote at its Oct. 27 workshop")
     idx = read(docs, "index.html")
     tank = read(docs, "tank-farms.html")
     # 2026-11-24: copy pins read tag-stripped text, so the bold pass can move
