@@ -95,6 +95,14 @@ The operator's directive, verbatim (2026-11-24):
 
 **Scope: every copy leg on every built page, forward from today.** This is the register the Dec. 1 ask already writes in; the homepage lead ("We know more than ever… join us… write… attend… wear green") is the reference example. The copy document could not carry this section (the service account is read-only there), so this section and its pull request are the record until the doc is next updated by human hands; a future update to the copy document SHOULD [RFC 2119] mirror this section's four paragraphs.
 
+## Design input discipline: annotations, not mockups (operator directive, 2026-11-25)
+
+**Screenshots and sketches are annotations of intent, never pixel-exact specs.** Any image routed to a leg as design input — the operator's, a child's, a filer's — answers "what should exist" and "roughly where", and nothing more. Legs MUST NOT [RFC 2119] sample an annotation's colors, geometry, or proportions as design tokens; implementation builds in the site's real design system (existing tokens, spacing, the suite's contrast floor). Written on the operator's line, verbatim:
+
+> these are just annotations, not high-fidelity mockups.
+
+Where an annotation conflicts with the suite's contrast, accessibility, or layout rules, the rules win and the PR names the divergence.
+
 ## Staging audit — non-blocking, automated (2026-10-15)
 
 `tools/staging_audit.py` audits the staging mirror on a schedule and files one digest issue per run on this repo, labeled `staging-audit` + `accessibility` (create-if-absent). Schedule: weekday mornings ~13:15 UTC plus manual `workflow_dispatch`, via `.github/workflows/staging-audit.yml`. Per run it checks every public page for HTTP 200, runs Lighthouse accessibility (desktop) on all pages plus a mobile pass on `index.html`, re-checks the typography floor against the `styles.css` staging actually serves (root `112.5%` + body `1rem` — the same contract `test_typography_older_visitor_floor` pins on the source file), and diffs its findings against the previous run's digest, read from the machine JSON block inside the last `staging-audit` issue.
