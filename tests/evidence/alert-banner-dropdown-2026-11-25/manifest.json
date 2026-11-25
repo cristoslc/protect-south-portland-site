@@ -1,0 +1,44 @@
+{
+  "row": 132,
+  "date": "2026-11-25",
+  "defect": "Operator directive with screenshot: the sticky orange alert banner 'shouldn't be more forward than menus, makes menus unclickable' - with the nav's 'Our work' dropdown open at desktop width, the dropdown items (Coastal Flooding, Past work) were hidden/clipped behind the banner and the region was unclickable.",
+  "head_before_fix": "a8453bc0d9542cb835de50f9cba93e2358cecbef (origin/main)",
+  "root_cause": "The banner (.alert-strip) and the masthead are sticky siblings both pinned to viewport top:0. The banner's z-index 60 outranked the masthead's z-index 50 in the root stacking context. The dropdown panel's own z-index 60 never competes with the banner: the masthead is a stacking context, so the panel's layer only counts inside it, and the whole masthead - dropdown included - sat below the banner. The banner painted over the dropdown's first item and, when scrolled, over the stuck nav links; at 412 it covered the open MENU panel's links.",
+  "z_index_before": {"masthead": 50, "alert-strip": 60, "submenu (inside masthead context)": 60, "winner at root": "alert-strip (60) over masthead (50) and everything inside it"},
+  "z_index_after": {"masthead": 50, "alert-strip": 40, "submenu (inside masthead context)": 60, "winner at root": "masthead (50, dropdowns with it) over alert-strip (40) over page content (hero photo 0, hero card 1)"},
+  "properties_that_survive": [
+    "nav dropdown menus render above the banner and are clickable while open (browser-pinned at 1440 and 412)",
+    "the banner still sits above ordinary page content when stuck (z-index 40 above hero photo 0 / hero card 1; pinned statically)",
+    "the staging preview bar keeps its max-int z-index above the nav (tools/publish.py .staging-gate .staging-bar z-index 2147483647) - untouched",
+    "the gate curtain keeps max-int minus one (2147483646) and still covers everything when locked - untouched"
+  ],
+  "captures": [
+    {"path": "dropdown-open-before-1440.png", "width": 1440, "state": "'Our work' + 'Past work' flyout open, BEFORE fix, built from a8453bc: banner cuts across the dropdown; 'South Portland Tank Farms' fully hidden, 'Coastal Flooding' clipped - the operator's screenshot reproduced"},
+    {"path": "dropdown-open-after-1440.png", "width": 1440, "state": "same open nav AFTER fix: both dropdown levels paint above the banner, every item readable and clickable"},
+    {"path": "menu-open-after-412.png", "width": 412, "state": "MENU panel open AFTER fix: the panel paints above the wrapped banner (banner visible below the panel)"}
+  ],
+  "breakpoint_note": "412 applies: below 1120px the hover dropdown does not exist, but the same stacking conflict blocked the open MENU panel's links ('Home', 'Our work' hit-tested to the banner text on main), so the fix and its pins cover 412.",
+  "uat_test": {
+    "file": "tests/test_nav_dropdown_uat.py",
+    "pins": [
+      "test_alert_strip_layers_below_the_masthead_and_above_page_content (static: pins .masthead 50 > .alert-strip 40 > .hero__inner 1 exactly)",
+      "test_every_open_nav_link_hit_tests_above_the_banner_at_1440 (browser: elementFromPoint at every open nav link's center returns the link, both dropdown levels)",
+      "test_every_open_nav_link_hit_tests_above_the_banner_at_412 (browser: same invariant with the MENU panel open)",
+      "test_dropdown_item_click_reaches_its_page_at_1440 (browser: click through the hit-tested element at the first item's center navigates to tank-farms.html)"
+    ],
+    "mechanism": "bb browser-automation headless Chrome, same as tools/uat_snapshots.py; builds a fresh docs/ tree and drives file:// URLs; skips with a named reason only where the bb CLI is absent",
+    "red_first": {
+      "record": "red-run.txt (verbatim pytest output)",
+      "result": "4 failed in 6.51s on the unfixed tree (built from a8453bc)",
+      "evidence": [
+        "static pin: assert 60 == 40 failed",
+        "1440: 'South Portland Tank Farms' hit-tested to 'Next event: City Council meeting...' (the banner's text)",
+        "412: 'Home' and 'Our work' hit-tested to the banner's text",
+        "click: the click at the first item's center landed on the banner's text and stayed on index.html"
+      ]
+    },
+    "green_after_fix": "4 passed in 6.62s; full suite and psp_public.scan_tree('docs') run separately"
+  },
+  "scope": "site/styles.css only (.alert-strip z-index 60 -> 40 plus its comment), rebuilt docs/styles.css, the new test module, and this evidence dir. tools/staging-bar.js, the gate code and the serve workflows untouched.",
+  "no_publish_no_merge": true
+}

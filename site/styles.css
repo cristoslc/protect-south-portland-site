@@ -1035,7 +1035,16 @@ blockquote {
 .alert-strip {
   position: sticky;
   top: 0;
-  z-index: 60;
+  /* Row 132 (2026-11-25): the banner layers BELOW the masthead's 50, not
+     above it. At 60 the banner outranked the masthead's own stacking
+     context — the dropdown's z-index: 60 only counts inside that context —
+     so the banner painted over the open "Our work" menu and hit-blocked its
+     items ("shouldn't be more forward than menus, makes menus unclickable").
+     At 40 the masthead and every menu inside it win, and the banner still
+     clears the page content layers (the hero photo at 0, the hero card at
+     1) whenever it is the topmost chrome. The gated staging bar and the
+     gate curtain keep their max-int layers far above both. */
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,0 +1,43 @@
+tests/test_nav_dropdown_uat.py::test_alert_strip_layers_below_the_masthead_and_above_page_content FAILED [ 25%]
+tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_every_open_nav_link_hit_tests_above_the_banner_at_1440 FAILED [ 50%]
+tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_every_open_nav_link_hit_tests_above_the_banner_at_412 FAILED [ 75%]
+tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_dropdown_item_click_reaches_its_page_at_1440 FAILED [100%]
+FAILED tests/test_nav_dropdown_uat.py::test_alert_strip_layers_below_the_masthead_and_above_page_content
+FAILED tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_every_open_nav_link_hit_tests_above_the_banner_at_1440
+FAILED tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_every_open_nav_link_hit_tests_above_the_banner_at_412
+FAILED tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_dropdown_item_click_reaches_its_page_at_1440
+============================== 4 failed in 6.51s ===============================
+        assert masthead == MASTHEAD_Z_AFTER
+>       assert strip == ALERT_STRIP_Z_AFTER
+E       assert 60 == 40
+--
+            "nav links hit-blocked behind the alert banner at 1440: "
+            f"{result['blocked']}")
+E       AssertionError: nav links hit-blocked behind the alert banner at 1440: [{'text': 'South Portland Tank Farms', 'hit': 'Next event: City Council meeting, Tuesda'}]
+E       assert [{'text': 'So...ing, Tuesda'}] == []
+E         
+E         Left contains one more item: {'text': 'South Portland Tank Farms', 'hit': 'Next event: City Council meeting, Tuesda'}
+E         Use -v to get more diff
+--
+            "MENU panel links hit-blocked behind the alert banner at 412: "
+            f"{result['blocked']}")
+E       AssertionError: MENU panel links hit-blocked behind the alert banner at 412: [{'text': 'Home', 'hit': 'Next event: City Council meeting, Tuesda'}, {'text': 'Our work', 'hit': 'Next event: City Council meeting, Tuesda'}]
+E       assert [{'text': 'Ho...ing, Tuesda'}] == []
+E         
+E         Left contains 2 more items, first extra item: {'text': 'Home', 'hit': 'Next event: City Council meeting, Tuesda'}
+E         Use -v to get more diff
+--
+                f"reach its page: the click landed on {result.get('clicked')!r} "
+                f"and the browser stayed on {result.get('landed')!r}")
+E               AssertionError: clicking the 'South Portland Tank Farms' dropdown item did not reach its page: the click landed on 'Next event: City Council meeting, Tuesda' and the browser stayed on 'index.html'
+E               assert 'index.html' == 'tank-farms.html'
+E                 
+E                 - tank-farms.html
+E                 + index.html
+--
+tests/test_nav_dropdown_uat.py:209: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_nav_dropdown_uat.py::test_alert_strip_layers_below_the_masthead_and_above_page_content
+FAILED tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_every_open_nav_link_hit_tests_above_the_banner_at_1440
+FAILED tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_every_open_nav_link_hit_tests_above_the_banner_at_412
+FAILED tests/test_nav_dropdown_uat.py::TestNavAboveAlertBannerBrowser::test_dropdown_item_click_reaches_its_page_at_1440
