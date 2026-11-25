@@ -1,0 +1,22 @@
+{
+  "leg": "The sticky event banner stays fully visible when scrolling (operator directive, ledger row 146)",
+  "date": "2026-11-25",
+  "branch": "bb/banner-sticky-top-2026-11-25",
+  "base": "1ac7064 (origin/main; post row-135 visual-brand rebase head)",
+  "directive_verbatim": "Sticky sheet Banner should stay fully visible when scrolling",
+  "mechanism": "the shell order is masthead then banner and BOTH are sticky at top: 0, so when both are stuck they share the viewport band and the masthead (z 50 over the banner's 40, the row-132 fix kept intact) paints over the banner; the fix seats the banner's stuck top BELOW the masthead's stuck height: the shipped stylesheet default is the measured 70px, refined live by the shell's existing banner script (strip.style.top = masthead.offsetHeight + 'px', on load and on window resize, never on nav-panel open so menus-above-banner stays natural)",
+  "measured_red_on_main": {
+    "412": "masthead stuck 0..69.7 (height 69.7), banner stuck 0..125.3, occluded; only the tail band 69.7..125.3 visible below the masthead (the operator's screenshot exactly)",
+    "1440": "masthead stuck 0..70.7 (height 70.7), banner stuck 0..43.3, occluded IN FULL; the desktop banner disappears entirely mid-scroll"
+  },
+  "measured_after": {
+    "412": "masthead 0..69.7, banner stuck 70..168, no overlap, fully visible (act-now and about, same values)",
+    "1440": "masthead 0..70.7, banner stuck 71..114.3, no overlap, fully visible (act-now and about, same values)"
+  },
+  "pins": "new tests/test_banner_sticky_uat.py, red-first: static pin (the .alert-strip rule ships top: 70px, not 0, and the shell script carries the offsetHeight plumbing with the day-key guard), browser pins (mid-scroll region integrity at top/mid/deep on act-now AND about at 412 AND 1440: no overlap with the masthead, top below masthead bottom, whole banner inside the viewport, rect equals offsetHeight so nothing is clipped), the measured-band pin (stuck seat 0.5px below to 1px below the masthead's bottom), the dismiss guard exercised on the STUCK banner (close hides it; day key written); 6 failed, 1 passed red on the unchanged tree; 7 passed green; the surviving top-of-page copy pin test_site_wide_alert_strip retargeted as a recorded correction (top 70px, comment names the old behavior)",
+  "guards_kept": "the localStorage day-key dismissal (psp-event-banner-day, hides until local midnight) untouched and pinned; both breakpoints measured and pinned; the contrast floor untouched (no color changed; the row-135 shipped --red-kite-dark pair stands); row-132 layering kept exactly (z 40 banner under z 50 masthead; the row-132 UAT pins all pass on the same build)",
+  "checks": {"suite": "300 passed, 1 skipped (main at 1ac7064 sits at 293 with one top:0 pin retargeted; the delta is the 7 new pins)", "scanner": "[] after one self-caught correction: the first shell comment cited 'row-132' and shipped into every built page, tripping the internal-reference scanner on 18 pages, reworded to plain language before any commit", "release_check": "publication-clean", "visual_check": "clean"},
+  "captures": "top and mid-scroll at 412 and 1440 on act-now AND about (8 pngs), all read; mid 412 shows the operator's screenshot state FIXED: the full three-line banner below the masthead with its first lines readable; mid 1440-about shows the desktop banner fully visible where it previously vanished entirely",
+  "cutover_timing": "PR #141 is already merged, so the production cutover is the next sequencing fact; if this leg merges before the cutover PR opens, it RIDES THE CUT per the directive",
+  "not_done": "not published, not merged; report before merging per the order; the shared root checkout untouched (clean on main)"
+}

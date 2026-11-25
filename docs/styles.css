@@ -1236,7 +1236,16 @@ blockquote {
 
 .alert-strip {
   position: sticky;
-  top: 0;
+  /* 2026-11-25: the banner's stuck position sits BELOW the masthead's
+     stuck height, so nothing scrolls partially under anything. Measured
+     stuck masthead heights: 69.7px at 412, 70.7px at 1440, so the shipped
+     default is the 70px band between them; the shell's banner script
+     refines it live from the masthead's own offsetHeight on load and on
+     resize, so the real copy cannot drift from the constant. A top of 0
+     made the stuck banner share the masthead's band, and the masthead
+     (z 50 over the banner's 40) painted over the banner's first lines at
+     412 — or over the whole banner at 1440. */
+  top: 70px;
   /* Row 132 (2026-11-25): the banner layers BELOW the masthead's 50, not
      above it. At 60 the banner outranked the masthead's own stacking
      context — the dropdown's z-index: 60 only counts inside that context —

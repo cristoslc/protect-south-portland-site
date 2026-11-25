@@ -60,6 +60,17 @@
 (function () {
   var strip = document.getElementById('alert-strip');
   if (!strip) return;
+  /* 2026-11-25 sticky-top refinement: the banner's stuck seat is the
+     masthead's own stuck height, measured live so it can never drift from
+     a constant. Set on load and on window resize only — never on nav-panel
+     open, so the menus-above-banner composition (a later fix, 2026-11-25)
+     stays the natural behavior when the panel grows the masthead. */
+  var masthead = document.querySelector('.masthead');
+  var seat = function () {
+    if (masthead) strip.style.top = masthead.offsetHeight + 'px';
+  };
+  seat();
+  window.addEventListener('resize', seat);
   var KEY = 'psp-event-banner-day';
   var close = strip.querySelector('.alert-strip__close');
   if (close) close.hidden = false;

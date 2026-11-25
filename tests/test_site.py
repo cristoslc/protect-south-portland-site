@@ -375,11 +375,19 @@ def test_site_wide_alert_strip(docs):
         assert '<a class="alert-strip__details" href="act-now.html">Details</a>' in page, name
         # the close affordance ships hidden and carries a real label
         assert 'class="alert-strip__close" type="button" aria-label="Dismiss the event banner; it comes back tomorrow" hidden' in page, name
-        # sticky while the page scrolls, in the shared stylesheet
+        # sticky while the page scrolls, in the shared stylesheet; the stuck
+        # seat sits BELOW the masthead's stuck height (measured: 69.7px at
+        # 412, 70.7px at 1440, shipped default 70px, refined live by the
+        # shell script), so nothing scrolls partially under anything —
+        # recorded correction 2026-11-25: top was 0, sharing the masthead's
+        # band, and the masthead painted over the banner mid-scroll
     css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
     start = css.index(".alert-strip {")
     block = css[start:css.index("}", start)]
-    assert "position: sticky" in block and "top: 0" in block, "the banner must stick while the page scrolls"
+    assert "position: sticky" in block, "the banner must stick while the page scrolls"
+    assert "top: 70px" in block, (
+        "the banner's stuck seat must sit below the masthead's stuck "
+        "height; top: 0 put the banner under the masthead mid-scroll")
     # row 135 recorded correction (2026-11-25): the banner's fill moved from
     # --orange-dark to --red-kite-dark with the visual-brand experiment; the
     # white-ink pin and the no-literal-colour pin are unchanged.
