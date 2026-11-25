@@ -1,0 +1,34 @@
+{
+  "leg": "Staging preview bar restyle: operator's new format (Live site line, US Eastern time, 12-char hash, Feedback >> link) (operator directive, ledger row 133)",
+  "date": "2026-11-25",
+  "branch": "bb/staging-bar-format-feedback-thr_pemragsvwf",
+  "base": "a8453bc (origin/main, verified: this repo squash-merges, content verified on main not ancestry)",
+  "operator_directive_verbatim": "Staging preview. Live site: protectsouthportland.org. Last updated: {{US Eastern time}} ({{commit hash}}). Feedback >> (the {{...}} are placeholders; ship the rendered format)",
+  "shipped_copy_rendered": "Staging preview. Live site: protectsouthportland.org. Last updated: Nov 25, 2026, 10:18 a.m. EST (a8453bc0d954). Feedback >>",
+  "time_pattern": "Named pattern: 'Nov 25, 2026, 10:18 a.m. EST' - en-US short month, day, year, 12-hour clock with lowercase a.m./p.m. day period, short US Eastern zone name (EST/EDT). Rendered in the browser by Intl.DateTimeFormat with timeZone America/New_York from the manifest's served UTC ISO instant. staging-manifest.json stays the data source; no build-time timestamp exists in any built byte (the row-127 mechanism is unchanged).",
+  "hash_choice": "12 chars, String(manifest.head).slice(0, 12) - the length the bar has shown since the row-127 bar, kept, named here per the directive",
+  "feedback_link": {
+    "text": "Feedback >>",
+    "href": "https://github.com/Protect-South-Portland/staging-website-feedback/issues/new?template=website-feedback.yml",
+    "target": "_blank",
+    "rel": "noopener noreferrer",
+    "aria-label": "Feedback — file a comment on the staging preview",
+    "note": "the link is created up front with the warning, so a reader without a manifest still has the feedback path; the Last updated span is inserted before it when the manifest resolves, keeping the operator's word order"
+  },
+  "unchanged_as_directed": "the URL matcher (/^staging\\.protectsouthportland\\.[a-z]{2,}$/i, staging root domain only - the row-127 pins pass untouched), non-dismissable (no close affordance, no storage), the bar-visible-while-locked gate interplay (publish.py's .staging-gate .staging-bar visibility rule is class-based and untouched), document-flow placement above the nav, palette tokens and the measured 10.73:1 ink-on-cyan-soft pair (the link inherits the bar colour via color: inherit, so the pair is unchanged by construction; the underline is the affordance). The gate code, the serve workflows and staging-manifest.json's format are untouched.",
+  "named_change_beyond_the_copy": "the .staging-bar__updated white-space:nowrap is removed: under the old format that span clipped horizontally at 412 (recorded in the crawler-gate leg's manifest as pre-existing and untouched); the new span carries spaces and now wraps instead. The before-412 capture shows the old clip; the after-412 capture shows the wrap.",
+  "tests": {
+    "red_first": "test_staging_bar_copy_time_hash_and_feedback failed against the unmodified bar (old copy string absent), then passed after the implementation",
+    "pins": "new: exact rendered copy string, US Eastern tokens pinned in the shipped JS (timeZone America/New_York, short month/zone, lowercase day period) plus a Python mirror of the pattern on the fixed UTC input 2026-11-25T15:18:33+00:00 yielding 'Nov 25, 2026, 10:18 a.m. EST', the 12-char hash slice, the feedback href/target/rel and the accessible name",
+    "recorded_correction": "the row-127 copy pin asserting 'Staging preview. This is not the live site; the live site is protectsouthportland.org.' is replaced by the new-format pins in the same test block; the correction is recorded in the new test's docstring",
+    "suite": "264 passed, 1 skipped (263 baseline at a8453bc + 1 new pin)"
+  },
+  "captures": "bar-before-412.png / bar-before-1440.png (the old live format, served from the a8453bc docs with the same manifest), bar-after-412.png / bar-after-1440.png (the new format, read by the leg: 412 wraps with no clipping, 1440 carries the full format one line with the underlined Feedback >> link)",
+  "capture_recipe": "the committed docs plus a hand-written staging-manifest.json exactly as prepare_serve_tree writes it (served 2026-11-25T15:18:33+00:00, head a8453bc0d9542cb835de50f9cba93e2358cecbef), served over http://staging.protectsouthportland.localhost:PORT so the real shipped matcher runs end to end",
+  "orchestrator_note": "the script is chrome in every built page, so every page hash moves with this leg; the gate report gets re-stamped at the staging turn",
+  "checks": {
+    "suite": "264 passed, 1 skipped",
+    "release_check": "fresh (committed docs equals a fresh build) and publication-clean",
+    "scanner": "clean (test_built_tree_scans_clean green; ledger-row references kept out of shipped bytes)"
+  }
+}

@@ -562,7 +562,6 @@ def test_staging_bar_is_not_dismissable(docs):
     assert "button" not in code.lower(), "no button, dismissable or otherwise"
     assert "localStorage" not in code and "sessionStorage" not in code
     assert "document.cookie" not in code, "nothing stored, period"
-    assert "Staging preview. This is not the live site; the live site is protectsouthportland.org." in js
     assert "Last updated: " in js
     # the matcher guard returns before any DOM insertion: find the guard and
     # check every bar-creation call sits after it
@@ -570,6 +569,67 @@ def test_staging_bar_is_not_dismissable(docs):
     insert = js.index("insertBefore(bar, masthead)")
     prepend = js.index("document.body.prepend(bar)")
     assert guard < insert and guard < prepend
+
+
+def test_staging_bar_copy_time_hash_and_feedback(docs):
+    """Ledger row 133 (2026-11-25), the operator's restyle directive verbatim:
+    "Staging preview. Live site: protectsouthportland.org. Last updated:
+    {{US Eastern time}} ({{commit hash}}). Feedback >>" (the {{...}} are
+    placeholders; the bar ships the rendered format).
+
+    RECORD CORRECTION (this leg): the row-127 copy pin asserted the old
+    string "Staging preview. This is not the live site; the live site is
+    protectsouthportland.org." - the operator's new format replaces it, so
+    that pin is updated here, not extended.
+
+    Pinned here: the exact copy string; the time as US Eastern with a fixed
+    UTC input mirrored through the same pattern in Python; the fork sha in
+    12-char short form; the feedback link's href, target and rel and its
+    screen-reader name."""
+    js = open(os.path.join(docs, "assets", "js", "staging-bar.js"),
+              encoding="utf-8").read()
+
+    # COPY: the operator's format, rendered, exactly (the manifest-backed
+    # "Last updated:" span sits between the fixed lead and the feedback link)
+    assert "Staging preview. Live site: protectsouthportland.org." in js
+    assert "Feedback >>" in js
+
+    # TIME: the manifest stays the data source and the formatter renders US
+    # Eastern. The JS must carry the exact zone and pattern tokens; the
+    # Python mirror below proves the pattern itself on a fixed UTC input.
+    assert "timeZone: 'America/New_York'" in js, "the bar renders US Eastern"
+    assert "month: 'short'" in js and "day: 'numeric'" in js
+    assert "year: 'numeric'" in js and "minute: '2-digit'" in js
+    assert "timeZoneName: 'short'" in js, "the named EST/EDT suffix"
+    assert "a.m.' : 'p.m.'" in js, "the lowercase day period"
+    # no build-time timestamp: the only time the script shows comes from the
+    # manifest's served field
+    assert "manifest.served" in js
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    eastern = datetime.fromisoformat(
+        "2026-11-25T15:18:33+00:00").astimezone(ZoneInfo("America/New_York"))
+    month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][eastern.month - 1]
+    hour12 = eastern.hour % 12 or 12
+    period = "a.m." if eastern.hour < 12 else "p.m."
+    expected = (f"{month} {eastern.day}, {eastern.year}, "
+                f"{hour12}:{eastern.minute:02d} {period} {eastern.tzname()}")
+    assert expected == "Nov 25, 2026, 10:18 a.m. EST", expected
+
+    # HASH: the fork sha in short form, first 12 chars (the length the bar
+    # has shown since row 127, kept)
+    assert "String(manifest.head).slice(0, 12)" in js
+
+    # FEEDBACK LINK: exact href, new tab, no opener leak, screen-reader name
+    feedback_url = ("https://github.com/Protect-South-Portland/"
+                    "staging-website-feedback/issues/"
+                    "new?template=website-feedback.yml")
+    assert feedback_url in js
+    assert "feedback.target = '_blank'" in js
+    assert "feedback.rel = 'noopener noreferrer'" in js
+    assert ("aria-label', 'Feedback — file a comment on the staging preview'"
+            in js), "the accessible name"
 
 
 def test_toolkit_reference_page(docs):

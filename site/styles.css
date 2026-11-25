@@ -777,7 +777,13 @@ blockquote {
   text-align: center;
 }
 
-.staging-bar__updated { white-space: nowrap; }
+/* no nowrap: the "Last updated" line carries spaces and wraps at narrow
+   widths (the pre-format span clipped at 412 under white-space:nowrap;
+   this format's captures record the fix) */
+
+/* the feedback link keeps the bar's own measured pair (ink on cyan-soft,
+   10.73:1) by inheriting the bar colour; the underline is the affordance */
+.staging-bar a { color: inherit; }
 
 /* ---------- contact / council lists ---------- */
 
