@@ -475,6 +475,27 @@ def test_act_now_leads_with_the_newcomer_plea(docs):
     assert act.index("We know more than ever") < act.index('class="callout callout--ask"')
 
 
+def test_no_petition_styling_or_campaign_remains(docs):
+    """The operator's clarification (2026-11-25, ledger row 126), verbatim:
+    "remove the petition from all current asks/active campaigns, we don't have
+    one running right now." The petition left the copy first (row 125); this
+    pin retires its styling: the shared stylesheet's dead `.petition` /
+    `.petition__inner` block (shipped with no user on any built page, kept
+    from an earlier homepage era) is removed, and the suite-wide pins already
+    assert the copy is gone. No petition may present as a current action
+    anywhere; archive history that is neither CTA nor ask-adjacent could stay,
+    and the sweep found none to keep."""
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    assert ".petition" not in css, (
+        "no petition styling ships in the shared stylesheet (row 126)")
+    built_css = read(docs, "styles.css")
+    assert ".petition" not in built_css
+    for name in html_files(docs):
+        page = read(docs, name)
+        assert "petition" not in page.lower(), (
+            f"{name}: no petition reference remains in user-facing copy")
+
+
 def test_toolkit_reference_page(docs):
     """Ruling on `dec_inuqu6bhpw6r`, option one-page ("One reference page,
     durable chapters only"), ledger row 78: `toolkit.html` carries four

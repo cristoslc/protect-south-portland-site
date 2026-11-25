@@ -758,16 +758,6 @@ blockquote {
    baseline when the cards sit side by side */
 .report-actions__card p:last-child { margin: auto 0 0; }
 
-/* ---------- petition strip (kept from live homepage) ---------- */
-
-.petition {
-  background: var(--cyan-soft);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.petition__inner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 30px; justify-content: space-between; padding: 26px 20px; }
-
 /* ---------- contact / council lists ---------- */
 
 .contact-list { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 40px; }
