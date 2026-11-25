@@ -451,6 +451,11 @@ def test_toolkit_reference_page(docs):
     - Two FAQ answers name the Oct. 27 workshop and "this year's" council
       candidates. The chapter lede already dates every answer to the October 15
       meeting, so the dated answer is honest as the snapshot it is.
+      (Record note 2026-11-24, ledger row 123: the FAQ answers no longer carry
+      the Oct. 27 date; they read forward, "The Dec. 1 workshop is set to
+      consider licensing fees…" — this comment is superseded by that change,
+      verified by the tree-wide sweep, so do not read it as a guard to
+      restore.)
 
     The same review fixed four others, and those came down to a proper-noun
     spelling or an anchor label rather than campaign wording: Bug Light (the
