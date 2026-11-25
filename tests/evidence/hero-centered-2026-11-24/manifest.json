@@ -42,7 +42,7 @@
    "rightGap": 270.5,
    "topInRegion": 170,
    "bottomGap": 170,
-   "note": "perfectly centered both axes; the card's left edge (x 270.5) stands about 5px clear of the lighthouse's white body (the tower measured x 233-266 in the leg's capture), so the tower reads in the clear beside the card, not behind it, and the sails pass behind the card's translucent fill the way the filer's outline drew them"
+   "note": "perfectly centered both axes; the card's left edge (x 270.5) sits against the lighthouse's sunlit body, which runs from about x 240 to 269 in the leg's open capture and continues to about x 275 in the card-hidden render, so the tint grazes the tower's right flank over a few pixels while the tower's mass reads beside the card, not behind it; the sails pass behind the card's translucent fill the way the filer's outline drew them"
   },
   "1440": {
    "leftGap": 306,
@@ -81,7 +81,7 @@
    }
   },
   "floor": "the composition leg's worst readings were 7.93-8.24:1, so the move does not degrade the measured contrasts \u2014 the worst case at the new position is at or above every prior reading",
-  "readings_note": "the worst case is measured over the composited fill; the composition leg's worst readings (7.93-8.24:1) came from the crowd's white-shirt pixels under the card's old left-anchored position, and the centred card now sits clear of them, which is why the worst case improves to 8.27-8.28:1"
+  "readings_note": "the worst case is measured over the composited fill; the composition leg's prior worst (7.93:1) came from the lighthouse's white body at the old left-anchored rect (pixel (252, 405), near-white (255, 255, 254)), so the improvement to the new floor (8.27:1 on this leg's stride-2 sample grid; an every-pixel pass reads 8.18:1) came from the card moving off the lighthouse body; the crowd's white-shirt pixels that set the new worst lie under both the old and the centered rects"
  },
  "kept_intact": "the 41.125vw cap rule (pinned by test_homepage_hero_card_is_centered_on_desktop), the object-position 20% 100% focal point, the card's fill and ink, the \u22641199 tablet and phone composition (byte-identical band geometry), and the mast-and-sail visibility at 1920 (the cap's 240 hidden rows hold with the card centered)",
  "named_tension": "above 1200px the sails' mid-section passes behind the card's 80%-opaque tint exactly as the filer's red outline drew them; the sails remain in frame (no re-crop) and read through the tint. Below 1200 the sentried composition stays because a centered card at tablet width would sit behind the tower itself.",
