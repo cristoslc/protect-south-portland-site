@@ -1105,6 +1105,11 @@ blockquote {
 
 @media (min-width: 720px) {
   .card-grid--act { grid-template-columns: 1fr 1fr; }
+
+  /* the redundancy ruling (2026-11-25): the act grid's first card spans the
+     full row so the removal of its former pair leaves no hole - the story
+     card reads wide, the two text asks pair below */
+  .card-grid--act .card:first-child { grid-column: 1 / -1; }
 }
 
 .card--glow { box-shadow: 0 0 0 4px var(--cyan-soft), var(--shadow); }

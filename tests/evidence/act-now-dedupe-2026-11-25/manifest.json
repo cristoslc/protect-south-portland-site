@@ -1,0 +1,16 @@
+{
+  "leg": "The redundant secondary ask removed from act-now (operator ruling, ledger row 129)",
+  "date": "2026-11-25",
+  "branch": "bb/act-now-dedupe-write-2026-11-25",
+  "base": "21145f6 (origin/main, carrying the merged calendar/centering leg; the write phase opened after that merge per the sequencing)",
+  "operator_ruling_verbatim": "agreed — remove it. The page should carry the primary ask in the green box plus three secondary asks, not a fourth invented to fill a slot.",
+  "removed": "the second glow card entirely: heading 'Dec. 1: the council weighs what to require', its paragraph, and the WORKSHOP DETAILS link (which pointed at act-now.html, the page it sat on - a self-link carrying no destination the box lacks)",
+  "fact_diff": "every fact the block carried lives elsewhere: the council weighing what to require (the box's Current ask line), the Dec. 1 workshop (the box and the workshop section), the venue (the box's 'City Hall Council Chambers, 25 Cottage Road' is a superset of the block's 'City Hall, 25 Cottage Road'), and 'Arrive by 6:15 to fill the room.' (the page's workshop section, where it predates the block). ZERO facts merged into the box - merging would have duplicated the arrive line on the page",
+  "page_shape_after": "primary green box (Current ask + the two ask columns + the calendar-add CTA row), then the THREE secondary asks: Tell your story (share-your-story.html), Report an odor (report-an-odor.html), Donate (donate.html)",
+  "grid_hole_closed": "the 2-column card grid would hole at the second row's second slot; a scoped CSS rule above 700px (`.card-grid--act .card:first-child { grid-column: 1 / -1; }`) lets the surviving story card span the full row with the two text asks pairing below - measured at 1440: first card 1060px wide (full row), Report an odor and Donate 521px each; at 412 the single-column mode has no hole by construction (3 cards, 372px each) - no content invented",
+  "dec1_count_check": "grep after: 'Dec. 1: the council weighs what to require' gone from the page; the Dec. 1 facts appear in the featured box once (the workshop section's own facts are its pre-existing copy, not a duplicate of the removed block's wording)",
+  "pins": "forward-sentence count 2 -> 1 (operator ruling in the comment); the glow-pair/workshop-card pin retargeted to assert the card gone, one glow card, three-card order, and the grid-span rule; the act-now self-link count 0; the WORKSHOP DETAILS assertions reversed",
+  "checks": {"suite": "272 passed, 1 skipped (main's suite at 272 with the calendar leg's pins; this leg retargeted four)", "scanner": "[]", "release_check": "fresh and publication-clean", "visual_check": "clean"},
+  "captures": "grid-after-412.png / grid-after-1440.png with the card-width measurements, read before reporting",
+  "not_done": "not published, not merged; reported back BEFORE merging; the root checkout untouched (left on docs/design-annotation-rule)"
+}

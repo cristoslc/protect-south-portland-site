@@ -2067,7 +2067,14 @@ def test_act_now_workshop_is_past_tense(docs):
     # ledger row 125: the count is 2 — the Current ask and the forward
     # workshop card that replaced the petition card both open with the same
     # forward sentence, deliberately the same words
-    assert act.count("The council is weighing what to require at the tank farms") == 2
+    # recorded correction (2026-11-25, ledger row 129): the operator ruled
+    # "agreed — remove it. The page should carry the primary ask in the green
+    # box plus three secondary asks, not a fourth invented to fill a slot",
+    # so the secondary card that repeated the forward sentence is gone and
+    # the sentence appears once, in the featured box
+    assert act.count("The council is weighing what to require at the tank farms") == 1
+    assert "Dec. 1: the council weighs what to require" not in act
+    assert "WORKSHOP DETAILS" not in act
     assert "The council&rsquo;s next workshop is" in act
     assert "Make plans to come to the City Council workshop" not in act
     assert "Attend the City Council workshop" not in act
@@ -4359,7 +4366,8 @@ def test_act_now_action_links_are_the_cards(docs):
     # petition's form is offered nowhere; the forward card links to the page's
     # own workshop facts instead
     assert body.count('href="https://docs.google.com/forms/d/e/1FAIpQLSfPIeWgfe7GGgNqhxVatcPAEffmqo5jJJ-iGYcCh4ltcQsZcA/viewform"') == 0
-    assert body.count('href="act-now.html"') >= 1
+    # row 129: the card's act-now self-link went with the removed block
+    assert body.count('href="act-now.html"') == 0
     assert '<a class="card__more" href="donate.html">DONATE →</a>' in body
     assert '<a class="card__more" href="report-an-odor.html">REPORT AN ODOR →</a>' in body
 
@@ -4616,22 +4624,16 @@ def test_act_now_cta_tiles_lead_the_grid(docs):
     assert "We want to hear your voice" in story
     assert 'href="share-your-story.html"' in story
 
-    # recorded correction (2026-11-25, ledger row 125), the operator's
-    # directive verbatim: 'remove "sign the petition" language, petition was
-    # already delivered' — the petition card became a forward Dec. 1 workshop
-    # card; no signature count is invented (none reachable on record)
-    petition = body[body.index("the council weighs what to require</h2>"):body.index("WORKSHOP DETAILS →</a>")]
-    assert "The council is weighing what to require at the tank farms" in petition
-    # recorded correction (review round 1 on this leg): the dated summons shape
-    # was split - the date carries no invitation verb, the ask carries no date
-    assert "The workshop is Tuesday, Dec. 1 at 6:30 p.m. at City Hall, 25 Cottage Road." in petition
-    assert "Arrive by 6:15 to fill the room." in petition
-    assert "SIGN" not in petition and "petition" not in petition.lower()
-
-    # the glowing cards are the grid's first two children; the text cards
-    # follow, and all four carry the same white .card style
-    assert body.count('class="card card--glow"') == 2
-    assert body.index("the council weighs what to require</h2>") < body.index("Report an odor</h2>") < body.index("Donate</h2>")
+    # recorded corrections: the petition card left (row 125) and its
+    # replacement removed with the operator's redundancy ruling (row 129) -
+    # the green box carries the ask once, and the grid carries three cards
+    assert "Dec. 1: the council weighs what to require" not in body
+    assert "WORKSHOP DETAILS" not in body
+    assert body.count('class="card card--glow"') == 1
+    assert body.index("Tell your story</h2>") < body.index("Report an odor</h2>") < body.index("Donate</h2>")
+    # the grid-hole closure: the first card spans the full row (row 129)
+    css = read(docs, "styles.css")
+    assert ".card-grid--act .card:first-child { grid-column: 1 / -1; }" in css
     # the tile actions are the cards' own card__more grammar, not buttons.
     # Recorded correction (2026-11-25, ledger row 129), the operator's
     # directive: the page gains an Add to Calendar dropdown, and its trigger
@@ -4642,7 +4644,7 @@ def test_act_now_cta_tiles_lead_the_grid(docs):
     assert act.count("btn--light") == 1
     assert '<summary class="btn btn--light">Add to Calendar</summary>' in act
     assert '<a class="card__more" href="share-your-story.html">SHARE YOUR STORY →</a>' in body
-    assert '<a class="card__more" href="act-now.html">WORKSHOP DETAILS →</a>' in body
+    assert "WORKSHOP DETAILS" not in body
     # the glow is the only difference, and it is built from palette tokens
     assert ".card--glow { box-shadow: 0 0 0 4px var(--cyan-soft), var(--shadow); }" in css
     assert not re.search(r"\.card--glow \{[^}]*background", css, re.S), (
