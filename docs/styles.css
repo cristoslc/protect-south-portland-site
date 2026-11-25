@@ -1015,40 +1015,39 @@ blockquote {
 
 .ask-step .lede { margin: 0; }
 
-/* ---------- act-now action row + calendar menu (2026-11-25, row 129) ------
+/* ---------- act-now ask-column controls + calendar menu (2026-11-25, row 129)
 
-   The operator's directive moves the page's two CTA buttons into ONE centered
-   row beneath the two ask columns (not one control under each column),
-   wrapping to a stacked, still-centered pair at mobile width. The row is a
-   plain wrapping flex row: centered above 720px by justify-content, stacked
-   below it by the same column stacking the ask steps already use. The second
-   control is the Add to Calendar dropdown, a native <details>/<summary> —
-   no script and no third-party calendar service. The trigger renders the
-   family's `.btn--light` (white fill, `--teal-900` ink, 11.57:1), the panel's
-   secondary treatment beside the orange `.btn--cta`; its focus ring rides the
-   `.callout--ask` override above (cyan-soft, 10.10:1 on the panel). The menu
-   is a white panel in the site's card grammar (`--paper` fill, 2px
-   `--teal-900` border at 11.57:1 non-text, the standing shadow, 14px radius):
-   menu links are `--teal-900` on white at 11.57:1 and the one muted hint line
-   is `--muted` on white at 5.56:1 — every pair clears the suite's 4.5:1 text
-   floor and the border clears the 3:1 non-text floor, measured against the
-   WCAG_COMPLIANCE.md contract (no annotation colour is sampled; see the
-   design-input discipline in AGENTS.md). The dropdown centers on its trigger
-   and never overflows a 412px viewport (max-width against the viewport), so
-   the stacked pair keeps the menu reachable at mobile width. */
+   First directive (shipped, then corrected): the operator ruled the page's
+   two CTA buttons into one shared centered row beneath the two ask columns;
+   that row came apart in practice, and the operator sent the shape back with
+   the corrected rule, verbatim in substance: "I want each button centered
+   below the paragraph that makes the ask." The shared centered row class is
+   therefore gone: each ask column carries ITS OWN control centered beneath
+   that column's paragraph (the Email button under the Email-the-Council
+   column, the Add to Calendar dropdown under the Wear-green column), as
+   plain document flow — `.ask-step__action` only centers the control line;
+   the paragraph above keeps its own alignment. On mobile the columns stack
+   and each control stays centered under its own ask, in order. The
+   screenshot's red arrows and overlay rectangles are annotations of intent
+   (which button belongs to which ask, roughly where), never geometry or
+   colour. The second control is the Add to Calendar dropdown, a native
+   <details>/<summary> — no script and no third-party calendar service. The
+   trigger renders the family's `.btn--light` (white fill, `--teal-900` ink,
+   11.57:1), the panel's secondary treatment beside the orange `.btn--cta`;
+   its focus ring rides the `.callout--ask` override above (cyan-soft, 10.10:1
+   on the panel). The menu is a white panel in the site's card grammar
+   (`--paper` fill, 2px `--teal-900` border at 11.57:1 non-text, the standing
+   shadow, 14px radius): menu links are `--teal-900` on white at 11.57:1 and
+   the one muted hint line is `--muted` on white at 5.56:1 — every pair
+   clears the suite's 4.5:1 text floor and the border clears the 3:1
+   non-text floor, measured against the WCAG_COMPLIANCE.md contract (no
+   annotation colour is sampled; see the design-input discipline in
+   AGENTS.md). The dropdown centers on its trigger and never overflows a 412
+   viewport (max-width against the viewport), and the second column is wide
+   enough for the menu's 280px floor at every width the two-column grid
+   serves, so the per-column shape keeps the menu reachable everywhere. */
 
-.ask-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 18px;
-}
-
-@media (max-width: 719.9px) {
-  .ask-actions { flex-direction: column; }
-}
+.ask-step__action { text-align: center; margin-top: 14px; }
 
 .cal-add { position: relative; }
 

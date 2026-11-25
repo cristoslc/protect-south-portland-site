@@ -4522,10 +4522,12 @@ def test_act_now_primary_cta_holds_two_equal_steps(docs):
                             "site", "pages", "act-now.html"), encoding="utf-8").read()
     start = act.index('<div class="ask-steps">')
     end = act.index("</div>", act.index("ask-step", start + 20))
-    steps = act[start:act.index('<div class="ask-actions">')]
+    steps = act[start:act.index('<div class="prose">')]
     assert steps.count('class="ask-step"') == 2
-    # step one keeps its copy and its lede weight; the button itself moved to
-    # the centered actions row (operator directive, 2026-11-25, pinned below)
+    # step one keeps its copy and its lede weight; since the operator's
+    # send-back (see the per-column pin below) its button sits in its own
+    # ask-step again, so the blockquote-fill mechanism is asserted in the
+    # per-column pin
     assert "<strong>Email the Council</strong>" in steps
     # step two: the show-up ask, composed from the banner facts
     assert "<strong>Wear green</strong>" in steps
@@ -4536,40 +4538,44 @@ def test_act_now_primary_cta_holds_two_equal_steps(docs):
     assert re.search(r"@media \(min-width: 720px\) \{\s*\.ask-steps \{ grid-template-columns: 1fr 1fr; \}", css, re.S)
 
 
-def test_act_now_actions_center_as_one_row(docs):
-    """Operator directive, 2026-11-25 (ledger row 129), verbatim: the page's
-    two CTA buttons center as a row beneath the two ask columns — one row
-    under BOTH columns, not each under its own column — wrapping to a
-    stacked, still-centered pair at mobile width. The Email button therefore
-    leaves the first ask-step, and the actions row is a sibling that follows
-    the whole .ask-steps grid, so both controls sit under both columns. The
-    second control is the Add to Calendar dropdown the same directive adds;
-    its structure is pinned by the calendar tests below.
+def test_act_now_each_ask_centers_its_own_control(docs):
+    """Operator send-back, 2026-11-25 (ledger row 129 amendment), verbatim in
+    substance: "I want each button centered below the paragraph that makes
+    the ask." The shared centered .ask-actions row this file pinned earlier
+    came apart in practice, so it is gone: each ask column carries its own
+    control centered beneath that column's paragraph — the Email button under
+    the Email-the-Council column, the Add to Calendar dropdown under the
+    Wear-green column — and on mobile each button stays centered under its
+    own ask as the columns stack, in order. The screenshot's red arrows and
+    overlay rectangles mark intent only (which button belongs to which ask,
+    roughly where); geometry and colour still come from the design system.
     """
     act = read(docs, "act-now.html")
     css = read(docs, "styles.css")
-    start = act.index('<div class="ask-steps">')
-    steps = act[start:act.index('<div class="ask-actions">')]
-    actions = act[act.index('<div class="ask-actions">'):act.index('<div class="prose">')]
-    # the button no longer sits under its own column
-    assert 'class="btn btn--cta"' not in steps, (
-        "the Email button still sits inside the ask steps; it belongs in the "
-        "centered actions row beneath both columns (operator directive, 2026-11-25)")
-    # one row under BOTH columns: the actions row follows the whole grid
+    steps = act[act.index('<div class="ask-steps">'):act.index('<div class="prose">')]
     assert steps.count('class="ask-step"') == 2
-    assert actions.count('class="btn btn--cta"') == 1
-    assert '<details class="cal-add">' in actions
-    # the CTA keeps its blockquote-fill mechanism in its new home: the source
+    # the shared row is gone from the page and the stylesheet
+    assert 'class="ask-actions"' not in act
+    first = steps[steps.index("<strong>Email the Council</strong>"):]
+    first = first[:first.index("<strong>Wear green</strong>")]
+    second = steps[steps.index("<strong>Wear green</strong>"):]
+    # each column carries exactly one control, centered beneath its paragraph
+    assert first.count('class="btn btn--cta"') == 1
+    assert '<details class="cal-add">' in second
+    assert steps.count('class="ask-step__action"') == 2
+    # the action line follows its column's ask paragraph in document flow
+    assert first.index("<strong>Email the Council</strong>") < first.index('class="ask-step__action"')
+    assert second.index("<strong>Wear green</strong>") < second.index('class="ask-step__action"')
+    # the CTA keeps its blockquote-fill mechanism in its column: the source
     # page opts in with the marker and the built page ships the populated body
     assert 'data-mailto-body="blockquote"' in _act_now_source()
-    assert "body=" in actions
-    # centered: the row is a centered wrapping flex row, and below 720px it
-    # stacks into a still-centered column
-    assert re.search(
-        r"\.ask-actions \{[^}]*justify-content: center", css, re.S)
-    assert re.search(r"\.ask-actions \{[^}]*flex-wrap: wrap", css, re.S)
-    stack = re.search(r"@media \(max-width: 719\.9?px\) \{[^}]*\.ask-actions \{[^}]*flex-direction: column", css, re.S)
-    assert stack, "the actions row must stack below 720px (still centered)"
+    assert "body=" in first
+    # centered: the action line centers its control; the paragraph above
+    # keeps its own alignment, and the shared-row rules are gone (the
+    # stylesheet may name the history in prose, but no .ask-actions rule
+    # selector may remain)
+    assert re.search(r"\.ask-step__action \{[^}]*text-align: center", css, re.S)
+    assert not re.search(r"\.ask-actions[\s{,]", css)
 
 
 def test_act_now_calendar_dropdown_is_native_details(docs):
