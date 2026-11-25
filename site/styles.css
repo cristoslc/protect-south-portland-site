@@ -1125,26 +1125,6 @@ blockquote {
    viewport (max-width against the viewport), and the second column is wide
    enough for the menu's 280px floor at every width the two-column grid
    serves, so the per-column shape keeps the menu reachable everywhere. */
-||||||| parent of 25ed14f (site: the staging visual-brand experiment, Lato body with Bitter headlines, the council-packet highlight #255e7c on links, and a red-kite red accent replacing the orange family (operator directive 2026-11-25, ledger row 135))
-   The operator's directive moves the page's two CTA buttons into ONE centered
-   row beneath the two ask columns (not one control under each column),
-   wrapping to a stacked, still-centered pair at mobile width. The row is a
-   plain wrapping flex row: centered above 720px by justify-content, stacked
-   below it by the same column stacking the ask steps already use. The second
-   control is the Add to Calendar dropdown, a native <details>/<summary> —
-   no script and no third-party calendar service. The trigger renders the
-   family's `.btn--light` (white fill, `--teal-900` ink, 11.57:1), the panel's
-   secondary treatment beside the red-kite `.btn--cta`; its focus ring rides the
-   `.callout--ask` override above (cyan-soft, 10.10:1 on the panel). The menu
-   is a white panel in the site's card grammar (`--paper` fill, 2px
-   `--teal-900` border at 11.57:1 non-text, the standing shadow, 14px radius):
-   menu links are `--teal-900` on white at 11.57:1 and the one muted hint line
-   is `--muted` on white at 5.56:1 — every pair clears the suite's 4.5:1 text
-   floor and the border clears the 3:1 non-text floor, measured against the
-   WCAG_COMPLIANCE.md contract (no annotation colour is sampled; see the
-   design-input discipline in AGENTS.md). The dropdown centers on its trigger
-   and never overflows a 412px viewport (max-width against the viewport), so
-   the stacked pair keeps the menu reachable at mobile width. */
 
 .ask-step__action { text-align: center; margin-top: 14px; }
 
