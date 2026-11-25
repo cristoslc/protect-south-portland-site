@@ -6243,3 +6243,35 @@ def test_hover_ink_stays_white_on_the_red_hover_fills():
     assert ratio >= 4.5, (
         f"white on the red hover fill measures {ratio:.2f}:1; the hover "
         "label is 15.2px/800, under the large-text threshold, so AA wants 4.5:1")
+
+
+def test_hero_phone_sky_band_is_a_second_pass_sliver():
+    """Ledger row 145, the operator's recorded correction, verbatim: "still
+    too much sky" — the second complaint about the phone hero's empty band
+    (the banner leg's first pass cut 495px to 300px and did not go far
+    enough). Measured on the shipped tree at 412: the region runs 923px, the
+    card 607px, so the 300px `padding-top` is the entire band the reader
+    scrolls through before content, and the band renders the frame's empty
+    top slice (pure evening haze down to the schooner's mast peaks, row 252
+    of 898). The pin holds the second pass's two decisions: the band itself
+    is cut to a 96px sliver, and `min-height: 0` on the phone keeps the
+    band-above-card equal to the padding forever — a floor that ever binds
+    would add hidden flex slack back above the card as sky, which is exactly
+    how the first pass's guarantee quietly eroded when the row-131 card
+    restructure changed the card's height. The desktop cap, the tablet band
+    and the crop stay untouched.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    assert ("@media (max-width: 700px) {\n"
+            "  .hero__inner { padding: 96px 14px 16px; min-height: 0; }\n"
+            "}") in css, (
+        "the phone hero band is the second pass's 96px sliver with no "
+        "min-height floor adding hidden sky")
+    assert "padding: 300px 14px 16px;" not in css, (
+        "the first pass's 300px band must be gone, not superseded to death")
+    # the first-pass guarantees that survive: the desktop side is untouched
+    assert "min-height: 41.125vw" in css, "the ultrawide cap rule stays whole"
+    assert re.search(r"object-position: 20% 100%", css), (
+        "the crop's focal point does not move")
+    assert ".hero__inner { padding: 360px 20px 20px; min-height: 600px; }" in css, (
+        "the tablet band keeps its own composition")

@@ -1321,20 +1321,25 @@ blockquote {
    over whatever scrolls beneath it is the strip's own measured pair, not a
    composite. */
 
-/* ---------- less sky on the phone (2026-11-25) ----------
+/* ---------- less sky on the phone, second pass (2026-11-25) ----------
 
-   The operator's mobile screenshot: "Shouldn't have so much empty room, not
-   so much sky on Mobile". The 2026-11-24 composition deliberately kept ~400
-   of the frame's 898 rows clear above the card at every width; on a phone
-   that reads as a tall empty sky. This phone-only counterpart to the
-   desktop's 41.125vw cap cuts the room the card arrives through: the top
-   padding drops from 495px to 300px, so the card starts 195px sooner and the
-   sky above the lighthouse shrinks with the band. The desktop and tablet
-   rules below are untouched, and the 41.125vw cap still binds at ultrawide
-   exactly as the composition leg sized it. */
+   The operator's mobile screenshot: "still too much sky" — the second
+   complaint about the same band, the recorded correction that the first
+   pass (495px to 300px) did not go far enough. Measured on the shipped
+   tree at 412: the region runs 923px, the card 607px, so the 300px top
+   padding is the entire band the reader scrolls through before content,
+   and it renders the frame's empty top slice (pure evening haze down to
+   the schooner's mast peaks, row 252 of 898). The band is now a 96px
+   sliver, and `min-height: 0` keeps the band-above-card equal to the
+   padding forever: a floor that ever binds would add hidden flex slack
+   back above the card as sky, which is how the first pass's guarantee
+   quietly eroded when the 2026-11-25 card restructure changed the card's
+   height. The desktop and tablet rules below are untouched, and the
+   41.125vw cap still binds at ultrawide exactly as the composition leg
+   sized it. */
 
 @media (max-width: 700px) {
-  .hero__inner { padding: 300px 14px 16px; }
+  .hero__inner { padding: 96px 14px 16px; min-height: 0; }
 }
 
 /* ---------- hero card, centered on desktop (2026-11-24) ----------

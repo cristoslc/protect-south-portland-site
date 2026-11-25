@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-25",
+  "leg": "homepage mobile hero sky, second pass (ledger row 145)",
+  "directive_verbatim": "still too much sky",
+  "recorded_correction": "second complaint about the same defect; the banner leg's first pass (495px to 300px) did not go far enough",
+  "mechanism_named": {
+    "at_412_on_the_first_pass_tree": {
+      "region_height": 922.9,
+      "card_height": 606.9,
+      "band_above_card": 300,
+      "band_source": "the phone `.hero__inner` padding-top; the min-height 560 floor does not bind (923 > 560)",
+      "crop": "height-binding cover scale 1.028 shows the whole frame; the band renders source rows 0-292, pure evening haze down to the schooner's mast peaks (row 252)"
+    },
+    "fix": "the band is a 96px sliver (`padding: 96px 14px 16px` in the max-width 700px block) and `min-height: 0` keeps band-above-card equal to the padding forever - a binding floor would add hidden flex slack back above the card as sky, which is how the first pass's guarantee eroded when the 2026-11-25 card restructure changed the card height",
+    "after_at_412": {
+      "region_height": 718.9,
+      "band_above_card": 96,
+      "scale": 0.8005
+    }
+  },
+  "annotation_rule": "the operator's screenshot was intent only (much less empty vertical space on mobile before content); no geometry or colors sampled from it",
+  "untouched": "desktop rules (170px centering, the 41.125vw cap), the tablet band (360px, min-height 600), object-position 20% 100%, the photo structure and the card fill from the row-98/131 legs; the gate file and the staging bar untouched",
+  "contrast_remeasured": {
+    "why": "the crop moved what sits behind the card's text: the card now covers source rows 119-879 (cols 234-715) instead of starting at row 292",
+    "method": "canvas composite of the actual photograph with the card's rgba(18,42,44,0.8) fill, worst single pixel inside the card's mapped region (the row-98 measurement's method)",
+    "worst_composited_pixel": [
+      65,
+      85,
+      86
+    ],
+    "white_on_worst": "7.90:1",
+    "note": "the new crop's worst composited pixel reproduces the row-98 measurement's 7.90:1 exactly; every pair clears the 4.5:1 floor and no pair changed figure"
+  },
+  "captures": [
+    {
+      "file": "after-index-1440.png",
+      "bytes": 3065028,
+      "page": "index.html",
+      "sha256": "1def9b9c88d391a7aa3ee20963002ab6226e573bdc197df296603c44879f46c8"
+    },
+    {
+      "file": "after-index-412.png",
+      "bytes": 1010804,
+      "page": "index.html",
+      "sha256": "eb9bf3ed50d802777e32c25a5aadc9711b2b7a1144b9246a9f49dbd7d31740bb"
+    },
+    {
+      "file": "before-index-1440.png",
+      "bytes": 3065028,
+      "page": "index.html",
+      "sha256": "1def9b9c88d391a7aa3ee20963002ab6226e573bdc197df296603c44879f46c8"
+    },
+    {
+      "file": "before-index-412.png",
+      "bytes": 1055143,
+      "page": "index.html",
+      "sha256": "6307944647f0c694e05bc3740bff186ed1b91dcb281eb4819126ab90cabdb04a"
+    }
+  ],
+  "dedupe_guard": "captured per viewport before/after at 412 (proves the fix) and 1440 (proves no regression); page named per capture",
+  "suite": "294 passed, 1 skipped (repo venv, tests/, final head)",
+  "scanner": "0 violations across the 91 built files in docs/ (psp_public.scan_tree)",
+  "cut_ride_timing": "the production cutover is authorized to follow PR #141's merge; if this leg merges before the cutover PR opens it rides the cut (ships to production with the current staging tree) - stated in the PR body so the cut contents are deliberate"
+}
