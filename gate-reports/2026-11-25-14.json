@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-25-14",
+  "review_model": "cove/text:ultra-heavy (GLM-5.3)",
+  "review_class": "full",
+  "pages": {
+    "404.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "6e0ce52a805531da1ef50eb0f35b8d036049ceddce8ca3b15b52f499e25585ec"
+    },
+    "about.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "02a865982a50028e9a6e1143dbc1171a4e3a84b5d6aec95908d1b7f88fc99a61"
+    },
+    "act-now.html": {
+      "rounds": 1,
+      "outcome": "pass",
+      "sha256": "68b53a258d8ceab073be226dbeace37a03b79e9122d87e4618f4d922a1b3c767"
+    },
+    "clear-skies.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "367284d004b4dcf5c53fd7eea982460ec2701f1ec77251f42ffdd26f43d1e1bd"
+    },
+    "coastal-flooding.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "a8fc70307b54671230fd20b025efca74f1132949cd14b8b31ff58d9697199814"
+    },
+    "contact.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "bc11fa57aff01341e82e982e23c075b54bb7cf581466bdfac34718ba119dd8e2"
+    },
+    "donate.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "684ebc64ed553b750660072c4746e682781b5255f95b10a1815c1b2665a359df"
+    },
+    "fertilizer-ban.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "d34008cce4639eda136394cf02fe2b31cc38bc97747bbd020238eed906741006"
+    },
+    "index.html": {
+      "rounds": 1,
+      "outcome": "pass",
+      "sha256": "abb3160f999f6f66eb78badd31946d78c16d49f28bf971da793cd7155dc7a778"
+    },
+    "newsletter.html": {
+      "rounds": 1,
+      "outcome": "pass",
+      "sha256": "aa065ef74bba2ded1529143cd24428dda5ced370b4ab4e05c2a80a211ba58210"
+    },
+    "our-campaigns.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "45116565c333fd5460f1dbadc9bda0c2ba314a7a8c68e551695ab55d038072f2"
+    },
+    "past-work.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "4cb302ba007d599aeccecbe48e75100132b8a3cff57abdd8b162af712addc831"
+    },
+    "pesticides.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "4ff069b7e0aa3b6b7f7a5d874a5c1d1c5c199358bd12f3d4fa785ff4800e9dc9"
+    },
+    "report-an-odor.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "d4c3ae66f9bf3307a27c2fa602e9279ffa843ffdce2ab65a895c4796ebac47e8"
+    },
+    "share-your-story.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "8ab876b946c539d6120f2a4fc155a652e693d8e7bcdb88f90116e6387296f632"
+    },
+    "tank-farms.html": {
+      "rounds": 1,
+      "outcome": "pass",
+      "sha256": "f59e9716beb448b31d8af94bb9f281e6e2ce552484551dcb038f0c143f110f28"
+    },
+    "toolkit.html": {
+      "rounds": 2,
+      "outcome": "pass",
+      "sha256": "7b3092430be003871d2255769407e56db5e3047be76da844fbd27fdedee5e52a"
+    },
+    "yard-south-proposal.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "41b7c259f401478bcb91568c683f0b5ba7573ac97377d0a2cce1881993229d4b"
+    }
+  },
+  "scope_note": "RELEASE GATE FOR THE PHASE-3 PRODUCTION CUTOVER (PR 144, branch release/phase-3-cutover, head 737f1c6; operator GO verbatim: 'After 141, ship it.'). JUMP-FORWARD NAMED: the October-alignment restore is superseded for this cut by the operator's fresh word - production day one serves the current staging tree (every page of tonight's legs included, deliberately), not the October build; dec_4ipo2y19ltxa is superseded for this cut by that word, named here and in the PR. PER-PAGE VERDICT PROVENANCE: every page carries a landed full-class verdict from tonight's legs - index from PR 127's review (comment 7174063238), act-now from PR 136's (7170213067) with the #134/#135 follow-ons, and the untouched pages carrying tonight's earlier leg verdicts (gate reports 2026-11-25-1 through -13, each full-class, each naming its head). NO PENDING ENTRIES anywhere. Suite 302 passed + 1 skip on the release tree; scanner []; docs/CNAME reads www.protectsouthportland.org (the two CNAME guards flipped their anticipated assertions as recorded corrections on this branch, cutover GO quoted in their docstrings). Page bytes are identical to main's (the branch deltas are AGENTS.md, docs/CNAME and the guard tests) - the hashes equal gate report 2026-11-25-13's, re-hashed fresh here anyway. Serve-pipeline state aboard: the bytecode sweep/filter/env (PR 133) and the remote guard (PR 138) are on main and this branch inherits them. NOTHING HERE TOUCHES the October release records, report 2026-11-24-6, or PR 59."
+}
