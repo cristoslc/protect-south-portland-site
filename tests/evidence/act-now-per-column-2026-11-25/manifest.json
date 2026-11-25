@@ -1,0 +1,21 @@
+{
+  "leg": "Act now ask-column controls: the operator's send-back dissolves the shared centered .ask-actions row; each ask column carries its own control centered beneath its own paragraph (ledger row 129 amendment)",
+  "date": "2026-11-25",
+  "branch": "bb/act-now-per-column-ctas-thr_t9dvrarnfz",
+  "base": "b0364c6 (origin/main at the send-back leg; carries the row-130 dedupe, row-132 nav z-index, row-133 staging-bar update)",
+  "operator_send_back_substance": "I want each button centered below the paragraph that makes the ask. - the shared centered row shipped this morning came apart; each ask column carries ITS OWN button centered below THAT column's paragraph (email button under the Email-the-Council column, calendar button under the Wear-green column); on mobile, stacked and still centered under each in order. The screenshot's red arrows and overlay rectangles are annotations of intent (which button belongs to which ask, roughly where), never geometry or colour (AGENTS.md design-input discipline).",
+  "mechanism": "The .ask-actions flex row is gone from the page and the stylesheet. Each .ask-step carries its paragraph plus a .ask-step__action div (text-align: center, margin-top 14px) holding its own control: the orange .btn--cta Email link in the first column, the native <details>/<summary>.cal-add dropdown in the second. Document flow only; the ask paragraphs keep their own alignment. Mobile: the columns stack and each control stays centered under its own ask, in order.",
+  "annotation_discipline": "the send-back screenshot was treated as an annotation of intent; no arrow, rectangle, colour or geometry was sampled. No new colour pair was introduced: every pair is unchanged from the calendar leg and stands as measured there.",
+  "contrast": "unchanged pairs, re-stated from the row-129 manifest: white on --teal-900 11.57:1; .btn--light teal-900 on white 11.57:1; .btn--cta white on --orange-dark 5.55:1 (recorded); menu hint --muted on white 5.56:1; menu border teal-900 on white 11.57:1 non-text; panel focus ring cyan-soft on teal-900 10.10:1 — all clear the 4.5:1 text / 3:1 non-text floors (WCAG_COMPLIANCE.md contract)",
+  "keyboard_proof": "keyboard-proof.json, real keypresses in headless Chromium over this head's build: Enter opens, Tab reaches the first entry (Google Calendar), Shift+Tab + Enter closes, Space re-opens and closes.",
+  "captures": [
+    "before-412.jpg / before-1440.jpg - base b0364c6's built docs (the shipped shared centered row), byte-verified against the browser session's originals",
+    "after-1440.jpg - one centered control under EACH column's paragraph",
+    "after-412.jpg - stacked columns, each control still centered under its own ask, in order",
+    "after-412-open.jpg / after-1440-open.jpg - the dropdown opens centered within its column and inside the viewport at both widths, entries legible over the card grid"
+  ],
+  "capture_notes": "viewport screenshots of act-now.html, before served from a detached b0364c6 worktree build, after from this branch's fresh build, local http.server on both; bb browser-automation headless at 412x900 and 1440x900; every capture read before reporting",
+  "checks": {"suite": "278 passed, 1 skipped (same count as the b0364c6 baseline: one row-shape pin replaced, none added or removed)", "scanner": "[]", "release_check": "freshness clean, publication-clean"},
+  "pin_disposition": "test_act_now_actions_center_as_one_row (this leg's own earlier pin) is REPLACED by test_act_now_each_ask_centers_its_own_control as a recorded correction citing the send-back; test_act_now_primary_cta_holds_two_equal_steps reads the ask-steps block again; the calendar dropdown, keyboard-mechanism, contrast, no-widget and no-8:30 pins untouched and passing",
+  "not_done": "not published, not merged; the shared root checkout untouched; gate/bar/serve files untouched (styles.css contention with in-flight PR #131 named for the orchestrator's sequenced merges); report 2026-11-24-6 and PR 59 untouched"
+}
