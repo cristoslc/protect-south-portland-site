@@ -1632,46 +1632,36 @@ def test_favicon_present(docs):
 
 
 def test_cname_ready_for_domain_flip(docs):
-    """docs/CNAME: the apex staging plan is superseded; the file returns at cutover.
+    """docs/CNAME: tracked at cutover, reading the live canonical www.
 
-    Two decisions, both on the record here. The OLD domain-flip plan (ledger
-    row 4 era) staged the apex hostname protectsouthportland.org as a tracked
-    docs/CNAME, and this test pinned the file's existence and content. The
-    fork model (2026-11-24 migration plan, section 5) supersedes that plan: a
-    branch deployment reads the served directory's CNAME file as its custom
-    domain, so a tracked file would make Pages claim the apex the moment it
-    starts serving main, at a moment nobody chose. The file is untracked and
-    gitignored, and the domain is set deliberately at cutover, when docs/CNAME
-    returns committed with www.protectsouthportland.org, the live canonical —
-    not the apex.
-
-    Pinned in every checkout: the ignore rule covers the path, and the file is
-    not in the tracked tree. If the operator's local checkout still carries
-    the staged-flip file, it reads the apex unchanged — a local artifact like
-    .env until the cutover PR replaces it.
+    RECORDED CORRECTION, 2026-11-25 (cutover PR #144): this pin previously
+    asserted the file untracked and gitignored, because a tracked CNAME is
+    authoritative for branch deploys and would claim a hostname at a moment
+    nobody chose. The cutover is that chosen moment: the operator's GO
+    2026-11-25 ("After 141, ship it") authorizes the production flip, so
+    docs/CNAME returns committed with www.protectsouthportland.org (the live
+    canonical, never the apex), and the ignore rule is retired in the same
+    commit. The pre-cutover assertions and their reasoning survive in git
+    history; the old local staged-flip artifact reading the apex is gone by
+    definition of this pin now reading the tracked file.
     """
     import subprocess
     ignored = subprocess.run(
         ["git", "check-ignore", "-q", "docs/CNAME"],
         cwd=ROOT, capture_output=True)
-    assert ignored.returncode == 0, (
-        "docs/CNAME must stay covered by the ignore rule: the fork model "
-        "sets the domain deliberately at cutover, never via a file that "
-        "rides back into the tracked tree by accident")
+    assert ignored.returncode != 0, (
+        "the docs/CNAME ignore rule must be retired at cutover: the file is "
+        "now the tracked, deliberate production domain")
     tracked = subprocess.run(
         ["git", "ls-files", "docs/CNAME"],
         cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()
-    assert tracked == [], (
-        "docs/CNAME tracked: a branch deployment reads it as the custom "
-        "domain, so Pages would claim its hostname the instant it serves "
-        "main — commit the cutover-time CNAME (www.protectsouthportland.org) "
-        "deliberately, in the cutover PR")
+    assert tracked == ["docs/CNAME"], (
+        "docs/CNAME must be tracked from the cutover commit on: production "
+        "main carries its own domain")
     cname = os.path.join(ROOT, "docs", "CNAME")
-    if os.path.exists(cname):
-        # local staged-flip artifact; a fresh CI checkout does not carry it
-        assert open(cname, encoding="utf-8").read().strip() == "protectsouthportland.org", (
-            "the staged-flip file still reads the apex; the cutover PR "
-            "replaces it with www.protectsouthportland.org")
+    assert open(cname, encoding="utf-8").read().strip() == "www.protectsouthportland.org", (
+        "the tracked CNAME reads the live canonical www.protectsouthportland.org, "
+        "never the apex")
 
 
 def test_every_page_shell_complete(docs):
@@ -5792,11 +5782,14 @@ def test_docs_serve_tree_shape_pins_the_pages_serve_config():
     assert "docs/.nojekyll" in tracked, (
         "docs/.nojekyll must be committed: Pages serves the built tree "
         "verbatim, with no Jekyll pass over it")
-    assert "docs/CNAME" not in tracked, (
-        "docs/CNAME tracked: a branch deployment reads it as the custom "
-        "domain, so Pages would claim its hostname the instant it serves "
-        "main — the domain is set deliberately at cutover, never by a file "
-        "that rides along in the tree")
+    # RECORDED CORRECTION, 2026-11-25 (cutover PR #144): the deliberate
+    # cutover moment has arrived — docs/CNAME is now tracked, carrying
+    # www.protectsouthportland.org. The fork's serve step still strips any
+    # CNAME from the copied tree and writes its own staging hostname, so the
+    # two hosts can never claim each other's domain.
+    assert "docs/CNAME" in tracked, (
+        "docs/CNAME must be tracked from the cutover commit on: the domain "
+        "was set deliberately at cutover (operator GO 2026-11-25)")
 
 
 # --- Ledger row 97: sendable copy must be the payload its action sends ------
