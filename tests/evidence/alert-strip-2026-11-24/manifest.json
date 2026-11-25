@@ -1,0 +1,21 @@
+{
+  "leg": "Site-wide alert strip above the masthead (staging-feedback issue #2, ledger row 116)",
+  "date": "2026-11-24",
+  "branch": "bb/alert-strip-thr_p257b4jc9k",
+  "base": "bf9e189 (origin/main; the instruction named 06dac63, and a docs commit merged on top of it before checkout)",
+  "issue_ask_verbatim": "We need an alert banner at the top of the site, on every page, that asks people to come to the 12/1 meeting and wear green.",
+  "as_built": "One element in the shared shell, above the masthead on every shell-built page: a single link to act-now.html reading 'Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road. Wear green and come to the City Council meeting.' Persistent, not dismissible (a dismiss needs a stored preference, non-trivial under the site's nothing-stored rule). The map subtree stays outside the shell and chrome-free.",
+  "consistency": "The ask's verb pair 'Wear green and come to the City Council meeting' and every fact (Dec. 1, 6:30 p.m., City Hall Council Chambers, 25 Cottage Road) match the featured block's wording; the strip states the date and venue first and the ask second, and the two sentences are split so a date and an invitation verb never share one sentence (the suite's past-event-invitation rule). Pinned by test_site_wide_alert_strip across seven pages plus the featured-block agreement check.",
+  "measurements": {
+    "text": "white rgb(255,255,255) on --orange-dark rgb(184,64,26): 5.55:1 (WCAG 2.x relative luminance)",
+    "hover": "--orange-darker, the button family's own hover step (whiter still)",
+    "focus_ring": "3px solid #fff, 2px outward offset (the site's one focus convention); ring on fill 5.55:1; at the viewport's very top the ring's top sliver sits past the edge and the rest stays visible",
+    "computed_readings": {"bg": "rgb(184, 64, 26)", "ink": "rgb(255, 255, 255)", "at": ["412", "1440"]}
+  },
+  "gate_scope_note": "The strip is site chrome: every shell-built page's bytes move this leg, so the gate report re-hashes all pages, and carried verdicts must be re-carried with a scope note naming site chrome. Stated in the PR.",
+  "checks": {
+    "suite": "253 passed, 1 skipped (252 at the base plus this leg's strip pin)",
+    "scanner": "psp_public.scan_tree('docs') == []"
+  },
+  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}

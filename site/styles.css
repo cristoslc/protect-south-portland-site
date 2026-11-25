@@ -1005,3 +1005,33 @@ blockquote {
 }
 
 .card--glow { box-shadow: 0 0 0 4px var(--cyan-soft), var(--shadow); }
+
+/* ---------- site-wide alert strip (2026-11-24) ----------
+
+   One element in the shared shell, above the masthead on every page. The
+   ask is time-sensitive (the Dec. 1 meeting), so the strip takes the
+   palette's loudest on-palette treatment: the `--orange-dark` fill with
+   white ink, the pair every dark band's call-to-action already uses,
+   measured white on `--orange-dark` at 5.55:1. Slim by construction: one
+   line of 0.92rem text, centered, sitting above a dark masthead it must
+   read against. The whole strip is one link, so its keyboard ring is the
+   site's one focus convention, 3px solid with a 2px outward offset, in
+   white at 5.55:1 on the fill; when the strip is focused at the very top
+   of the viewport the ring's top sliver sits past the edge and the rest of
+   the ring stays plainly visible. The hover darkens to `--orange-darker`,
+   the family's own hover step. No new colour. */
+
+.alert-strip {
+  display: block;
+  background: var(--orange-dark);
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 8px 16px;
+}
+
+.alert-strip:hover { background: var(--orange-darker); color: #fff; }
+
+.alert-strip:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }

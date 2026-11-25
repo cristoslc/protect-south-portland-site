@@ -172,6 +172,19 @@ FOOTER_BODY = """
 </script>
 """
 
+# The site-wide alert strip (staging-feedback issue #2, 2026-11-24): one
+# element in the shared shell, above the masthead on every shell-built page,
+# because the Dec. 1 meeting ask was filed for the top of the site, not for
+# one page. The whole strip is one link to Act now. The two sentences are
+# split on purpose — the suite's past-event-invitation rule refuses any single
+# sentence carrying both a date and an invitation verb, and the ask's facts
+# (Dec. 1, 6:30 p.m., City Hall Council Chambers, 25 Cottage Road) match the
+# featured block's wording word for word. Persistent, not dismissible: a
+# dismiss needs a stored preference, which the site's nothing-stored rule
+# makes non-trivial. The map subtree is outside this shell and stays
+# chrome-free by construction.
+ALERT_STRIP = '<a class="alert-strip" href="act-now.html">Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road. Wear green and come to the City Council meeting.</a>'
+
 SHELL = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -183,6 +196,7 @@ SHELL = """<!DOCTYPE html>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+{alert}
 {nav}
 <main id="content">
 {body}
@@ -404,7 +418,7 @@ def build(out_dir: str) -> list:
         nav = NAV_BODY
         if f'<a href="{name}">' in nav:
             nav = nav.replace(f'<a href="{name}">', f'<a href="{name}" aria-current="page">', 1)
-        html = SHELL.format(title=title, desc=desc, nav=nav, body=body, footer=FOOTER_BODY)
+        html = SHELL.format(title=title, desc=desc, alert=ALERT_STRIP, nav=nav, body=body, footer=FOOTER_BODY)
         dest = os.path.join(out_dir, name)
         open(dest, "w", encoding="utf-8").write(html)
         written.append(name)
