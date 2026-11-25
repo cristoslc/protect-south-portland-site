@@ -44,6 +44,7 @@ Usage:
 import argparse
 import datetime
 import os
+import re
 import shutil
 import json
 import subprocess
@@ -140,17 +141,44 @@ def _git(*cmd, cwd):
     return proc.returncode == 0, out
 
 
-def branch_exists(branch, cwd):
-    """True when the serve branch exists remotely or locally.
+def branch_exists(branch, cwd, remote="origin"):
+    """True when the serve branch exists on `remote` or locally.
 
     The remote check comes first (the fork's CI world); a repo with no
     remote (tests) falls back to the local ref.
     """
-    ok, _ = _git("fetch", "origin", branch, cwd=cwd)
+    ok, _ = _git("fetch", remote, branch, cwd=cwd)
     if ok:
         return True
     ok, _ = _git("show-ref", "--verify", f"refs/heads/{branch}", cwd=cwd)
     return ok
+
+
+# Row 141 (2026-11-25, the lane's note): --push used to hardcode `origin`,
+# so a hand-run serve scattered a staging-pages branch onto whatever origin
+# named — the site repo's own origin carries tonight's stray branch
+# (9ee6914) as the evidence. The serve remote is now resolved explicitly
+# and judged by host: a GitHub push URL must name the fork exactly, or the
+# serve refuses loud. Local paths (the test world, approved bare fixtures)
+# are allowed: they are not public scatter targets.
+FORK_REPO = "Protect-South-Portland/protect-south-portland-staging"
+
+_GITHUB_URL = re.compile(
+    r"(?:https://github\.com/|git@github\.com:)"
+    r"(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$")
+
+
+def serve_remote_ok(url):
+    """True when a push URL may receive a serve push.
+
+    A GitHub repo URL (https or ssh) must name FORK_REPO; any other
+    GitHub repo — upstream included — is refused. A URL that is not a
+    GitHub repo shape (a local path) is allowed.
+    """
+    match = _GITHUB_URL.match(url)
+    if not match:
+        return True
+    return match.group("repo") == FORK_REPO
 
 
 # The machine identity the serve commit carries when the environment
@@ -172,12 +200,16 @@ def _commit_identity(cwd):
             "-c", f"user.email={SERVE_COMMITTER_EMAIL}"]
 
 
-def push_serve_branch(tree_dir, branch, cwd, base_sha, cname=STAGING_HOST):
+def push_serve_branch(tree_dir, branch, cwd, base_sha, cname=STAGING_HOST,
+                      remote="origin"):
     """Commit the prepared tree onto the serve branch and push.
 
     Append-only: an existing branch is checked out, cleared and rebuilt
     with a new commit on top, and the push is a plain fast-forward. The
-    branch history is the serve log; nothing is ever force-pushed.
+    branch history is the serve log; nothing is ever force-pushed. The
+    push goes to `remote` (row 141): its push URL is resolved first and
+    judged by host — a GitHub repo URL must name the fork, or the serve
+    refuses loud before anything moves.
 
     After a successful branch push the served state is stamped with the
     `staging-<serve sha>` review tag (ledger row 103, operator
@@ -185,8 +217,18 @@ def push_serve_branch(tree_dir, branch, cwd, base_sha, cname=STAGING_HOST):
     failed tag push reports but does not fail the serve, because the
     serve landed.
     """
-    if branch_exists(branch, cwd):
-        ok, _ = _git("checkout", "-B", branch, f"origin/{branch}", cwd=cwd)
+    ok, url = _git("remote", "get-url", "--push", remote, cwd=cwd)
+    if not ok:
+        raise SystemExit(
+            f"cannot resolve the serve remote {remote!r} ({url}); the serve "
+            "pushes only to an explicitly resolvable remote")
+    if not serve_remote_ok(url):
+        raise SystemExit(
+            f"the serve remote {remote!r} pushes to {url}, which does not "
+            f"name {FORK_REPO} — refusing to scatter a staging serve; pass "
+            "--remote with the fork's remote (e.g. --remote staging-fork)")
+    if branch_exists(branch, cwd, remote=remote):
+        ok, _ = _git("checkout", "-B", branch, f"{remote}/{branch}", cwd=cwd)
         if not ok:  # local-only branch (test world): no remote ref to -B onto
             ok, _ = _git("checkout", branch, cwd=cwd)
         if not ok:
@@ -223,10 +265,11 @@ def push_serve_branch(tree_dir, branch, cwd, base_sha, cname=STAGING_HOST):
     ok, sha = _git("rev-parse", "HEAD", cwd=cwd)
     if not ok:
         raise SystemExit("cannot read the serve commit")
-    ok, why = _git("push", "origin", branch, cwd=cwd)
+    ok, why = _git("push", remote, branch, cwd=cwd)
     if not ok:
         raise SystemExit(f"cannot push the serve branch {branch}: {why}")
-    print("staging serve: " + tag_served_state(cwd, base_sha, cname=cname))
+    print("staging serve: " + tag_served_state(cwd, base_sha, cname=cname,
+                                              remote=remote))
     return sha
 
 
@@ -258,7 +301,8 @@ def _review_annotation(base_sha, cname, run_id):
         f"at: {when}\n")
 
 
-def tag_served_state(cwd, base_sha, cname=STAGING_HOST, run_id=None):
+def tag_served_state(cwd, base_sha, cname=STAGING_HOST, run_id=None,
+                     remote="origin"):
     """Stamp the served state with the review tag, failing soft.
 
     Returns a one-line report either way. Nothing here raises and
@@ -269,7 +313,7 @@ def tag_served_state(cwd, base_sha, cname=STAGING_HOST, run_id=None):
     name = review_tag_name(base_sha)
     # ls-remote exits 0 whether or not the ref matched, so existence is
     # read from its output, not its status code.
-    ok, out = _git("ls-remote", "origin", f"refs/tags/{name}", cwd=cwd)
+    ok, out = _git("ls-remote", remote, f"refs/tags/{name}", cwd=cwd)
     if not (ok and out):  # no remote (test world): fall back to local ref
         ok, _ = _git("show-ref", "--verify", f"refs/tags/{name}", cwd=cwd)
     if ok:
@@ -280,9 +324,9 @@ def tag_served_state(cwd, base_sha, cname=STAGING_HOST, run_id=None):
     if not ok:
         return (f"review tag not created, serve unaffected "
                 f"(bookkeeping): {why}")
-    ok, why = _git("push", "origin", f"refs/tags/{name}", cwd=cwd)
+    ok, why = _git("push", remote, f"refs/tags/{name}", cwd=cwd)
     if not ok:
-        return (f"review tag {name} exists locally but origin refused "
+        return (f"review tag {name} exists locally but {remote} refused "
                 f"it, serve unaffected (bookkeeping): {why}")
     return (f"review tag {name} pushed, pointing at the fork-main "
             f"commit the serve was generated from")
@@ -300,6 +344,12 @@ def main():
     parser.add_argument("--push", action="store_true", default=False,
                         help="commit the tree onto the serve branch and "
                              "push (default: prepare and verify only)")
+    parser.add_argument("--remote", default="origin",
+                        help="remote the serve branch pushes to (row 141: "
+                             "its push URL must name the staging fork — on "
+                             "a local checkout pass --remote staging-fork; "
+                             "on the fork's CI the checkout origin IS the "
+                             "fork, so the default holds)")
     args = parser.parse_args()
 
     require_fresh(release_check.fresh_tree_diffs(args.src_docs))
@@ -310,10 +360,10 @@ def main():
                                    base_sha=base_sha)
         if args.push:
             sha = push_serve_branch(dst, args.branch, ROOT, base_sha,
-                                    cname=args.cname)
+                                    cname=args.cname, remote=args.remote)
             print(f"staging serve: {pages} pages on {args.branch} "
                   f"({sha[:12]}) claiming {args.cname}, built from "
-                  f"{base_sha[:12]}")
+                  f"{base_sha[:12]}, pushed to {args.remote}")
         else:
             print(f"staging serve: {pages} pages prepared in {dst} "
                   f"claiming {args.cname}, built from {base_sha[:12]} "

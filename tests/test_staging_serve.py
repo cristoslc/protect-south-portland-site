@@ -391,6 +391,92 @@ def test_a_push_sweeps_untracked_bytecode_from_the_checkout(tmp_path):
     assert junk == [], f"the serve commit carries bytecode junk: {junk}"
 
 
+# ---- row 141 (2026-11-25): the serve pushes to the FORK, never to origin ----
+# The lane's note: --push hardcodes `origin`, so a hand-run serve scatters a
+# staging-pages branch onto whatever origin names — tonight the site repo's
+# own origin carries a stray staging-pages branch (9ee6914) as the evidence.
+# The serve remote is now resolved explicitly and judged by host: a GitHub
+# push URL must name the fork exactly, otherwise the serve refuses loud.
+
+UPSTREAM_URL = "https://github.com/cristoslc/protect-south-portland-site.git"
+
+
+def _point_origin_at_upstream(repo):
+    subprocess.run(["git", "remote", "set-url", "origin", UPSTREAM_URL],
+                   cwd=repo, check=True, capture_output=True, text=True)
+
+
+def test_the_serve_refuses_an_origin_that_is_not_the_fork(tmp_path):
+    # the real upstream URL: the guard fires before any fetch or push, so
+    # the refusal is proven offline (red-first was demonstrated with an
+    # unroutable host reaching "cannot push" instead of the refusal)
+    repo = _repo_with_origin(tmp_path)
+    _point_origin_at_upstream(repo)
+    base = _base_commit(repo)
+    with pytest.raises(SystemExit) as loud:
+        staging_serve.push_serve_branch(
+            str(_serve_tree(tmp_path / "serve", "guarded serve")),
+            "staging-pages", str(repo), base,
+            cname="staging.protectsouthportland.org")
+    assert "protect-south-portland-staging" in str(loud.value)
+
+
+def test_the_serve_remote_flag_targets_the_fork_and_never_origin(tmp_path):
+    # one bare stands in for the fork remote, origin carries the upstream
+    # URL and must end the run untouched
+    path = tmp_path / "git"
+    origin = path / "origin.git"
+    subprocess.run(["git", "init", "--bare", "-b", "main", str(origin)],
+                   check=True, capture_output=True, text=True)
+    fork_remote = path / "staging-fork.git"
+    subprocess.run(["git", "init", "--bare", "-b", "main", str(fork_remote)],
+                   check=True, capture_output=True, text=True)
+    repo = path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-b", "main")
+    _git(repo, "config", "user.email", "test@example.invalid")
+    _git(repo, "config", "user.name", "test")
+    (repo / "index.html").write_text("<html><head></head><body>seed</body></html>")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "seed")
+    _git(repo, "remote", "add", "origin", str(origin))
+    _git(repo, "push", "origin", "main")
+    _point_origin_at_upstream(repo)
+    _git(repo, "remote", "add", "staging-fork", str(fork_remote))
+    base = _base_commit(repo)
+    sha = staging_serve.push_serve_branch(
+        str(_serve_tree(tmp_path / "serve", "fork-targeted serve")),
+        "staging-pages", str(repo), base, remote="staging-fork",
+        cname="staging.protectsouthportland.org")
+    landed = subprocess.run(
+        ["git", "--git-dir", str(fork_remote), "rev-parse",
+         "refs/heads/staging-pages"], capture_output=True, text=True)
+    assert landed.returncode == 0, "the serve branch exists on the named remote"
+    assert landed.stdout.strip() == sha, "the serve lands on the named remote"
+    scattered = _remote_list(repo, "rev-parse", "refs/heads/staging-pages")
+    assert scattered.returncode != 0 or not scattered.stdout.strip(), (
+        "origin must never receive a serve push")
+
+
+def test_serve_remote_judges_urls_by_host():
+    judge = staging_serve.serve_remote_ok
+    assert judge("https://github.com/Protect-South-Portland/"
+                 "protect-south-portland-staging")
+    assert judge("https://github.com/Protect-South-Portland/"
+                 "protect-south-portland-staging.git")
+    assert judge("git@github.com:Protect-South-Portland/"
+                 "protect-south-portland-staging.git")
+    # a local path is not a public scatter target: the test world and
+    # approved local bare fixtures push by path
+    assert judge("/tmp/psp-serve-origin.git")
+    assert judge("../origin.git")
+    # any other GitHub repo, upstream included, is refused
+    assert not judge("https://github.com/cristoslc/"
+                     "protect-south-portland-site.git")
+    assert not judge("git@github.com:cristoslc/"
+                     "protect-south-portland-site.git")
+
+
 def _remote_list(repo, *git_args):
     origin_dir = os.path.abspath(os.path.join(repo, "..", "origin.git"))
     return subprocess.run(
