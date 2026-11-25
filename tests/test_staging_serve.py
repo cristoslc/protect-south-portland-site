@@ -38,6 +38,10 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import publish
 import staging_serve
 
+# The same literal the landed gate pins use (row 128), so both suites prove
+# the same digest math against the same phrase.
+GATE_TEST_PASSPHRASE = "crawlers-keep-out"
+
 
 def _fixture_docs(path, head=True, marker=None):
     path.mkdir(parents=True)
@@ -311,6 +315,80 @@ def _base_commit(repo):
     proc = subprocess.run(["git", "rev-parse", "main"], cwd=repo,
                           capture_output=True, text=True, check=True)
     return proc.stdout.strip()
+
+
+def _junk_fixture_docs(path):
+    """A docs tree that carries bytecode junk, the shape a checkout has
+    after pytest or any import ran inside it."""
+    path.mkdir(parents=True)
+    (path / "index.html").write_text("<html><head></head><body>page</body></html>")
+    (path / "robots.txt").write_text("User-agent: *\nAllow: /\n")
+    cache = path / "tools" / "__pycache__"
+    cache.mkdir(parents=True)
+    (cache / "staging_serve.cpython-314.pyc").write_bytes(b"\x00junk")
+    tests_cache = path / "tests" / "__pycache__"
+    tests_cache.mkdir(parents=True)
+    (tests_cache / "test_site.cpython-313-pytest-9.1.1.pyc").write_bytes(b"\x00junk")
+    (path / ".DS_Store").write_bytes(b"\x00junk")
+    return path
+
+
+def test_the_prepared_serve_tree_carries_no_bytecode_junk(tmp_path):
+    """Ledger row 136 (2026-11-25): the serve tree must never carry
+    bytecode junk. prepare copies from the committed docs/ tree, so a
+    docs tree that ever grows a cache cannot leak it into the serve."""
+    src = _junk_fixture_docs(tmp_path / "src")
+    dst = tmp_path / "serve"
+    staging_serve.prepare_serve_tree(
+        str(src), str(dst), "staging.example", passphrase=GATE_TEST_PASSPHRASE)
+    junk = [os.path.join(dirpath, name)
+            for dirpath, dirnames, filenames in os.walk(dst)
+            for name in list(dirnames) + list(filenames)
+            if name == "__pycache__" or name.endswith((".pyc", ".pyo", ".DS_Store"))]
+    assert junk == [], f"the serve tree carries bytecode junk: {junk}"
+
+
+def test_the_serve_tree_is_exactly_the_intended_set(tmp_path):
+    """The serve tree's boundary is a fixed manifest: the docs tree (minus
+    any CNAME, plus the files the serve owns) and nothing else — no
+    sweeping of whatever else happens to sit beside it."""
+    src = _fixture_docs(tmp_path / "src")
+    dst = tmp_path / "serve"
+    staging_serve.prepare_serve_tree(
+        str(src), str(dst), "staging.example", passphrase=GATE_TEST_PASSPHRASE)
+    served = {os.path.relpath(os.path.join(dirpath, name), dst)
+              for dirpath, _, filenames in os.walk(dst)
+              for name in filenames}
+    assert served == {"index.html", "robots.txt", ".nojekyll", "CNAME",
+                      "staging-manifest.json"}, served
+
+
+def test_a_push_sweeps_untracked_bytecode_from_the_checkout(tmp_path):
+    """The root cause (ledger row 136): the serve commit is built with
+    `git rm` (tracked files only) followed by `git add -A`, so untracked
+    bytecode that the serve process itself created — tools/__pycache__
+    from the imports at startup (cpython-314 on the Actions runner), or
+    tests/__pycache__ + tools/__pycache__ left by pytest in a local
+    checkout — survives the rm and is staged into the serve commit. The
+    push must sweep the checkout clean before staging the tree."""
+    repo = _repo_with_origin(tmp_path)
+    for rel in ("tools/__pycache__/staging_serve.cpython-314.pyc",
+                "tests/__pycache__/test_site.cpython-313-pytest-9.1.1.pyc"):
+        path = os.path.join(repo, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as fh:
+            fh.write(b"\x00junk")
+    base = _base_commit(repo)
+    tree = _serve_tree(tmp_path / "serve", "clean serve")
+    staging_serve.push_serve_branch(
+        str(tree), "staging-pages", str(repo), base,
+        cname="staging.protectsouthportland.org")
+    listing = _remote_list(repo, "ls-tree", "-r", "--name-only",
+                           "refs/heads/staging-pages")
+    assert listing.returncode == 0
+    junk = [line for line in listing.stdout.splitlines()
+            if "__pycache__" in line or line.endswith((".pyc", ".pyo"))]
+    assert junk == [], f"the serve commit carries bytecode junk: {junk}"
 
 
 def _remote_list(repo, *git_args):

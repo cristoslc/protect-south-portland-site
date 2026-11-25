@@ -22,7 +22,12 @@ branch instead:
 - writes the CNAME naming the staging host, the one file that makes this
   branch differ from main and the reason it exists;
 - commits the tree onto staging-pages and pushes, appending — never a
-  force push, so the branch's history is a readable serve log;
+  force push, so the branch's history is a readable serve log. The push
+  sweeps the checkout clean before staging (ledger row 136, 2026-11-25:
+  `git rm` removes tracked files only, so untracked bytecode the serve
+  process itself created survived to be swept into the serve commit by
+  `git add -A`), and the copy into the serve tree excludes caches and OS
+  droppings at the prepare boundary;
 - after a successful push, stamps the served state with an annotated
   `staging-<serve sha>` review tag on the fork-main commit the serve
   was generated from (ledger row 103, operator instruction:
@@ -93,12 +98,19 @@ def prepare_serve_tree(src_docs, dst, cname, base_sha=None, passphrase=None):
     ledger row 42 as amended by row 60). Returns the gated page count.
     """
     os.makedirs(dst, exist_ok=True)
+    # Bytecode junk never rides the serve tree (ledger row 136, 2026-11-25):
+    # caches and OS droppings are excluded at the copy boundary even if a
+    # committed docs/ tree ever grows them.
+    ignore_junk = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo",
+                                         ".DS_Store")
     for entry in sorted(os.listdir(src_docs)):
-        if entry == "CNAME":
+        if entry == "CNAME" or entry == "__pycache__" or entry == ".DS_Store" \
+                or entry.endswith((".pyc", ".pyo")):
             continue
         src = os.path.join(src_docs, entry)
         if os.path.isdir(src):
-            shutil.copytree(src, os.path.join(dst, entry), dirs_exist_ok=True)
+            shutil.copytree(src, os.path.join(dst, entry), dirs_exist_ok=True,
+                            ignore=ignore_junk)
         else:
             shutil.copy2(src, os.path.join(dst, entry))
     open(os.path.join(dst, ".nojekyll"), "w").write("")
@@ -184,6 +196,17 @@ def push_serve_branch(tree_dir, branch, cwd, base_sha, cname=STAGING_HOST):
         if not ok:
             raise SystemExit(f"cannot create the orphan serve branch {branch}")
     _git("rm", "-rf", "--ignore-unmatch", ".", cwd=cwd)
+    # `git rm` removes TRACKED files only. Untracked bytecode the serve
+    # process itself created — tools/__pycache__ from the imports at startup
+    # (cpython-314 on the Actions runner, row 136), or tests/__pycache__ and
+    # tools/__pycache__ left by pytest in a local checkout — survives the rm,
+    # and the `git add -A` below would sweep it into the serve commit (the
+    # junk that reached staging-pages tonight). Sweep the checkout clean
+    # before staging; only the prepared tree may enter the commit.
+    ok, why = _git("clean", "-fdx", cwd=cwd)
+    if not ok:
+        raise SystemExit(
+            f"cannot clear untracked files from the serve checkout: {why}")
     shutil.copytree(tree_dir, cwd, dirs_exist_ok=True)
     ok, _ = _git("add", "-A", cwd=cwd)
     if not ok:

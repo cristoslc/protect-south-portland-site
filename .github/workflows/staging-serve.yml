@@ -26,4 +26,10 @@ jobs:
         # PSP_STAGING_PASSPHRASE secret; a serve run without it fails loud.
         env:
           PSP_STAGING_PASSPHRASE: ${{ secrets.PSP_STAGING_PASSPHRASE }}
+          # Row 136: the serve process's own imports write tools/__pycache__
+          # into the checkout; that bytecode reached the serve branch
+          # tonight. staging_serve now sweeps the checkout clean and
+          # filters its copy; this keeps the runner from producing the
+          # junk in the first place.
+          PYTHONDONTWRITEBYTECODE: "1"
         run: python3 tools/staging_serve.py --push
