@@ -1,35 +1,94 @@
 {
-  "leg": "Hero card centered on desktop (staging-feedback issue #4, ledger row 118)",
-  "date": "2026-11-24",
-  "branch": "bb/hero-centered-thr_p257b4jc9k",
-  "base": "ea60a80 (origin/main; the leg's worktree was removed by the cleanup that followed the #104 merge while the leg was in flight, and the leg was rebuilt from this ledger record in a fresh worktree at .worktrees/hero-centered — the recovery is recorded here because the tree must match the report)",
-  "issue_ask_verbatim": "Hero card should be roughly centered, vertically and horizontally. See red outline in this screenshot. / Hero card is offset at bottom and slightly left.",
-  "measured_before": {
-    "1369": {"card": {"x": 154.5, "w": 828, "h": 448.9}, "leftGap": 154.5, "rightGap": 386.5, "topInRegion": 360, "bottomGap": 20, "note": "the card sat 116px left of the viewport's center and bottom-anchored with 20px below a 360px photo band; the region auto-grew with the card"},
-    "1920": {"topInRegion": 360, "bottomGap": 20}
+ "leg": "Hero card centered on desktop (staging-feedback issue #4, ledger row 118)",
+ "date": "2026-11-24",
+ "branch": "bb/hero-centered-thr_p257b4jc9k",
+ "base": "ea60a80 (origin/main; the leg's worktree was removed by the cleanup that followed the #104 merge while the leg was in flight, and the leg was rebuilt from this ledger record in a fresh worktree at .worktrees/hero-centered \u2014 the recovery is recorded here because the tree must match the report)",
+ "issue_ask_verbatim": "Hero card should be roughly centered, vertically and horizontally. See red outline in this screenshot. / Hero card is offset at bottom and slightly left.",
+ "measured_before": {
+  "1369": {
+   "card": {
+    "x": 154.5,
+    "w": 828,
+    "h": 448.9
+   },
+   "leftGap": 154.5,
+   "rightGap": 386.5,
+   "topInRegion": 360,
+   "bottomGap": 20,
+   "note": "the card sat 116px left of the viewport's center and bottom-anchored with 20px below a 360px photo band; the region auto-grew with the card"
   },
-  "measured_after": {
-    "412": {"topInRegion": 495, "bottomGap": 16, "leftGap": 14, "rightGap": 14, "note": "the phone composition is unchanged"},
-    "768": {"topInRegion": 360, "bottomGap": 20, "leftGap": 20, "rightGap": 20, "note": "the tablet composition is unchanged"},
-    "1369": {"leftGap": 270.5, "rightGap": 270.5, "topInRegion": 170, "bottomGap": 170, "note": "perfectly centered both axes; the card's left edge (x 270.5) stands clear of the lighthouse (x ~60-250), so the tower reads in the clear, and the sails pass behind the card's translucent fill the way the filer's outline drew them"},
-    "1440": {"leftGap": 306, "rightGap": 306, "topInRegion": 170, "bottomGap": 170},
-    "1920": {"leftGap": 546, "rightGap": 546, "topInRegion": 170.3, "bottomGap": 170.3, "note": "the 41.125vw cap binds exactly as row 112 sized it: region 789.6px, 240 hidden source rows, and the card now centers in the ~20px of slack the cap leaves"}
+  "1920": {
+   "topInRegion": 360,
+   "bottomGap": 20
+  }
+ },
+ "measured_after": {
+  "412": {
+   "topInRegion": 495,
+   "bottomGap": 16,
+   "leftGap": 14,
+   "rightGap": 14,
+   "note": "the phone composition is unchanged"
   },
-  "contrast": {
-    "method": "same measurement as the composition leg's manifest: the photo rendered behind the card (card hidden), the card's rgba(18, 42, 44, 0.8) fill composited over every sampled photo pixel in the card's new rect, headline-white contrast computed per pixel",
-    "readings": {
-      "1369": {"pixels_sampled": 93150, "worst": 8.27, "mean": 11.52, "best": 16.32},
-      "1440": {"pixels_sampled": 93150, "worst": 8.28, "mean": 11.58, "best": 16.47},
-      "1920": {"pixels_sampled": 93150, "worst": 8.28, "mean": 12.06, "best": 16.47}
-    },
-    "floor": "the composition leg's worst readings were 7.93-8.24:1, so the move does not degrade the measured contrasts — the worst case at the new position is at or above every prior reading"
+  "768": {
+   "topInRegion": 360,
+   "bottomGap": 20,
+   "leftGap": 20,
+   "rightGap": 20,
+   "note": "the tablet composition is unchanged"
   },
-  "kept_intact": "the 41.125vw cap rule (pinned by test_homepage_hero_card_is_centered_on_desktop), the object-position 20% 100% focal point, the card's fill and ink, the ≤1199 tablet and phone composition (byte-identical band geometry), and the mast-and-sail visibility at 1920 (the cap's 240 hidden rows hold with the card centered)",
-  "named_tension": "above 1200px the sails' mid-section passes behind the card's 80%-opaque tint exactly as the filer's red outline drew them; the sails remain in frame (no re-crop) and read through the tint. Below 1200 the sentried composition stays because a centered card at tablet width would sit behind the tower itself.",
-  "recovery_note": "the leg's first worktree (.worktrees/act-now-restructure) was removed by the cleanup that followed the #104 merge while this leg was in flight, destroying the uncommitted CSS and measurements; the leg was rebuilt in .worktrees/hero-centered from ledger row 118's own record, and the five visible-plus-three behind-card captures were re-taken on the rebuilt tree. Any earlier intermediate readings from the lost tree are superseded by this manifest.",
-  "checks": {
-    "suite": "254 passed, 1 skipped (253 at the base plus this leg's geometry pin)",
-    "scanner": "psp_public.scan_tree('docs') == []"
+  "1369": {
+   "leftGap": 270.5,
+   "rightGap": 270.5,
+   "topInRegion": 170,
+   "bottomGap": 170,
+   "note": "perfectly centered both axes; the card's left edge (x 270.5) stands about 5px clear of the lighthouse's white body (the tower measured x 233-266 in the leg's capture), so the tower reads in the clear beside the card, not behind it, and the sails pass behind the card's translucent fill the way the filer's outline drew them"
   },
-  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+  "1440": {
+   "leftGap": 306,
+   "rightGap": 306,
+   "topInRegion": 170,
+   "bottomGap": 170
+  },
+  "1920": {
+   "leftGap": 546,
+   "rightGap": 546,
+   "topInRegion": 170.3,
+   "bottomGap": 170.3,
+   "note": "the 41.125vw cap binds exactly as row 112 sized it: region 789.6px against content of 788.9px, so the remaining slack is under 1px and the card sits dead-centre in it; 240 hidden source rows hold"
+  }
+ },
+ "contrast": {
+  "method": "same measurement as the composition leg's manifest: the photo rendered behind the card (card hidden), the card's rgba(18, 42, 44, 0.8) fill composited over every sampled photo pixel in the card's new rect, headline-white contrast computed per pixel",
+  "readings": {
+   "1369": {
+    "pixels_sampled": 93150,
+    "worst": 8.27,
+    "mean": 11.52,
+    "best": 16.32
+   },
+   "1440": {
+    "pixels_sampled": 93150,
+    "worst": 8.28,
+    "mean": 11.58,
+    "best": 16.47
+   },
+   "1920": {
+    "pixels_sampled": 93150,
+    "worst": 8.28,
+    "mean": 12.06,
+    "best": 16.47
+   }
+  },
+  "floor": "the composition leg's worst readings were 7.93-8.24:1, so the move does not degrade the measured contrasts \u2014 the worst case at the new position is at or above every prior reading",
+  "readings_note": "the worst case is measured over the composited fill; the composition leg's worst readings (7.93-8.24:1) came from the crowd's white-shirt pixels under the card's old left-anchored position, and the centred card now sits clear of them, which is why the worst case improves to 8.27-8.28:1"
+ },
+ "kept_intact": "the 41.125vw cap rule (pinned by test_homepage_hero_card_is_centered_on_desktop), the object-position 20% 100% focal point, the card's fill and ink, the \u22641199 tablet and phone composition (byte-identical band geometry), and the mast-and-sail visibility at 1920 (the cap's 240 hidden rows hold with the card centered)",
+ "named_tension": "above 1200px the sails' mid-section passes behind the card's 80%-opaque tint exactly as the filer's red outline drew them; the sails remain in frame (no re-crop) and read through the tint. Below 1200 the sentried composition stays because a centered card at tablet width would sit behind the tower itself.",
+ "recovery_note": "the leg's first worktree (.worktrees/act-now-restructure) was removed by the cleanup that followed the #104 merge while this leg was in flight, destroying the uncommitted CSS and measurements; the leg was rebuilt in .worktrees/hero-centered from ledger row 118's own record, and the five visible-plus-three behind-card captures were re-taken on the rebuilt tree. Any earlier intermediate readings from the lost tree are superseded by this manifest.",
+ "checks": {
+  "suite": "254 passed, 1 skipped (253 at the base plus this leg's geometry pin)",
+  "scanner": "psp_public.scan_tree('docs') == []"
+ },
+ "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
 }

@@ -387,8 +387,10 @@ def test_homepage_hero_card_is_centered_on_desktop(docs):
     stays whole, object-fit and object-position are untouched, and from
     1200px up the card centers on both axes with equal padding above and
     below. The centered card stands beside the lighthouse (the card's left
-    edge lands at (viewport - 828) / 2, measured against the tower at
-    x ~ 60-250), so the tower reads in the clear at any card height, and the
+    edge lands at (viewport - 828) / 2, measured against the tower's white
+    body at x ~ 233-266 in the leg's 1369 capture, so about 5px of clear
+    water sits between them), so the tower reads in the clear at any card
+    height, and the
     sails pass behind the card's translucent fill the way the filer's own
     outline drew them. Below 1200 the tablet and phone keep the shipped
     composition: there the card is 728px of a 768px window, so a centered

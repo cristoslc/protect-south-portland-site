@@ -1046,15 +1046,17 @@ blockquote {
    above and below, `justify-content: center` for the horizontal, and
    `align-items: center` to seat the card between the two bands when the
    41.125vw cap makes slack at ultrawide widths (at 1920 the cap binds
-   exactly as it was sized to: region 789.6px, 240 hidden source rows, the
-   card centered in the remaining ~20px of slack).
+   exactly as it was sized to: region 789.6px against content of 788.9px,
+   so the remaining slack is under 1px and the card sits dead-centre in
+   it).
 
    Why this holds the composition it moves: the composition leg's clear band
    keeps the lighthouse's lantern clear of the card because the left-anchored
    card sits under the tower. The centered card stands BESIDE the tower
    instead (the card's left edge lands at (viewport - 828) / 2 ≈ 270px at
-   1369, measured against the tower at x ≈ 60-250), so the tower reads at
-   full darkness at any card height, and the sails pass behind the card's
+   1369, measured against the tower's white body at x ≈ 233-266 in the leg's
+   capture, so about 5px of clear water sits between them), so the tower
+   reads in the clear at any card height, and the sails pass behind the card's
    translucent fill — the same shape the filer drew in the outline, where
    the sails read through the tint. Below 1200 the tablet and phone keep
    the shipped composition: there the card is 728px of a 768px window, so
