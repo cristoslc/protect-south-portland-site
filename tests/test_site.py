@@ -1235,7 +1235,7 @@ def test_row33_oct15_meeting_copy_published(docs):
     # the surviving bullets keep their order: the forward campaign line leads
     # the callout and the Dec. 1 workshop follows it (row 121)
     callout_pos = idx_text.index("Now is the time to act")
-    assert idx_text.index("The council is weighing what to require at the tank farms", callout_pos) < \
+    assert idx_text.index("The Council is weighing what to require at the tank farms", callout_pos) < \
         idx_text.index("The Council plans its next workshop for", callout_pos)
     # the scan ban is retired: no event markers remain to reject it
     assert tuple(FORBIDDEN_EVENT_MARKERS) == ()
@@ -1730,7 +1730,7 @@ def test_homepage_top_is_forward_looking(docs):
     idx = read(docs, "index.html")
     assert "Oct. 27" not in idx
     assert "took no vote" not in idx
-    assert "The council is weighing what to require at the tank farms" in idx
+    assert "The Council is weighing what to require at the tank farms" in idx
     assert "637 Highland Ave" not in idx
 
 
@@ -1876,7 +1876,7 @@ def test_act_now_workshop_is_past_tense(docs):
     # past night stays gone, as does every invitation to a past event.
     act = read(docs, "act-now.html")
     assert act.count("The council is weighing what to require at the tank farms") == 1
-    assert "The council's next workshop is" in act
+    assert "The council&rsquo;s next workshop is" in act
     assert "Make plans to come to the City Council workshop" not in act
     assert "Attend the City Council workshop" not in act
     assert "637 Highland Ave" not in act
@@ -4387,7 +4387,7 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
                 "the tank farms.")
     bullet_state = ("The Council plans its next workshop for Tuesday, Dec. 1 "
                     "at 6:30 p.m.")
-    past_state = ("The council is weighing what to require at the tank farms")
+    past_state = ("The Council is weighing what to require at the tank farms")
     idx = read(docs, "index.html")
     tank = read(docs, "tank-farms.html")
     # 2026-11-24: copy pins read tag-stripped text, so the bold pass can move
