@@ -1,0 +1,20 @@
+{
+  "leg": "The petition leaves everycurrent-ask surface tree-wide (operator clarification, ledger row 126)",
+  "date": "2026-11-25",
+  "branch": "bb/petition-sweep-zero-2026-11-25",
+  "base": "147a067 (origin/main, which carries the row-125 leg plus PR #119's review fix rebased in)",
+  "operator_clarification_verbatim": "remove the petition from all current asks/active campaigns, we don't have one running right now",
+  "sweep_hits_and_dispositions": [
+    {"surface": "user-facing copy, all 18 built pages", "found": "zero petition references (counted fresh, grep -ri petition across docs/*.html)", "disposition": "nothing to remove - the merged row-125 leg and PR #119 already emptied them; newsletter, share-your-story, toolkit, index, about, all zero"},
+    {"surface": "site/styles.css block 'petition strip (kept from live homepage)': the dead .petition / .petition__inner rules (cyan-soft background, border lines, flex inner)", "found": "the ONE residue: petition-shaped styling shipped in the shared stylesheet with NO user on any built page (grep for class=petition in docs/*.html: none), kept over from an earlier homepage era", "disposition": "REMOVED in this leg (both source and built stylesheets)"},
+    {"surface": "toolkit.html and the archive pages", "found": "zero petition history to keep", "disposition": "the history rule retains nothing here - nothing kept-as-history because nothing exists; named per the order"},
+    {"surface": "tests recorded-correction comments mentioning the petition", "found": "record text naming the removed ask", "disposition": "kept - they are the record of the removal, not page surface"},
+    {"surface": "no Drive count exists", "found": "none reachable on record", "disposition": "nothing framed as 'delivered with N voices' anywhere; the count is not invented"}
+  ],
+  "act_now_card": "the card is fully forward - 'Dec. 1: the council weighs what to require' with the split copy, WORKSHOP DETAILS link, zero petition-shaped residue (verified visually in the capture, taken after the rebase onto the review-fixed main so the split copy shows)",
+  "closing_grep_proof": "after the sweep: grep -ri 'petition' across docs/ returns ZERO hits (html and css both); grep across site/pages/ and assets/ returns zero; the word 'petition' now exists only in the tests' recorded-correction comments and the ledger",
+  "new_pin": "test_no_petition_styling_or_campaign_remains asserts .petition is absent from both stylesheets and 'petition' absent from every built page's copy, with the operator's clarification verbatim in the docstring; the existing petition-strip absence pins (row 106) stay",
+  "checks": {"suite": "257 passed, 1 skipped (256 base + this leg's pin)", "scanner": "[]"},
+  "captures": "card-forward-1440.png: the Act Now card grid after the sweep with the split-copy forward card, no petition styling behind it; read before reporting (an earlier copy of this capture fired against a stale base and was replaced - the read caught it)",
+  "not_done": "not published, not merged; reported back BEFORE merging; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}
