@@ -51,6 +51,18 @@ The three failures on the night of 2026-11-24, one line each:
 
 A report that implies motion while the tree stands still is worse than no report.
 
+## GitHub voice for agent-authored content (operator directive, 2026-11-24)
+
+**Every issue, pull request body, review comment, and commit message an agent writes on GitHub MUST [RFC 2119] follow the ai-output-humanizer patterns: plain first person, no sycophancy, no em dashes, no rule-of-three, no invented emphasis, no "great catch" openers, and no summary-then-restate shape.** The operator's directive, verbatim (2026-11-24):
+
+> in issues and PRs, you should be following guidance for agent-generated content
+
+The audience is the operator and future readers, so the register is the reports-must-match-the-tree one: what was done, verified by what, nothing implied.
+
+Authorship is stated where it matters. An agent-authored comment or PR body does not imply that a human reviewed, approved, or read anything it does not name. When a PR body describes a review, it names the reviewer thread and the verdict's sha, the way the gate reports do. When a comment carries a ruling, it quotes the ruling verbatim with its decision id.
+
+Scope: this applies to every issue, PR body, review comment, and commit message an agent writes on the site repo and the workspace repos, forward from the ruling's date (2026-11-24). Existing comments are not retroactively rewritten. A comment whose content a future reader would misread as human-verified gets a correction reply, not an edit.
+
 ## Staging audit — non-blocking, automated (2026-10-15)
 
 `tools/staging_audit.py` audits the staging mirror on a schedule and files one digest issue per run on this repo, labeled `staging-audit` + `accessibility` (create-if-absent). Schedule: weekday mornings ~13:15 UTC plus manual `workflow_dispatch`, via `.github/workflows/staging-audit.yml`. Per run it checks every public page for HTTP 200, runs Lighthouse accessibility (desktop) on all pages plus a mobile pass on `index.html`, re-checks the typography floor against the `styles.css` staging actually serves (root `112.5%` + body `1rem` — the same contract `test_typography_older_visitor_floor` pins on the source file), and diffs its findings against the previous run's digest, read from the machine JSON block inside the last `staging-audit` issue.
