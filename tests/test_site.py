@@ -4105,7 +4105,12 @@ def test_staging_gate_injects_static_stylesheet(tmp_path):
 DATE_TOKEN = re.compile(
     r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}\b", re.I)
 INVITE_VERB = re.compile(
-    r"\b(join|come|attend|make plans|be there|rsvp|meet us|gather)\b", re.I)
+    # ledger row 125, review round 1: "show up" and "arrive" escaped this list
+    # in the petition card's dated summons sentence, so the gate closed the
+    # hole - the rule bans the shape, not a verb list, and a new verb cannot
+    # slip past
+    r"\b(join|come|attend|make plans|be there|rsvp|meet us|gather|show up|arrive)\b",
+    re.I)
 PAST_MARKER = re.compile(
     r"\b(met|was held|were held|took no vote|has not set|no date|happened|held on|took place)\b",
     re.I)
@@ -4354,7 +4359,10 @@ def test_act_now_cta_tiles_lead_the_grid(docs):
     # card; no signature count is invented (none reachable on record)
     petition = body[body.index("the council weighs what to require</h2>"):body.index("WORKSHOP DETAILS →</a>")]
     assert "The council is weighing what to require at the tank farms" in petition
-    assert "Show up Tuesday, Dec. 1 at 6:30 p.m. at City Hall, 25 Cottage Road" in petition
+    # recorded correction (review round 1 on this leg): the dated summons shape
+    # was split - the date carries no invitation verb, the ask carries no date
+    assert "The workshop is Tuesday, Dec. 1 at 6:30 p.m. at City Hall, 25 Cottage Road." in petition
+    assert "Arrive by 6:15 to fill the room." in petition
     assert "SIGN" not in petition and "petition" not in petition.lower()
 
     # the glowing cards are the grid's first two children; the text cards
