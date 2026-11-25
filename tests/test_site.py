@@ -476,8 +476,41 @@ def test_act_now_leads_with_the_newcomer_plea(docs):
     for page, name in ((act, "act-now.html"), (idx, "index.html")):
         assert "We know more than ever about how the tank farms are affecting this community" in page, name
         assert "Join us in urging the council to take the strongest action possible." in page, name
+def test_act_now_leads_with_the_newcomer_plea(docs):
+    """staging-feedback #3, the operator's mid-work comment (2026-11-25,
+    verbatim): "This is probably needed on the Act Now page, as well" — the
+    homepage's newcomer call-to-action lead is placed on the Act Now page as
+    the lead-in above the featured block, wording consistent with the
+    homepage lead. The two sentences pin that consistency on both pages; the
+    date, venue and wear-green facts stay in the featured block and the
+    site-wide strip, so nothing is duplicated.
+
+    staging-website-feedback issue #7 (2026-11-25), recorded correction: the
+    homepage's newcomer treatment ends with a direct push ("Write to the city
+    council today... Wear green!"), but the Act now lede stopped at the
+    abstract "urging... strongest action possible" and gave a newcomer no
+    instruction. On the Act now page the urge now resolves into the concrete
+    ask with a colon; the homepage keeps its original full-stop sentence. The
+    lede still carries NO date/time/venue fact: the rows-129/130 facts-once
+    rule keeps those in the featured block below.
+    """
+    act = read(docs, "act-now.html")
+    idx = read(docs, "index.html")
+    for page, name in ((act, "act-now.html"), (idx, "index.html")):
+        assert "We know more than ever about how the tank farms are affecting this community" in page, name
+    # the homepage keeps its shipped full-stop sentence (issue #7 changes
+    # the Act now page's continuation, not the homepage's lead)
+    assert "Join us in urging the council to take the strongest action possible." in idx, "index.html"
+    # the Act now lede resolves the urge into concrete second-person verbs
+    # (the meeting wording mirrors the featured block's own show-up step)
+    assert "Join us in urging the council to take the strongest action possible: write to the City Council below, then come to the City Council meeting and wear green." in act, "act-now.html"
     # the lead-in sits above the featured block it introduces
     assert act.index("We know more than ever") < act.index('class="callout callout--ask"')
+    # fact discipline: the lede adds no date/time/venue fact of its own
+    lede = act[act.index("We know more than ever"):act.index('class="callout callout--ask"')]
+    for fact in ("Tuesday, Dec. 1", "6:30", "6:15", "25 Cottage Road", "Dec. 1"):
+        assert fact not in lede, (
+            f"the lede must not duplicate the featured block's facts ({fact})")
 
 
 def test_no_petition_styling_or_campaign_remains(docs):

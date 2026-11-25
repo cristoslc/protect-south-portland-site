@@ -1,0 +1,24 @@
+{
+  "leg": "Issue staging-website-feedback#7: the Act now page takes the homepage's direct newcomer push into its lede (ledger row 139)",
+  "date": "2026-11-25",
+  "issue": "https://github.com/Protect-South-Portland/staging-website-feedback/issues/7",
+  "provenance": "from @cristoslc's comment on issue #3 (2026-11-25), verbatim: \"This is probably needed on the Act Now page, as well\"; triaged to thr_t9dvrarnfz by the orchestrator",
+  "branch": "bb/issue-7-newcomer-lead-thr_t9dvrarnfz",
+  "base": "b0364c6 (origin/main at leg start; the row-135 Lato experiment not yet landed, so tokens are current; #7 runs in parallel with the open issue-8 PR #135 - disjoint page regions, the lieutenant sequences merges)",
+  "judgment_named": {
+    "already_served": "the homepage's first two sentences carry as the page's lede directly above the featured block (pinned by test_act_now_leads_with_the_newcomer_plea); the featured block holds the Current ask with two equal steps and per-column centered controls (row 129); the alert strip runs site-wide; the workshop facts and the calendar entry live in the block",
+    "missing": "the homepage's treatment ends with a direct second-person push ('Write to the city council today... Wear green!'); the act-now lede stopped at the abstract \"urging the council to take the strongest action possible\" and gave a newcomer reading only the top two lines no instruction"
+  },
+  "copy_shipped": "We know more than ever about how the tank farms are affecting this community. Join us in urging the council to take the strongest action possible: write to the City Council below, then come to the City Council meeting and wear green. Everything you need for both is right below.",
+  "wording_notes": [
+    "the homepage-verbatim opener stays; the abstract urge resolves into concrete second-person verbs (write, come, wear green) mirroring the featured block's own show-up step",
+    "a first draft said 'come to the workshop and wear green' and test_no_past_event_invitations flagged the shape (the-site rule bans the 'the workshop' + invite-verb shape regardless of tense because the rule fails toward catching); the rule is the shape, so the wording mirrors the box's step - the lint working as designed, nothing weakened",
+    "no petition wording; no Oct. 27 reference; no new colour pair (copy-only, contrast pairs unchanged)"
+  ],
+  "fact_discipline": "the lede carries NO date/time/venue fact - rows 129/130's facts-once rule keeps those in the featured block below; pinned",
+  "pins": "test_act_now_leads_with_the_newcomer_plea EXTENDED additively (recorded correction citing issue #7): act-now asserts the colon-resolved sentence with concrete verbs, the homepage keeps its shipped full-stop sentence, and the lede is asserted free of Tuesday, Dec. 1 / 6:30 / 6:15 / 25 Cottage Road",
+  "checks": {"suite": "278 passed, 1 skipped (same count as the b0364c6 baseline - the existing pin was extended in place)", "scanner": "[]", "release_check": "clean"},
+  "annotations": "the issue prose was treated as intent (a clearer plain-language lead, or something else the filer saw missing), never as specs; implementation is in the site's real design system with no CSS change",
+  "captures": ["before-412-top.jpg / before-1440-top.jpg - the shipped abstract lede from a detached b0364c6 build", "after-412-top.jpg / after-1440-top.jpg - the direct push in the lead at both breakpoints", "before-412.jpg / before-1440.jpg / after-412.jpg / after-1440.jpg - the featured-block region for context", "all read before reporting"],
+  "not_done": "not published, not merged; the gate-report verdict for the page is in flight pending the standing review (staging-first: production waits on the operator-run gate); report-before-merge; root checkout and gate/bar/serve files untouched"
+}
