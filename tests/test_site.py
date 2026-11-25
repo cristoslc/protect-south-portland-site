@@ -4587,10 +4587,17 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
     # no-vote bullet retired; past_state now reads the forward campaign line
     # the operator's example named. The ruling is unchanged: a live date, a
     # real ask, no invitation to a past event.
+    # 2026-11-25 (ledger row 131), retargeted as a recorded correction: the
+    # operator rewrote the hero card's copy. The kept email line moved into its
+    # own paragraph and ends on an exclamation point; the closing sentence
+    # "Email the Council and ask it to require better technology at the tank
+    # farms." is dropped from the hero as redundant with the kept line (the
+    # ask it names still ships in the campaign callout below, which is where
+    # the bullet-level pin still reads it). The ruling is unchanged: a live
+    # date, a real ask, no invitation to a past event.
     hero_lead = ("We know more than ever about how the tank farms are "
                  "affecting this community.")
-    hero_ask = ("Email the Council and ask it to require better technology at "
-                "the tank farms.")
+    hero_ask = "Email the Council and tell them now is the time to act!"
     bullet_state = ("The Council plans its next workshop for Tuesday, Dec. 1 "
                     "at 6:30 p.m.")
     past_state = ("The Council is weighing what to require at the tank farms")
@@ -4618,6 +4625,61 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
     assert "make public what special counsel advises" in tank
     assert "637 Highland Ave" not in tank
     assert "email the Council now" in tank
+
+
+def test_homepage_hero_card_row131_copy_button_and_mission(docs):
+    """Ledger row 131 (2026-11-25), three operator directives on the homepage
+    hero card, verbatim in substance:
+
+    1. Copy rewrite: the card's text through "Wear green!" stays paragraph
+       one; "Email the Council and tell them now is the time to act!" becomes
+       paragraph two and ends on an exclamation point; the closing sentence
+       "Email the Council and ask it to require better technology at the tank
+       farms." is dropped from the card entirely - the operator's finding,
+       redundant with the kept line. The ask it names still ships in the
+       campaign callout below, so the page keeps the substance.
+    2. The Act now button must not sit crammed in the left corner. Of the two
+       operator-given shapes, this leg ships the button INLINE with the
+       "Email the Council and tell them now is the time to act!" line - the
+       site's own grammar for a button riding a paragraph (the campaign
+       callout's CTA row), no new layout machinery, and the pill keeps its
+       natural width instead of stretching into a banner.
+    3. The mission line renders as SECONDARY text: smaller and lighter than
+       the card's primary paragraph (hero__meta, 0.95rem), still above the
+       suite's contrast floor against the card's composited worst case
+       (measured in tests/evidence/home-hero-card-2026-11-25/).
+    """
+    idx = read(docs, "index.html")
+    hero = idx[idx.index('<section class="hero">'):idx.index('<section class="section section--intro')]
+    # paragraph one keeps the filer's text through "Wear green!" and stops there
+    assert "City Hall Council Chambers, 25 Cottage Road. Wear green!</p>" in hero
+    assert "Wear green! Email the Council" not in hero, (
+        "the email ask must open its own paragraph, not ride the meta line")
+    # paragraph two is the kept email line with its exclamation point
+    assert "Email the Council and tell them now is the time to act!</p>" in hero
+    # the dropped sentence is gone from the card; the callout still carries
+    # the substance it named
+    assert "ask it to require better technology" not in hero, (
+        "the dropped sentence is gone from the hero card (row 131)")
+    assert "require better technology at the tank farms" in idx
+    # the button rides inline inside the ask paragraph, the callout's grammar
+    ask_p = hero[hero.index('<p class="hero__ask">'):]
+    ask_p = ask_p[:ask_p.index("</p>")]
+    assert 'Email the Council and tell them now is the time to act! <a class="btn btn--cta" href="act-now.html">Act now</a>' in ask_p
+    # the mission line is demoted: smaller than the meta paragraph and lighter
+    # than the white it used to wear (was 1rem at rgba(255,255,255,0.88))
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    mission = re.search(r"\.hero__mission\s*\{([^}]*)\}", css)
+    assert mission, ".hero__mission rule missing"
+    size = re.search(r"font-size:\s*([0-9.]+)rem", mission.group(1))
+    assert size and float(size.group(1)) < 0.95, (
+        "the mission line must render smaller than the hero's primary "
+        "paragraph (hero__meta at 0.95rem)")
+    meta = re.search(r"\.hero__meta\s*\{([^}]*)\}", css)
+    assert meta and "0.95rem" in meta.group(1)
+    assert "rgba(255, 255, 255, 0.75)" in mission.group(1), (
+        "the mission line's ink is the dimmed white the row-131 evidence "
+        "measured; a lighter token would need its own measurement")
 
 
 def test_about_workshop_is_past_tense(docs):
