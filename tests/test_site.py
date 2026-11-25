@@ -4655,17 +4655,16 @@ def test_homepage_hero_card_row131_copy_button_and_mission(docs):
     assert "City Hall Council Chambers, 25 Cottage Road. Wear green!</p>" in hero
     assert "Wear green! Email the Council" not in hero, (
         "the email ask must open its own paragraph, not ride the meta line")
-    # paragraph two is the kept email line with its exclamation point
-    assert "Email the Council and tell them now is the time to act!</p>" in hero
+    # paragraph two is the kept email line with its exclamation point, and
+    # the Act now button rides inside it, inline (the operator's first-given
+    # shape; the callout's CTA row is the site's own grammar for it)
+    assert ('Email the Council and tell them now is the time to act! '
+            '<a class="btn btn--cta" href="act-now.html">Act now</a></p>') in hero
     # the dropped sentence is gone from the card; the callout still carries
     # the substance it named
     assert "ask it to require better technology" not in hero, (
         "the dropped sentence is gone from the hero card (row 131)")
     assert "require better technology at the tank farms" in idx
-    # the button rides inline inside the ask paragraph, the callout's grammar
-    ask_p = hero[hero.index('<p class="hero__ask">'):]
-    ask_p = ask_p[:ask_p.index("</p>")]
-    assert 'Email the Council and tell them now is the time to act! <a class="btn btn--cta" href="act-now.html">Act now</a>' in ask_p
     # the mission line is demoted: smaller than the meta paragraph and lighter
     # than the white it used to wear (was 1rem at rgba(255,255,255,0.88))
     css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
