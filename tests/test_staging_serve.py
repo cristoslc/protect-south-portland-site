@@ -1,3 +1,4 @@
+import hashlib
 """Tests for tools/staging_serve.py, the fork's staging serve branch.
 
 The fork model (migration plan 2026-11-24) serves staging from a generated
@@ -34,6 +35,7 @@ import pytest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
+import publish
 import staging_serve
 
 
@@ -63,6 +65,56 @@ def test_serve_tree_swaps_domain_and_adds_crawl_protection(tmp_path):
     assert staging_serve.NOINDEX_META in served
     assert served.index(staging_serve.NOINDEX_META) < served.index("</head>")
     assert "some-other-host.example" not in served
+
+
+def test_serve_tree_gates_every_page(tmp_path, monkeypatch):
+    """Ledger row 128 (2026-11-25), the operator's directive verbatim: "we
+    still need the crawler gate and passphrase, too. I don't know why they got
+    removed, but I expect them to still be in place." The reversal corpus id
+    is dl-20261125T142900-d080; the ruling it reverses is dec_63blvjzqob1t
+    (dl-20261124T154549-c606). The fork-model serve re-implements the row-42
+    gate as amended by row 60 by REUSING publish.apply_staging_gate, so both
+    pipelines run the same block: every served page carries the gate (only
+    the passphrase's sha256 embeds; the plaintext never reaches a page), the
+    curtain ships as a real <style> tag hidden from first paint (row 60a),
+    the phrase field refocuses on window load against the map iframe (row
+    60b), and the wrong phrase errors and stays locked (the block's own
+    branch)."""
+    src = _fixture_docs(tmp_path / "src")
+    dst = tmp_path / "serve"
+    monkeypatch.setenv("PSP_STAGING_PASSPHRASE", "crawlers-keep-out")
+    pages = staging_serve.prepare_serve_tree(
+        str(src), str(dst), "staging.protectsouthportland.org",
+        base_sha="a" * 40)
+    assert pages == 1
+    served = (dst / "index.html").read_text()
+    assert staging_serve.GATE_MARKER in served, "the gate is on every served page"
+    digest = hashlib.sha256(b"crawlers-keep-out").hexdigest()
+    assert digest in served, "the gate embeds the passphrase's sha256"
+    assert "crawlers-keep-out" not in served, "the plaintext never reaches a page"
+    assert '<meta name="robots" content="noindex, nofollow">' in served
+    assert ".staging-gate body{visibility:hidden!important}" in served, (
+        "the curtain ships as a real <style> tag (row 60a)")
+    assert 'window.addEventListener("load"' in served, (
+        "the phrase field refocuses after load (row 60b)")
+    assert '"psp_staging"' in served
+    assert "staging-gate-wrong" in served, "a wrong phrase errors and stays locked"
+    assert 'Max-Age=2592000' in served, "the cookie persists 30 days"
+    # the robots.txt the serve writes is the staging Disallow-all variant
+    assert (dst / "robots.txt").read_text() == staging_serve.STAGING_ROBOTS_TEXT
+
+
+def test_serve_refuses_loud_without_a_passphrase(tmp_path, monkeypatch):
+    """Fail loud, per row 42 as amended: a serve run with no passphrase in the
+    environment and none beside the checkout refuses entirely - no tree, no
+    gate keyed to nothing."""
+    src = _fixture_docs(tmp_path / "src")
+    monkeypatch.delenv("PSP_STAGING_PASSPHRASE", raising=False)
+    monkeypatch.setattr(publish, "STAGING_DOTENV", str(tmp_path / "missing.env"))
+    with pytest.raises(SystemExit) as loud:
+        staging_serve.prepare_serve_tree(
+            str(src), str(tmp_path / "serve"), "staging.protectsouthportland.org")
+    assert "PSP_STAGING_PASSPHRASE" in str(loud.value)
 
 
 def test_serve_tree_writes_the_preview_manifest(tmp_path):

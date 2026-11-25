@@ -4192,6 +4192,9 @@ def test_staging_gate_injects_static_stylesheet(tmp_path):
     text = (tree / "index.html").read_text(encoding="utf-8")
     assert "<style>" in text, "served head must carry the gate rules as a real <style> tag"
     assert ".staging-gate body{visibility:hidden!important}" in text
+    assert ".staging-gate .staging-bar{visibility:visible" in text, (
+        "the staging preview bar stays visible while the gate is locked "
+        "(row 128's interplay decision)")
     assert ".staging-gate-overlay{" in text
     assert ".staging-gate-input{" in text
     # the embedded map iframe can take focus as it loads; the gate must take
