@@ -139,10 +139,12 @@ def test_digest_body_contains_headline_sections():
 # ---------- the audit run over injected fakes ----------
 
 class FakeFetch:
-    def __init__(self, statuses, css_text="ok", fail=False):
+    def __init__(self, statuses, css_text="ok", fail=False,
+                 page_text="page"):
         self.statuses = dict(statuses)
         self.css_text = css_text
         self.fail = fail
+        self.page_text = page_text
         self.headers_seen = []
 
     def __call__(self, url, extra_headers=None):
@@ -152,7 +154,7 @@ class FakeFetch:
         path = url.rstrip("/").rsplit("/", 1)[-1]
         if path == "styles.css":
             return 200, self.css_text
-        return self.statuses.get(path, 404), "page"
+        return self.statuses.get(path, 404), self.page_text
 
 
 class FakeLighthouse:
@@ -275,13 +277,50 @@ def test_gate_extra_headers_missing_on_an_overridden_base_is_none(tmp_path, monk
     assert sa.gate_extra_headers("http://127.0.0.1:8814") is None
 
 
+def test_gate_headers_survive_a_trailing_slash_base(tmp_path, monkeypatch):
+    """Row 128: the payload sweep normalizes its base with a trailing slash,
+    so the gate decision must compare hosts, not byte-equal strings — the
+    slash form is the same gated staging host, never an ungated override."""
+    monkeypatch.setattr(publish, "STAGING_DOTENV", os.path.join(str(tmp_path), "env"))
+    monkeypatch.delenv(publish.ENV_NAME, raising=False)
+    open(os.path.join(str(tmp_path), "env"), "w", encoding="utf-8").write(
+        publish.ENV_NAME + "=shibboleth\n")
+    expected = {"Cookie": "psp_staging=" + hashlib.sha256(b"shibboleth").hexdigest()}
+    assert sa.gate_extra_headers(sa.DEFAULT_BASE_URL + "/") == expected
+
+
+def test_audit_refuses_a_200_page_without_the_gate_marker(tmp_path, monkeypatch):
+    """Row 128: on the gated staging host, a 200 whose bytes carry no gate
+    marker means the crawl gate died or the host is not staging. That is an
+    environment fault — loud, never a clean bill over an unprotected host."""
+    fetch = FakeFetch({"index.html": 200, "about.html": 200}, CSS,
+                      page_text="<html><body>page with no gate</body></html>")
+    with pytest.raises(sa.AuditInfraError) as loud:
+        sa.run_audit(sa.DEFAULT_BASE_URL, PAGES, fetch=fetch,
+                     extra_headers={"Cookie": "psp_staging=x"})
+    assert "gate" in str(loud.value)
+
+
+def test_audit_accepts_a_200_page_carrying_the_gate_marker():
+    # the gated shape is the expected staging shape once the gate is live
+    fetch = FakeFetch({"index.html": 200, "about.html": 200}, CSS,
+                      page_text="<html><body><!-- staging-gate:injected --></body></html>")
+    result = sa.run_audit(sa.DEFAULT_BASE_URL, PAGES, fetch=fetch,
+                          lh=FakeLighthouse(),
+                          extra_headers={"Cookie": "psp_staging=x"})
+    assert result["findings"] == []
+
+
 def test_audit_threads_the_header_to_fetch_and_lighthouse(tmp_path, monkeypatch):
     monkeypatch.setattr(publish, "STAGING_DOTENV", os.path.join(str(tmp_path), "env"))
     monkeypatch.delenv(publish.ENV_NAME, raising=False)
     open(os.path.join(str(tmp_path), "env"), "w", encoding="utf-8").write(
         publish.ENV_NAME + "=shibboleth\n")
     header = {"Cookie": "psp_staging=" + hashlib.sha256(b"shibboleth").hexdigest()}
-    fetch = FakeFetch({"index.html": 200, "about.html": 200}, CSS)
+    # the served pages carry the row-42 gate marker: on the gated staging
+    # host the audit refuses a 200 page without it (row 128)
+    fetch = FakeFetch({"index.html": 200, "about.html": 200}, CSS,
+                      page_text="<html><body><!-- staging-gate:injected --></body></html>")
     lhs = FakeLighthouse()
     sa.run_audit(sa.DEFAULT_BASE_URL, PAGES, fetch=fetch, lh=lhs,
                  extra_headers=sa.gate_extra_headers(sa.DEFAULT_BASE_URL))

@@ -25,6 +25,7 @@ tree's shape and the branch's append-only discipline with zero network:
 
 import datetime
 import json
+import hashlib
 import os
 import subprocess
 import sys
@@ -34,7 +35,13 @@ import pytest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
+import psp_public
+import publish
 import staging_serve
+
+# The same literal test_site.py pins the row-42 gate with, so both suites
+# prove the same digest math against the same phrase.
+GATE_TEST_PASSPHRASE = "correct pass"
 
 
 def _fixture_docs(path, head=True, marker=None):
@@ -53,7 +60,8 @@ def test_serve_tree_swaps_domain_and_adds_crawl_protection(tmp_path):
     src = _fixture_docs(tmp_path / "src")
     dst = tmp_path / "serve"
     pages = staging_serve.prepare_serve_tree(
-        str(src), str(dst), "staging.protectsouthportland.org")
+        str(src), str(dst), "staging.protectsouthportland.org",
+        passphrase=GATE_TEST_PASSPHRASE)
     assert pages == 1
     assert (dst / "CNAME").read_text() == "staging.protectsouthportland.org\n"
     assert (dst / "robots.txt").read_text() == staging_serve.STAGING_ROBOTS_TEXT
@@ -77,7 +85,7 @@ def test_serve_tree_writes_the_preview_manifest(tmp_path):
     dst = tmp_path / "serve"
     staging_serve.prepare_serve_tree(
         str(src), str(dst), "staging.protectsouthportland.org",
-        base_sha="abcdef1234567890")
+        base_sha="abcdef1234567890", passphrase=GATE_TEST_PASSPHRASE)
     manifest = json.loads((dst / "staging-manifest.json").read_text())
     assert manifest["head"] == "abcdef1234567890"
     # the serve time is a parseable UTC ISO instant, seconds precision
@@ -88,11 +96,114 @@ def test_serve_tree_writes_the_preview_manifest(tmp_path):
     assert "served" not in (dst / "index.html").read_text()
 
 
+# ---- row 42 on the serve pipeline (row 128, 2026-11-25): the cookie gate ----
+# The operator reversed the cutover ruling (corpus dl-20261125T142900-d080,
+# superseding dec_63blvjzqob1t / corpus dl-20261124T154549-c606): the row-42
+# passphrase gate is re-implemented at the fork serve step — the injection
+# point is this serve tree, never the page sources, so no built page carries
+# the gate and production trees cannot inherit it. These tests pin the
+# injected block: only the passphrase's SHA-256 embeds, the curtain is a real
+# <style> tag hidden from first paint (row 60), the phrase field refocuses on
+# window load because the homepage map iframe steals focus (row 60), the
+# row-127 staging bar stays visible above the locked curtain, and a serve
+# without the passphrase refuses loud.
+
+
+def test_serve_tree_injects_the_row42_cookie_gate(tmp_path):
+    src = _fixture_docs(tmp_path / "src")
+    dst = tmp_path / "serve"
+    staging_serve.prepare_serve_tree(
+        str(src), str(dst), "staging.example", passphrase=GATE_TEST_PASSPHRASE)
+    served = (dst / "index.html").read_text()
+    digest = hashlib.sha256(GATE_TEST_PASSPHRASE.encode("utf-8")).hexdigest()
+    # only the digest embeds; the phrase itself never ships (row 42)
+    assert digest in served
+    assert GATE_TEST_PASSPHRASE not in served
+    # the gate rides the paired injection markers the compare strip knows
+    assert "<!-- staging-gate:injected -->" in served
+    assert served.index("staging-gate") < served.index("</head>")
+    # the curtain is a real <style> tag in the injected head (row 60), hidden
+    # from first paint — not a JS-appended element that computes too late
+    assert served.count("<style>") == 1
+    assert "body{visibility:hidden!important" in served
+    # row 60's second fix: the phrase field refocuses on window load because
+    # the homepage map iframe steals focus — and (row 128, capture-proven)
+    # the iframe's own load can complete AFTER the window's, so the gate
+    # also reclaims focus when an iframe finishes loading
+    assert 'window.addEventListener("load"' in served
+    assert "querySelectorAll(\"iframe\")" in served
+    # the 30-day cookie contract
+    assert "psp_staging" in served
+    assert "Max-Age=2592000" in served
+
+
+def test_serve_tree_keeps_the_preview_bar_above_the_locked_curtain(tmp_path):
+    """Row 128 interplay decision, stated and pinned: the row-127 staging bar
+    stays VISIBLE even when the gate is locked — it tells a reviewer where
+    they are. The curtain hides the body from first paint; the bar re-shows
+    above it (visibility re-enabled, raised over the overlay's z-index)."""
+    src = _fixture_docs(tmp_path / "src")
+    dst = tmp_path / "serve"
+    staging_serve.prepare_serve_tree(
+        str(src), str(dst), "staging.example", passphrase=GATE_TEST_PASSPHRASE)
+    served = (dst / "index.html").read_text()
+    assert ".staging-gate body .staging-bar{visibility:visible!important" in served
+    assert ".staging-gate-overlay{position:fixed;inset:0;z-index:2147483646" in served
+    # the bar paints over the curtain, never under it
+    assert served.index("z-index:2147483647") < served.index(
+        ".staging-gate-overlay{position:fixed")
+
+
+def test_a_second_gate_is_refused(tmp_path):
+    # a source page already carrying the gate marker never reaches the
+    # injection: the pre-injection psp_public scan refuses it loud first —
+    # the marker is production-forbidden, so a gated source fails the serve
+    # before anything is copied or keyed
+    src = _fixture_docs(tmp_path / "src")
+    (src / "index.html").write_text(
+        "<html><head><!-- staging-gate:injected --></head>"
+        "<body>x</body></html>")
+    with pytest.raises(SystemExit) as loud:
+        staging_serve.prepare_serve_tree(
+            str(src), str(tmp_path / "serve"), "staging.example",
+            passphrase=GATE_TEST_PASSPHRASE)
+    assert "publication-safety violation" in str(loud.value)
+    assert "staging-gate" in str(loud.value)
+
+
+def test_missing_passphrase_refuses_the_serve_loud(tmp_path, monkeypatch):
+    """Row 42, restated on the serve pipeline: the passphrase arrives at serve
+    time from PSP_STAGING_PASSPHRASE (env, then the workspace .env). A serve
+    run without it fails loud — never a keyless gate, never a placeholder."""
+    monkeypatch.setattr(publish, "STAGING_DOTENV",
+                        os.path.join(str(tmp_path), "absent"))
+    monkeypatch.delenv(publish.ENV_NAME, raising=False)
+    src = _fixture_docs(tmp_path / "src")
+    with pytest.raises(SystemExit) as loud:
+        staging_serve.prepare_serve_tree(
+            str(src), str(tmp_path / "serve"), "staging.example")
+    assert publish.ENV_NAME in str(loud.value)
+
+
+def test_the_gated_serve_tree_fails_the_production_scan(tmp_path):
+    """The gate marker is a production-forbidden marker (psp_public, the
+    row-42 scanner rule): the gated serve tree must never scan clean for a
+    production leg, so a leaked serve tree fails the prod gate loud."""
+    src = _fixture_docs(tmp_path / "src")
+    dst = tmp_path / "serve"
+    staging_serve.prepare_serve_tree(
+        str(src), str(dst), "staging.example", passphrase=GATE_TEST_PASSPHRASE)
+    violations = psp_public.scan_tree(str(dst))
+    assert violations, "the gated serve tree must not scan clean for production"
+    assert any("staging-gate" in str(v) for v in violations)
+
+
 def test_a_headless_page_refuses_the_serve(tmp_path):
     src = _fixture_docs(tmp_path / "src", head=False)
     with pytest.raises(SystemExit) as loud:
         staging_serve.prepare_serve_tree(
-            str(src), str(tmp_path / "serve"), "staging.example")
+            str(src), str(tmp_path / "serve"), "staging.example",
+            passphrase=GATE_TEST_PASSPHRASE)
     assert "no <head>" in str(loud.value)
 
 
@@ -100,7 +211,8 @@ def test_a_tree_failing_the_scan_refuses_the_serve(tmp_path):
     src = _fixture_docs(tmp_path / "src", marker="south-portland-tank-farms")
     with pytest.raises(SystemExit) as loud:
         staging_serve.prepare_serve_tree(
-            str(src), str(tmp_path / "serve"), "staging.example")
+            str(src), str(tmp_path / "serve"), "staging.example",
+            passphrase=GATE_TEST_PASSPHRASE)
     assert "publication-safety violation" in str(loud.value)
     assert "south-portland-tank-farms" in str(loud.value)
 
@@ -236,14 +348,19 @@ def test_push_supplies_identity_on_a_bare_runner(tmp_path, monkeypatch):
 
 
 def test_cli_prepare_only_run_stands_up_end_to_end():
-    """A bare CLI run over the real repo: freshness, scan, prepare, print.
+    """A bare CLI run over the real repo: freshness, scan, gate, prepare.
 
     The default path prepares and verifies without pushing, which is what
-    a local operator run looks like; only --push writes the branch.
+    a local operator run looks like; only --push writes the branch. The
+    passphrase rides the PSP_STAGING_PASSPHRASE env var — the same path the
+    fork's serve workflow uses — so the run is hermetic on any machine
+    (row 128: without it the CLI refuses loud, which
+    test_missing_passphrase_refuses_the_serve_loud pins).
     """
     proc = subprocess.run(
         [sys.executable, os.path.join(ROOT, "tools", "staging_serve.py")],
-        cwd=ROOT, capture_output=True, text=True)
+        cwd=ROOT, capture_output=True, text=True,
+        env=dict(os.environ, PSP_STAGING_PASSPHRASE="cli-test-phrase"))
     assert proc.returncode == 0, proc.stderr
     assert "pages prepared" in proc.stdout
     assert "staging.protectsouthportland.org" in proc.stdout

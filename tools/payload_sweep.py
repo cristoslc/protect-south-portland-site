@@ -32,9 +32,22 @@ shape its committed build has: a real HTML document containing the built
 shell's `<main id="content">` or the map pages' `id="map"`. Anything else
 is an infrastructure failure, not a pass.
 
-Cookieless by design: the rung fetches without the row-42 gate cookie
-(GitHub Pages serves the full HTML regardless; the gate is browser-side),
-so the schedule needs no secrets — same fetch, same rule, same result.
+Cookie attached (row 128, 2026-11-25): the operator reversed the cutover
+ruling dec_63blvjzqob1t (corpus dl-20261124T154549-c606) per corpus
+dl-20261125T142900-d080, so the row-42 cookie gate is live on staging again
+and the sweep attaches the psp_staging cookie from PSP_STAGING_PASSPHRASE
+(env, then the workspace .env — the audit's loader, no second copy of the
+credential logic). On the gated staging host a missing passphrase is an
+environment fault: the run refuses loud rather than sweeping unprotected.
+ON A 200-WITH-CURTAIN RESPONSE, stated explicitly: the curtain is
+browser-side — GitHub Pages serves the full HTML regardless, so the raw
+200 body still carries the complete built shell and the payload rule keeps
+reading real copy. The tripwires are therefore: (1) the gate MARKER check —
+a 200 page with the built shell but no `staging-gate` marker means the gate
+died or the host is not staging, an infrastructure failure, loud; and (2)
+the row-111 unrecognised-document rule, which fires only if the host ever
+served a document that is not one of the site's built pages (a curtain-only
+stub would lack the built shell and fail there).
 
 Usage:
   python3 tools/payload_sweep.py                       # sweep staging, file the digest
@@ -51,10 +64,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build
+import publish
 import uat_payload
 from staging_audit import (AuditInfraError, Finding, create_issue,
                            decide_exit, delta, ensure_labels,
-                           extract_previous_findings, last_digest_issue)
+                           extract_previous_findings, gate_expected,
+                           gate_extra_headers, last_digest_issue)
 
 SITE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -96,12 +111,23 @@ def shape_fault(page, markup):
 
 
 def checked_fetch(page, base):
-    """Fetch one page by URL, refusing a wrong-document 200 (see module
+    """Fetch one page by URL with the row-42 gate cookie attached when the
+    target is the gated staging host (row 128), refusing a wrong-document
+    200 and a 200 that carries no gate marker (both loud; see module
     docstring). Raises PayloadFetchError / AuditInfraError — both loud."""
-    markup = uat_payload.fetch_html(uat_payload.page_url(base, page))
+    headers = gate_extra_headers(base)
+    markup = uat_payload.fetch_html(uat_payload.page_url(base, page),
+                                    headers=headers)
     fault = shape_fault(page, markup)
     if fault:
         raise AuditInfraError(fault)
+    if gate_expected(base) and publish.GATE_MARKER not in markup:
+        raise AuditInfraError(
+            f"unrecognised staging shape for {page}: the 200 document "
+            f"carries no {publish.GATE_MARKER!r} gate marker — the row-42 "
+            "crawl gate is not live on the served tree (row 128), so this "
+            "is not the staging the sweep is contracted to read; refusing "
+            "loud")
     return markup
 
 

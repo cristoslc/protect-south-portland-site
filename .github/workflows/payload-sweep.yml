@@ -23,7 +23,15 @@ jobs:
       - name: Sweep staging for sendable-copy payload divergence and file the digest issue
         env:
           GH_TOKEN: ${{ github.token }}
-        # stdlib only, no browser, no secrets: the rung fetches the staging
-        # host cookieless (Pages serves full HTML; the row-42 gate is
-        # browser-side), the same shape tools/uat_snapshots.py already runs.
+          # Row 128 (2026-11-25): the sweep attaches the row-42 psp_staging
+          # cookie again (the operator reversed the cutover ruling that
+          # dropped the gate). Repository secret PSP_STAGING_PASSPHRASE —
+          # the same value the staging audit uses; a missing secret on the
+          # staging target refuses the run loud. The raw 200 body still
+          # carries the full built shell (the curtain is browser-side), and
+          # every fetched page must also carry the staging-gate marker.
+          PSP_STAGING_PASSPHRASE: ${{ secrets.PSP_STAGING_PASSPHRASE }}
+        # stdlib only, no browser: the rung fetches the staging host by URL
+        # with the gate cookie attached, the same shape tools/uat_snapshots.py
+        # already runs.
         run: python3 tools/payload_sweep.py

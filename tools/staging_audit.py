@@ -222,6 +222,15 @@ def public_pages():
     return ["index.html"] + names + sorted(build.REDIRECTS) + [MAP_EMBED]
 
 
+def gate_expected(base_url):
+    """True when the target is the gated staging host (row 128, 2026-11-25:
+    the operator's reversal of the cutover ruling — the row-42 cookie gate
+    is live on staging again). Compared on the host, not the byte-equal
+    string: the payload sweep normalizes its base with a trailing slash, and
+    that form is the same gated host, never an ungated override."""
+    return base_url.rstrip("/") == DEFAULT_BASE_URL.rstrip("/")
+
+
 def gate_extra_headers(base_url):
     """Row 42 r2: the psp_staging cookie as an extra-header, byte-compatible
     with what the gate sets, attached to BOTH the fetches (page HTTP-200 +
@@ -229,15 +238,15 @@ def gate_extra_headers(base_url):
     measures the real pages instead of the gate overlay. The passphrase
     comes from publish's own loader (env / the same workspace .env) — there
     is no second copy of the credential logic. Missing value: loud
-    (infrastructure error) when the target IS the default staging URL the
-    gate protects; no header when an overridden base names a non-gated
+    (infrastructure error) when the target IS the gated staging host
+    (gate_expected); no header when an overridden base names a non-gated
     target (e.g. a local serve)."""
+    if not gate_expected(base_url):
+        return None
     try:
         value = publish.staging_passphrase()
     except SystemExit as exc:
-        if base_url == DEFAULT_BASE_URL:
-            raise AuditInfraError(str(exc)) from exc
-        return None
+        raise AuditInfraError(str(exc)) from exc
     digest = hashlib.sha256(value.encode("utf-8")).hexdigest()
     return {"Cookie": f"{publish.GATE_COOKIE}={digest}"}
 
@@ -274,7 +283,7 @@ def run_audit(base_url, pages=None, fetch=None, lh=None, extra_headers=None):
         entry = {"status": None, "lighthouse_score": None,
                  "lighthouse": None, "mobile_score": None, "mobile_failed": None}
         try:
-            status, _ = fetch(url, extra_headers=extra_headers)
+            status, text = fetch(url, extra_headers=extra_headers)
         except AuditInfraError:
             raise
         entry["status"] = status
@@ -283,6 +292,16 @@ def run_audit(base_url, pages=None, fetch=None, lh=None, extra_headers=None):
                                     f"{url} answered {status}"))
             page_results[page] = entry
             continue
+        if gate_expected(base_url) and publish.GATE_MARKER not in text:
+            # Row 128: once the cookie gate is the served contract, a 200
+            # page whose bytes carry no gate marker means the gate died or
+            # the host is not staging. An environment fault, loud — the
+            # audit must never file a clean bill over an unprotected host.
+            raise AuditInfraError(
+                f"{page}: the staging host answered 200 without the "
+                f"{publish.GATE_MARKER!r} gate marker — the row-42 crawl "
+                "gate is not live on the served tree, so this is not the "
+                "staging the audit is contracted to measure")
         try:
             score, failed = lh(url, "desktop", extra_headers=extra_headers)
             entry["lighthouse_score"], entry["lighthouse"] = score, failed

@@ -12,11 +12,21 @@ branch instead:
   because staging must preview exactly the bytes a release PR would carry;
 - copies docs/ (minus any CNAME) and runs the psp_public scan over the
   copy, the same pre-injection order publish.py used;
-- writes the staging robots.txt (Disallow-all) and a per-page noindex
-  meta: the crawl protection that is ledger row 42's honest core. The
-  cookie gate and the row-79 stamp are NOT carried — the operator ruling
-  on their disposition is pending on the migration decision card, and
-  this file is the place that ruling amends. The branch's own commit
+- writes the staging robots.txt (Disallow-all) and injects the row-42
+  cookie gate after every page's <head>: noindex meta, the curtain
+  stylesheet and the passphrase-gate script (ledger row 128, 2026-11-25 —
+  the operator reversed the cutover ruling dec_63blvjzqob1t, corpus
+  dl-20261124T154549-c606, per corpus dl-20261125T142900-d080). The
+  injection point is THIS serve tree, never the page sources: no built
+  page carries the gate and a production tree cannot inherit it, and the
+  gate marker is a production-forbidden marker in psp_public, so a leaked
+  serve tree fails any production leg's scan loud. The passphrase arrives
+  at serve time from PSP_STAGING_PASSPHRASE (env, then the workspace
+  .env) and a serve run without it refuses loud — only the passphrase's
+  SHA-256 embeds in the gate script. Row 60's two fixes are carried: the
+  curtain ships as a real <style> tag hidden from first paint, and the
+  phrase field refocuses on window load because the homepage map iframe
+  steals focus. The row-79 stamp stays retired — the branch's own commit
   names what it serves, which is the stamp's question answered
   structurally;
 - writes the CNAME naming the staging host, the one file that makes this
@@ -38,6 +48,7 @@ Usage:
 """
 import argparse
 import datetime
+import hashlib
 import os
 import shutil
 import json
@@ -47,6 +58,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import publish
 import psp_public
 import release_check
 
@@ -64,9 +76,25 @@ STAGING_ROBOTS_TEXT = (
     "Disallow: /\n"
 )
 
-# Row 42's honest core, carried into the serve tree: search engines are
-# told to stay out of the preview. Injected after <head> on every page.
+# Row 42's crawl core, carried into the serve tree: search engines are
+# told to stay out of the preview. The meta is the first line of the
+# injected gate block below.
 NOINDEX_META = '<meta name="robots" content="noindex, nofollow">'
+
+
+def gate_head_block(passphrase):
+    """The row-42 gate block for one serve run, keyed by the passphrase.
+
+    Only the passphrase's SHA-256 embeds (row 42); the block itself is
+    publish.py's battle-tested GATE_HEAD_BLOCK — one source for the gate the
+    retired publish staging leg and this serve step both inject, carrying
+    row 60's fixes (a real <style> tag hidden from first paint, and the
+    window-load refocus that beats the homepage map iframe) and row 128's
+    interplay rule (the row-127 staging bar stays visible above the locked
+    curtain).
+    """
+    digest = hashlib.sha256(passphrase.encode("utf-8")).hexdigest()
+    return publish.GATE_HEAD_BLOCK.replace("@HASH@", digest)
 
 
 def require_fresh(diffs):
@@ -82,15 +110,20 @@ def require_fresh(diffs):
             "build, refusing to serve it:\n  " + "\n  ".join(diffs))
 
 
-def prepare_serve_tree(src_docs, dst, cname, base_sha=None):
+def prepare_serve_tree(src_docs, dst, cname, base_sha=None, passphrase=None):
     """Build the serve tree in dst from the committed docs/ tree.
 
     Copy (minus any CNAME file), scan the copy before injecting anything
     (the same order the publish staging leg used), then write the staging
-    crawl protection, the noindex meta on every page, .nojekyll, and the
-    CNAME that names the staging host. Writes staging-manifest.json (the
-    staging preview bar's served time and the fork sha the tree was built
-    from; ledger row 127). Returns the gated page count.
+    crawl protection and inject the row-42 cookie gate after every page's
+    <head> (ledger row 128: the operator's reversal of the cutover ruling —
+    the gate lives here, at the serve step, never in the page sources).
+    Writes .nojekyll, the CNAME that names the staging host, and
+    staging-manifest.json (the staging preview bar's served time and the
+    fork sha the tree was built from; ledger row 127). The passphrase comes
+    from the `passphrase` argument or, at serve time, PSP_STAGING_PASSPHRASE
+    (env, then the workspace .env) — a serve without it refuses loud.
+    Returns the gated page count.
     """
     os.makedirs(dst, exist_ok=True)
     for entry in sorted(os.listdir(src_docs)):
@@ -112,6 +145,15 @@ def prepare_serve_tree(src_docs, dst, cname, base_sha=None):
         psp_public.scan_tree(dst), "staging serve tree (pre-injection)")
     open(os.path.join(dst, "robots.txt"), "w", encoding="utf-8").write(
         STAGING_ROBOTS_TEXT)
+    if passphrase is None:
+        try:
+            passphrase = publish.staging_passphrase()
+        except SystemExit as exc:
+            raise SystemExit(f"staging serve: {exc}") from exc
+    block = gate_head_block(passphrase)
+    injected = (publish.injected_block_open(publish.GATE_MARKER)
+                + "\n" + block + "\n"
+                + publish.injected_block_close(publish.GATE_MARKER))
     headless = []
     count = 0
     for dirpath, dirnames, filenames in os.walk(dst):
@@ -125,11 +167,11 @@ def prepare_serve_tree(src_docs, dst, cname, base_sha=None):
                 headless.append(os.path.relpath(path, dst))
                 continue
             open(path, "w", encoding="utf-8").write(
-                text.replace("<head>", "<head>\n" + NOINDEX_META, 1))
+                text.replace("<head>", "<head>" + injected, 1))
             count += 1
     if headless:
         raise SystemExit(
-            "staging serve: page(s) carry no <head>, so the noindex meta "
+            "staging serve: page(s) carry no <head>, so the crawl gate "
             "cannot protect them, refusing: " + ", ".join(headless))
     open(os.path.join(dst, "CNAME"), "w", encoding="utf-8").write(cname + "\n")
     return count

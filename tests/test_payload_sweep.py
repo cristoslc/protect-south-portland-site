@@ -13,6 +13,7 @@ non-blocking exit contract (findings exit 0; a broken environment is the
 only non-zero exit).
 """
 
+import hashlib
 import json
 import os
 import sys
@@ -22,6 +23,7 @@ import pytest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
+import publish
 import uat_payload
 import payload_sweep as ps
 from staging_audit import AuditInfraError, extract_previous_findings
@@ -97,9 +99,63 @@ def test_shape_refuses_html_without_the_built_shell():
 
 def test_checked_fetch_raises_loud_on_a_wrong_document(monkeypatch):
     monkeypatch.setattr(uat_payload, "fetch_html",
-                        lambda url: "<html><body>wrong site</body></html>")
+                        lambda url, headers=None: "<html><body>wrong site</body></html>")
     with pytest.raises(AuditInfraError, match="index.html"):
         ps.checked_fetch("index.html", "https://staging.example.org/")
+
+
+# ---- row 128 (2026-11-25): the sweep passes through the staging gate ----
+# The operator reversed the cutover ruling (corpus dl-20261125T142900-d080,
+# superseding dec_63blvjzqob1t / corpus dl-20261124T154549-c606), so the
+# row-42 cookie gate is live on staging again: the sweep attaches the
+# psp_staging cookie from PSP_STAGING_PASSPHRASE, requires the gate marker on
+# the served pages, and refuses loud without either on the staging target.
+
+GATED_PAGE = """
+<html><head><!-- staging-gate:injected --></head><body>
+<main id="content"><h2>Example message</h2></main>
+</body></html>
+"""
+
+
+def test_checked_fetch_attaches_the_gate_cookie_on_the_staging_host(monkeypatch):
+    monkeypatch.setenv(publish.ENV_NAME, "sweep-env-phrase")
+    seen = {}
+
+    def fake_fetch(url, headers=None):
+        seen["url"], seen["headers"] = url, headers
+        return GATED_PAGE
+
+    monkeypatch.setattr(uat_payload, "fetch_html", fake_fetch)
+    ps.checked_fetch("index.html", "https://staging.protectsouthportland.org/")
+    assert seen["headers"] == {
+        "Cookie": "psp_staging="
+                  + hashlib.sha256(b"sweep-env-phrase").hexdigest()}
+
+
+def test_checked_fetch_requires_the_gate_marker_on_the_staging_host(monkeypatch):
+    # a 200 with the built shell but no gate marker: the crawl gate died or
+    # the host is not staging — environment fault, loud, never a clean bill
+    monkeypatch.setenv(publish.ENV_NAME, "sweep-env-phrase")
+    monkeypatch.setattr(uat_payload, "fetch_html",
+                        lambda url, headers=None: MISMATCH_PAGE)
+    with pytest.raises(AuditInfraError) as loud:
+        ps.checked_fetch("index.html", "https://staging.protectsouthportland.org/")
+    assert "gate" in str(loud.value)
+
+
+def test_checked_fetch_skips_the_gate_on_an_overridden_base(monkeypatch):
+    # file: and localhost targets are not the gated staging host: no cookie,
+    # no marker requirement — a local build is a legitimate sweep target
+    monkeypatch.delenv(publish.ENV_NAME, raising=False)
+    monkeypatch.setattr(publish, "STAGING_DOTENV", "/nonexistent/.env")
+
+    def fake_fetch(url, headers=None):
+        assert headers is None, "an overridden target carries no gate cookie"
+        return MISMATCH_PAGE
+
+    monkeypatch.setattr(uat_payload, "fetch_html", fake_fetch)
+    assert ps.checked_fetch("index.html", "file:docs/") == MISMATCH_PAGE
 
 
 # ---------- findings and their stable ids ----------
@@ -217,5 +273,6 @@ def test_workflow_sweeps_on_a_weekday_morning_and_files_issues():
     assert "workflow_dispatch:" in text
     assert "concurrency:" in text and "group: payload-sweep" in text
     assert "python3 tools/payload_sweep.py" in text
-    # same non-blocking contract the staging audit's workflow declares
-    assert "secrets." not in text
+    # same non-blocking contract the staging audit's workflow declares; row
+    # 128 wires the row-42 gate secret so the sweep can attach the cookie
+    assert "PSP_STAGING_PASSPHRASE: ${{ secrets.PSP_STAGING_PASSPHRASE }}" in text

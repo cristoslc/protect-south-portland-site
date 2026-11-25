@@ -529,10 +529,12 @@ def page_url(base, page):
     return urllib.parse.urljoin(base if base.endswith("/") else base + "/", page)
 
 
-def fetch_html(url, timeout=20.0):
+def fetch_html(url, timeout=20.0, headers=None):
     """GET one page as text. Raises PayloadFetchError — an environment fault,
-    never a site finding."""
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    never a site finding. `headers` carries the row-42 psp_staging cookie on
+    the gated staging host (row 128); None elsewhere."""
+    request = urllib.request.Request(
+        url, headers={"User-Agent": USER_AGENT, **(headers or {})})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             status = getattr(response, "status", None)

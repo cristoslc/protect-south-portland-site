@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-25",
+  "leg": "Ledger row 128 — the row-42 cookie passphrase gate re-implemented on the fork serve pipeline (operator directive verbatim: \"we still need the crawler gate and passphrase, too. I don't know why they got removed, but I expect them to still be in place.\"; reversal corpus dl-20261125T142900-d080, superseding dec_63blvjzqob1t / corpus dl-20261124T154549-c606)",
+  "site_head": "58d83718ec2c361c4007dc8ea2952edd576422cd",
+  "branch": "bb/crawler-gate-2026-11-25-thr_cip6wf9r3h",
+  "how_produced": "tools/staging_serve.prepare_serve_tree() run over the committed docs/ tree (scanner-clean, freshness-clean, zero diffs) with the real PSP_STAGING_PASSPHRASE from the workspace .env, served over 127.0.0.1:8737 by python http.server, captured with a bb browser-automation local headless Chromium session at the host staging.protectsouthportland.localhost (Chromium maps *.localhost to loopback; the row-127 bar's root-domain matcher accepts it as the documented TLD variant, so both the bar and the gate render through their real URL logic). The passphrase itself never appears in any capture, probe value or page byte: the gate embeds only its SHA-256, and the unlocked captures were driven by typing the phrase into the real field and submitting (the gate's own crypto.subtle digest path), not by injecting the cookie.",
+  "host": "http://staging.protectsouthportland.localhost:8737",
+  "gated_page_count": 26,
+  "captures": [
+    {
+      "file": "locked-412.png",
+      "state": "locked",
+      "width": 412,
+      "probe": {
+        "overlayPresent": true,
+        "inputPresent": true,
+        "styleTagCount": 1,
+        "gateClassOnHtml": true,
+        "barPresent": true,
+        "barVisible": true,
+        "barAboveOverlay": true,
+        "mainContentPresent": true,
+        "phraseFocused": true,
+        "activeElement": "INPUT",
+        "scrollY": 0,
+        "cookiePresent": false
+      }
+    },
+    {
+      "file": "locked-1440.png",
+      "state": "locked",
+      "width": 1440,
+      "probe": {
+        "overlayPresent": true,
+        "inputPresent": true,
+        "styleTagCount": 1,
+        "gateClassOnHtml": true,
+        "barPresent": true,
+        "barVisible": true,
+        "barAboveOverlay": true,
+        "mainContentPresent": true,
+        "phraseFocused": true,
+        "activeElement": "INPUT",
+        "scrollY": 0,
+        "cookiePresent": false
+      }
+    },
+    {
+      "file": "wrong-phrase-412.png",
+      "state": "locked after a wrong phrase submit",
+      "width": 412,
+      "probe": {
+        "stillLocked": true,
+        "wrongMessageShown": true,
+        "fieldCleared": true
+      }
+    },
+    {
+      "file": "unlocked-412.png",
+      "state": "unlocked by typing the correct phrase into the real field and submitting, then one reload to prove the cookie persists",
+      "width": 412,
+      "probe": {
+        "opened": { "overlayGone": true, "cookieSet": true, "bodyVisible": true },
+        "persisted": {
+          "stillOpenAfterReload": true,
+          "cookiePresent": true,
+          "mainContentPresent": true,
+          "barPresent": true,
+          "scrollY": 0
+        }
+      }
+    },
+    {
+      "file": "unlocked-1440.png",
+      "state": "unlocked (gate cookie set on the origin the way the gate itself sets it), full page rendered behind it",
+      "width": 1440,
+      "probe": {
+        "overlayPresent": false,
+        "gateClassOnHtml": false,
+        "barPresent": true,
+        "barVisible": true,
+        "mainContentPresent": true,
+        "scrollY": 0,
+        "cookiePresent": true
+      }
+    }
+  ],
+  "readings": [
+    "The row-127 staging bar stays VISIBLE above the locked curtain at both widths — the row-128 interplay decision as decided and stated in the PR (the bar tells a reviewer where they are; its z-index paints over the curtain overlay's).",
+    "The curtain is a real <style> tag in the injected head (exactly one head style tag), body hidden from first paint, scrollY 0 — no footer auto-scroll, the row-60 defect class.",
+    "The phrase field holds focus when locked, including after the homepage map iframe's load completes — row 60's window-load refocus is present AND extended with an iframe-load reclaim, because the capture timeline showed the iframe stealing focus 300ms AFTER window load (focus on the field at load, on the iframe at +300ms, back on the field with the fix).",
+    "A wrong phrase errors (\"Access phrase not recognized.\"), clears the field, and stays locked.",
+    "The correct phrase typed into the real field opens the page, sets the 30-day psp_staging cookie, and the open state persists across a reload.",
+    "The bar's Last updated line carries the staging-manifest.json serve time and the fork sha the tree was built from (58d83718ec2c), the row-127 contract."
+  ],
+  "threat_model": "The gate is DETERRENCE only — GitHub Pages serves the full HTML to anyone who asks, so curl/view-source reads everything behind it; the robots.txt Disallow-all rewrite and the per-page noindex meta remain the real crawl protection. Stated exactly as row 42 recorded it and the reversal keeps it.",
+  "suite": "272 passed, 1 skipped (.venv/bin/python -m pytest tests/ -q), red-first: 13 failures before implementation"
+}

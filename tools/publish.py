@@ -210,11 +210,16 @@ def repo_pages_base(repo):
 # runs, and the cookie-gate script. The stylesheet is a real <style> tag: the
 # first version built it with createElement and never appended it, so the
 # curtain rendered unstyled and the body stayed readable (fixed 2026-11-04).
+# Row 128 (2026-11-25): the row-127 staging bar stays visible above the locked
+# curtain — the bar re-shows (visibility cascades but a child can re-enable)
+# and paints over the overlay, so a reviewer always knows where they are; the
+# overlay's z-index sits one below the bar's.
 # Placeholder @HASH@ becomes the passphrase's sha256 digest.
 GATE_HEAD_BLOCK = r'''<meta name="robots" content="noindex, nofollow">
 <style>
 .staging-gate body{visibility:hidden!important}
-.staging-gate-overlay{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#122a2c;color:#e6f1f1;font:16px/1.5 'Segoe UI',system-ui,sans-serif}
+.staging-gate body .staging-bar{visibility:visible!important;position:relative!important;z-index:2147483647}
+.staging-gate-overlay{position:fixed;inset:0;z-index:2147483646;display:flex;align-items:center;justify-content:center;background:#122a2c;color:#e6f1f1;font:16px/1.5 'Segoe UI',system-ui,sans-serif}
 .staging-gate-card{background:#fff;color:#26383a;padding:22px 26px;border-radius:14px;max-width:22rem;box-shadow:0 2px 14px rgba(0,0,0,.35)}
 .staging-gate-title{margin:0 0 10px;font-weight:800;color:#1d3e40}
 .staging-gate-label{display:block;margin-bottom:6px;font-size:.85rem;color:#5c6b6d}
@@ -292,6 +297,16 @@ GATE_HEAD_BLOCK = r'''<meta name="robots" content="noindex, nofollow">
     window.addEventListener("load", function () {
       /* the embedded map iframe can take focus as it loads; take it back */
       if (document.querySelector(".staging-gate-overlay")) input.focus();
+    });
+    /* Row 128 (2026-11-25), capture-proven on the serve pipeline: the
+       iframe's own load can complete AFTER the window's, and the steal was
+       seen live (focus on the field at load, on the iframe 300ms
+       later). Reclaim from every iframe's load too — while the gate is
+       locked the phrase field is the only interactive element. */
+    Array.prototype.forEach.call(document.querySelectorAll("iframe"), function (frame) {
+      frame.addEventListener("load", function () {
+        if (document.querySelector(".staging-gate-overlay")) input.focus();
+      });
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
