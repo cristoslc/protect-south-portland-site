@@ -1,0 +1,16 @@
+{
+  "leg": "The newcomer call-to-action lead placed on the Act Now page (staging-feedback issue #3, ledger row 119)",
+  "date": "2026-11-24",
+  "branch": "bb/act-now-lead-thr_p257b4jc9k",
+  "base": "5468470 (origin/main, current: includes the row-118 hero leg; the branch was rebased onto it before any capture was taken)",
+  "operator_orders_verbatim": "place the newcomer paragraph on act-now.html as the lead-in above or alongside the featured block, wording consistent with the homepage lead",
+  "as_built": "The homepage lead's first two sentences, verbatim, now lead into the featured block: 'We know more than ever about how the tank farms are affecting this community. Join us in urging the council to take the strongest action possible.' — set as a lede paragraph between the waterfront photo band and the teal featured panel, so both pages introduce the ask with the same words. The featured block's two steps, the date, the venue and the wear-green facts stay where they already were (panel and strip), so nothing is duplicated.",
+  "consistency": "pinned by test_act_now_leads_with_the_newcomer_plea: both sentences asserted on act-now and on index, and the lead-in asserted to sit above the featured panel",
+  "board_record": "issue #3 reopened, self-assigned, pickup-announce posted (sweep at pickup: one operator comment, folded and answered, filed as its own issue staging-website-feedback#7); #2 self-assigned for the record with the acknowledge line; #4 claim-and-announce posted; the pre-publish sweep for #4 runs at the staging turn",
+  "checks": {
+    "suite": "255 passed, 1 skipped (254 at the base plus this leg's consistency pin)",
+    "scanner": "psp_public.scan_tree('docs') == []"
+  },
+  "captures": "act-now top before and after at 412 and 1440, top of page, read before reporting",
+  "not_done": "not published, not merged; the shared root checkout untouched; report 2026-11-24-6 and PR 59 untouched"
+}

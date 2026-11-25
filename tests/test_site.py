@@ -407,6 +407,23 @@ def test_homepage_hero_card_is_centered_on_desktop(docs):
         "the centered block is one rule, kept clearly separated")
 
 
+def test_act_now_leads_with_the_newcomer_plea(docs):
+    """staging-feedback #3, the operator's mid-work comment (2026-11-25,
+    verbatim): "This is probably needed on the Act Now page, as well" — the
+    homepage's newcomer call-to-action lead is placed on the Act Now page as
+    the lead-in above the featured block, wording consistent with the
+    homepage lead. The two sentences pin that consistency on both pages; the
+    date, venue and wear-green facts stay in the featured block and the
+    site-wide strip, so nothing is duplicated."""
+    act = read(docs, "act-now.html")
+    idx = read(docs, "index.html")
+    for page, name in ((act, "act-now.html"), (idx, "index.html")):
+        assert "We know more than ever about how the tank farms are affecting this community" in page, name
+        assert "Join us in urging the council to take the strongest action possible." in page, name
+    # the lead-in sits above the featured block it introduces
+    assert act.index("We know more than ever") < act.index('class="callout callout--ask"')
+
+
 def test_toolkit_reference_page(docs):
     """Ruling on `dec_inuqu6bhpw6r`, option one-page ("One reference page,
     durable chapters only"), ledger row 78: `toolkit.html` carries four
