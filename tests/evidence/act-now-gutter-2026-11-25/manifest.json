@@ -1,0 +1,19 @@
+{
+  "leg": "Cut-rider #11: the act-now ask columns gain a 40px gutter above 720px; the row-143 ruled-left findings fold in (ledger row 150)",
+  "date": "2026-11-25",
+  "branch": "bb/act-now-gutter-thr_t9dvrarnfz",
+  "base": "a4493fc (origin/main at write time; carries #141's merge and rows 143-146)",
+  "filer_credits": "staging-website-feedback filer, routed via the lane: text in the left ask block crowds the right block - add space, and consider left-aligned vs center-aligned ask blocks with an aesthetic judgment",
+  "mechanism_named": "the gutter is the grid's own column gap, doubled to 40px above 720px only (.ask-steps min-width query); the stacked mobile shape keeps its 18px gap",
+  "alignment_judgment_named": "the ask paragraphs stay LEFT-aligned (the page's prose convention; the longer measure reads cleaner ragged-right) and the controls stay CENTERED (their own row-129/143 rulings) - only the spacing between the two columns changes; widening the gutter rather than re-aligning the text answers the crowding without disturbing the middle-aligned controls",
+  "guards_held": "#141's shared-axis rules untouched structurally; browser-measured after the carried no-op removal: control bottoms 1030 == 1030 at 1440 (equal) - proving the removed .cal-add margin rule was truly a no-op on the merged tree",
+  "carried_findings_folded": [
+    "in-tree citations 'row 142' now read 143 (stylesheet axis-comment comment, controls-axis pin docstring, controls-axis manifest leg field)",
+    "the .cal-add margin rule reviewed as a no-op is removed from the axis block",
+    "the controls-axis manifest's cascade-miss capture wording now discloses it predates the rebase and samples the superseded colors"
+  ],
+  "checks": {"suite": "303 passed, 1 skipped (baseline 302 + the gutter/carried pin)", "scanner": "[]", "release_check": "clean"},
+  "captures": ["after-412.jpg - stacked shape unchanged, the wear-green step's last line visibly the single word 'Road.' (the orphan #12 fixes)", "after-1440.jpg - both columns separated by the 40px gutter, controls on the shared axis; both read before reporting"],
+  "cut_riding_timing": "per the lane's cut-ride rule: this leg may merge and re-stage BEFORE the phase-3 promote and ride the cut with fresh captures + verdict on the changed page; if still in review at the operator's promote call it holds for the first forward release",
+  "not_done": "not published, not merged; report-before-merge; root checkout and gate/bar/serve files untouched"
+}

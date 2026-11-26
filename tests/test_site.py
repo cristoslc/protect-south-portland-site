@@ -3755,7 +3755,7 @@ def test_act_now_secondary_cards_center_both_axes():
 
 
 def test_act_now_controls_share_one_middle_axis():
-    """Operator directive, 2026-11-25 (ledger row 142), verbatim: "buttons
+    """Operator directive, 2026-11-25 (ledger row 143), verbatim: "buttons
     should be middle-aligned." - the featured block's two per-column controls
     (EMAIL THE COUNCIL, ADD TO CALENDAR) landed at unequal verticals because
     the columns' paragraphs have different natural heights and each control
@@ -3780,9 +3780,9 @@ def test_act_now_controls_share_one_middle_axis():
         "the ask-step must become a flex column above 720px")
     assert re.search(r"\.ask-step__action \{ margin-top: auto; padding-top: 14px; \}", body), (
         "the auto margin must pin both controls to the shared bottom axis")
-    assert re.search(r"\.cal-add \{ margin: 0; \}", body), (
-        "the details element's UA margin must be zeroed inside the query so "
-        "the calendar trigger sits on the shared axis")
+    # carried finding (3): the .cal-add margin rule was reviewed as a no-op
+    # on the merged tree and is removed; the shared axis keeps its own
+    # browser-measured equal-bottoms proof (row 150's captures re-measure it)
     # the mobile shape is untouched: the base rule keeps its fixed margin and
     # the auto margin exists only inside the min-width query
     assert re.search(r"\.ask-step__action \{ text-align: center; margin-top: 14px; \}", css), (
@@ -3795,6 +3795,47 @@ def test_act_now_controls_share_one_middle_axis():
     assert css.index(".ask-step__action { margin-top: auto") > css.index(
         ".ask-step__action { text-align: center; margin-top: 14px; }"), (
         "the axis rules must follow the base action rule in source order")
+
+
+def test_act_now_ask_columns_gain_a_wider_gutter():
+    """Cut-rider leg #11, board filer finding via the lane (ledger row 150),
+    verbatim in substance: text in the left ask block crowds the right block
+    - add space, and consider left-aligned vs center-aligned ask blocks with
+    an aesthetic judgment. The mechanism named: the gutter is the grid's own
+    column gap, doubled to 40px above 720px only; the stacked mobile shape
+    keeps its 18px gap. The alignment judgment named: the ask paragraphs stay
+    LEFT-aligned (the page's prose convention) and the controls stay CENTERED
+    (their own row-129/141 rulings); only the spacing between the two columns
+    changes. #141's shared-axis rules stand untouched (the axis block keeps
+    its own pin). Carried findings from row 143 (the next act-now styles leg
+    is this one): the in-tree citations read 143 per the collision ruling,
+    the .cal-add margin rule reviewed as a no-op is gone, and no stylesheet
+    citation reads the retired 142 number.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    # the gutter: doubled above 720px, unchanged below
+    wide = re.search(
+        r"@media \(min-width: 720px\) \{\s*\.ask-steps \{ grid-template-columns: 1fr 1fr; gap: 40px; \}", css)
+    assert wide, "the min-width ask-steps rule must carry gap: 40px"
+    assert re.search(r"\.ask-steps \{\n  display: grid;\n  grid-template-columns: 1fr;\n  gap: 18px;\n\}", css), (
+        "the base (mobile stacked) gap stays 18px")
+    # carried finding (2): citations read the ruled number
+    assert "row 142" not in css, (
+        "the collision ruling renumbered this leg to 143; the stylesheet must not cite 142")
+    assert "row 143" in css
+    # carried finding (3): the no-op margin rule is gone
+    assert not re.search(r"\.cal-add \{ margin: 0; \}", css), (
+        "the .cal-add margin rule was reviewed as a no-op and is removed")
+    # carried finding (1) lives in the axis evidence manifest's wording
+    manifest = open(os.path.join(ROOT, "tests", "evidence",
+                                 "act-now-controls-axis-2026-11-25", "manifest.json"),
+                    encoding="utf-8").read()
+    assert "predates the rebase" in manifest or "superseded colors" in manifest, (
+        "the cascade-miss capture's wording must disclose the superseded colours")
+    # the axis rules survive: cascade order and content untouched
+    assert css.index(".ask-step__action { margin-top: auto") > css.index(
+        ".ask-step__action { text-align: center; margin-top: 14px; }")
+    assert re.search(r"\.ask-step__action \{ margin-top: auto; padding-top: 14px; \}", css)
 
 
 def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
