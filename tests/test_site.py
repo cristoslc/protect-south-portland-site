@@ -3755,7 +3755,7 @@ def test_act_now_secondary_cards_center_both_axes():
 
 
 def test_act_now_controls_share_one_middle_axis():
-    """Operator directive, 2026-11-25 (ledger row 143), verbatim: "buttons
+    """Operator directive, 2026-11-25 (ledger row 152), verbatim: "buttons
     should be middle-aligned." - the featured block's two per-column controls
     (EMAIL THE COUNCIL, ADD TO CALENDAR) landed at unequal verticals because
     the columns' paragraphs have different natural heights and each control
@@ -3807,7 +3807,7 @@ def test_act_now_ask_columns_gain_a_wider_gutter():
     LEFT-aligned (the page's prose convention) and the controls stay CENTERED
     (their own row-129/141 rulings); only the spacing between the two columns
     changes. #141's shared-axis rules stand untouched (the axis block keeps
-    its own pin). Carried findings from row 143 (the next act-now styles leg
+    its own pin). Carried findings from row 152 (the next act-now styles leg
     is this one): the in-tree citations read 143 per the collision ruling,
     the .cal-add margin rule reviewed as a no-op is gone, and no stylesheet
     citation reads the retired 142 number.
@@ -3822,7 +3822,8 @@ def test_act_now_ask_columns_gain_a_wider_gutter():
     # carried finding (2): citations read the ruled number
     assert "row 142" not in css, (
         "the collision ruling renumbered this leg to 143; the stylesheet must not cite 142")
-    assert "row 143" in css
+    assert "row 152" in css
+    assert "row 143" not in css
     # carried finding (3): the no-op margin rule is gone
     assert not re.search(r"\.cal-add \{ margin: 0; \}", css), (
         "the .cal-add margin rule was reviewed as a no-op and is removed")

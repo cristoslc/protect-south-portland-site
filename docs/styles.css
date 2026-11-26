@@ -1107,7 +1107,7 @@ blockquote {
 @media (min-width: 720px) {
   .ask-steps { grid-template-columns: 1fr 1fr; }
 
-  /* the controls' shared middle axis (2026-11-25, row 143): the operator's
+  /* the controls' shared middle axis (2026-11-25, row 152): the operator's
      directive, verbatim, "buttons should be middle-aligned." The columns'
      paragraphs have different natural heights and each control sat directly
      under its own text, so the two controls landed at unequal verticals.

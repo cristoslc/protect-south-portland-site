@@ -1,5 +1,5 @@
 {
-  "leg": "Tiny CSS leg: the featured block's two per-column controls share one middle axis (operator directive 2026-11-25 verbatim: \"buttons should be middle-aligned.\", ledger row 143)",
+  "leg": "Tiny CSS leg: the featured block's two per-column controls share one middle axis (operator directive 2026-11-25 verbatim: \"buttons should be middle-aligned.\", ledger row 152)",
   "date": "2026-11-25",
   "branch": "bb/act-now-controls-axis-thr_t9dvrarnfz",
   "base": "7b35034 at first write, REBASED onto 1ac7064 per the lane (the row-131 Lato/red-kite visual-brand experiment landed in styles.css between cut and rebase; main also carries the row-133 serve fix and the row-141 hero evidence) - the rebase was CONFLICT-FREE (the experiment touched other regions; this leg's ask region kept its structure) and re-verified on the new tokens",
