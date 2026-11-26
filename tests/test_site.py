@@ -3838,6 +3838,70 @@ def test_act_now_ask_columns_gain_a_wider_gutter():
     assert re.search(r"\.ask-step__action \{ margin-top: auto; padding-top: 14px; \}", css)
 
 
+def test_act_now_wear_green_ask_splits_before_the_meeting_sentence(docs):
+    """Cut-rider leg #12, board filer finding via the lane (ledger row 151),
+    verbatim in substance: a paragraph breaks with a single word on its
+    second line; suggest a paragraph break before the last sentence. The
+    browser read found exactly one orphan in the featured-block asks after
+    the #11 gutter: the Wear-green step's last line at 412px is the single
+    word "Road." The fix is the filer's own suggestion: the step splits
+    before its last sentence, "Wear green and come to the City Council
+    meeting." keeping the lede weight and the meeting facts moving to a
+    second paragraph of the same weight. Facts stay in the featured block -
+    facts-once holds (nothing new, nothing duplicated). The email step and
+    the Current-ask lead measured clean at both widths, so they are
+    untouched.
+    """
+    act = read(docs, "act-now.html")
+    region = act[act.index('<div class="ask-steps">'):act.index('<div class="prose">')]
+    # the two ask steps carry three lede paragraphs after the filer's break
+    assert region.count('<p class="lede">') == 3, (
+        f"the ask steps carry {region.count('<p class=\"lede\">')} lede "
+        "paragraphs; the filer's break splits the Wear-green step before its "
+        "meeting sentence")
+    # the break's shape: the ask sentence alone, then the meeting sentence
+    # with its facts as a second paragraph of the same lede weight
+    pair = ('<p class="lede"><strong>Wear green</strong> and come to the City Council meeting.</p>\n'
+            '          <p class="lede">The meeting is Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road.</p>')
+    assert pair in act, (
+        "the Wear-green step must carry the ask sentence alone followed by "
+        "the meeting sentence as a second paragraph")
+
+
+def _act_now_page_sha256(docs):
+    import hashlib
+    return hashlib.sha256(open(os.path.join(docs, "act-now.html"),
+                               "rb").read()).hexdigest()
+
+
+def test_act_now_ask_paragraphs_pin_no_orphans(docs):
+    """Cut-rider leg #12 (ledger row 151): no featured-block ask paragraph
+    breaks with a single word on its final line at the pinning widths
+    (412px, 1440px). Wrap is layout-dependent, so the honest pin is a
+    RECORDED MEASUREMENT: tests/evidence/act-now-orphan-words-2026-11-25/
+    orphan-measure.json carries a browser-measured last-line word count for
+    every ask paragraph at both widths plus the sha256 of the built page it
+    measured. This pin asserts the recorded count table stays valid - every
+    count >= 2 - and that the built page's sha256 is still the one measured,
+    so any future act-now.html change invalidates the pin until a fresh
+    browser measurement is recorded (the pre-fix build fails this pin on the
+    sha256 and, once measured, on the Wear-green step's 1-word "Road." line
+    at 412).
+    """
+    path = os.path.join(ROOT, "tests", "evidence",
+                        "act-now-orphan-words-2026-11-25", "orphan-measure.json")
+    import hashlib
+    measured = json.load(open(path, encoding="utf-8"))
+    assert measured["page_sha256"] == _act_now_page_sha256(docs), (
+        "orphan-measure.json measured a different act-now.html build; "
+        "re-measure at 412 and 1440 and update the recording")
+    for width, paras in measured["widths"].items():
+        for para in paras:
+            assert para["last_line_word_count"] >= 2, (
+                f"{width}px: {para['opening']!r} breaks with "
+                f"{para['last_line_word_count']} word on its last line")
+
+
 def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
     """Ledger row 95: the family keeps a visible ring wherever it renders.
 

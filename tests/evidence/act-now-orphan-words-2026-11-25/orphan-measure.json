@@ -1,0 +1,43 @@
+{
+  "leg": "Cut-rider #12 orphan measurements (ledger row 151)",
+  "recorded": "2026-11-25",
+  "method": "headless Chromium over the freshly built docs/: for every .callout--ask .ask-step .lede paragraph, per-word Range rects grouped by line-top; last-line word count recorded at the two pinning widths",
+  "page_sha256": "6594a2657b9fb42c56457954e629caa136fd19fa41515c498600afbfdb9ea7f0",
+  "pin_contract": "the sha256 must equal the built act-now.html's hash at test time, so any copy change invalidates the pin until a fresh measurement is recorded; every last_line_word_count must be >= 2",
+  "widths": {
+    "412": [
+      {
+        "opening": "Email the Council and as",
+        "last_line_word_count": 2,
+        "last_line": "city\u2019s authority."
+      },
+      {
+        "opening": "Wear green and come to t",
+        "last_line_word_count": 2,
+        "last_line": "Council meeting."
+      },
+      {
+        "opening": "The meeting is Tuesday, ",
+        "last_line_word_count": 4,
+        "last_line": "Chambers, 25 Cottage Road."
+      }
+    ],
+    "1440": [
+      {
+        "opening": "Email the Council and as",
+        "last_line_word_count": 7,
+        "last_line": "special counsel advises about the city\u2019s authority."
+      },
+      {
+        "opening": "Wear green and come to t",
+        "last_line_word_count": 9,
+        "last_line": "Wear green and come to the City Council meeting."
+      },
+      {
+        "opening": "The meeting is Tuesday, ",
+        "last_line_word_count": 5,
+        "last_line": "Council Chambers, 25 Cottage Road."
+      }
+    ]
+  }
+}

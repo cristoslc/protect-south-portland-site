@@ -1,0 +1,14 @@
+{
+  "leg": "Cut-rider #12: the featured-block ask paragraphs carry no orphan word lines; the filer's paragraph break applied to the Wear-green step (ledger row 151)",
+  "date": "2026-11-25",
+  "branch": "bb/act-now-orphan-words-thr_t9dvrarnfz (STACKED on bb/act-now-gutter-thr_t9dvrarnfz, open PR #147 - this PR carries that branch's commit until it merges)",
+  "base": "the #11 branch head 1304b78 (which sits on origin/main a4493fc)",
+  "filer_credits": "staging-website-feedback filer, routed via the lane: a paragraph breaks with a single word on its second line; suggest a paragraph break before the last sentence",
+  "orphans_found": "exactly one, browser-read at the stated widths after #11's gutter: the Wear-green step's last line at 412px was the single word 'Road.' The email step and the Current-ask lead measured clean at 412 and 1440; #11's 40px gutter re-wrapped the 1440 email step so the pre-#11 predicted orphan there never existed post-#11 (read #12's targets after #11, as the lane sequenced)",
+  "fix": "the filer's own suggestion: the Wear-green step splits before its last sentence - 'Wear green and come to the City Council meeting.' keeps the lede weight, 'The meeting is Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road.' becomes a second paragraph of the same lede class (equal weight). Facts-once holds: the facts stay in the featured block, nothing new, nothing duplicated",
+  "measured_post_fix": "orphan-measure.json: headless Chromium per-word Range rects grouped by line-top, every .callout--ask .ask-step .lede paragraph at 412 and 1440 - last-line word counts 2/2/4 (412) and 7/9/5 (1440), none below 2; the recording pins the built page's sha256 so any copy change invalidates the pin until a fresh measurement is recorded",
+  "checks": {"suite": "305 passed, 1 skipped (the two #12 pins red-first: the structural split pin and the sha-locked measurement pin)", "scanner": "[]", "release_check": "clean"},
+  "captures": ["after-412.jpg - the split Wear-green step; the meeting sentence's last line is 'Chambers, 25 Cottage Road.' (four words), no orphan", "after-1440.jpg - both steps read clean with the 40px gutter; read before reporting"],
+  "cut_riding_timing": "per the lane's cut-ride rule: this leg may merge and re-stage BEFORE the phase-3 promote and ride the cut with fresh captures + verdict on the changed page; if still in review at the operator's promote call it holds for the first forward release. STACKED on PR #147: this PR carries that branch's commit; the lane may merge #147 first and this re-merges cleanly, or merge both together",
+  "not_done": "not published, not merged; report-before-merge; root checkout and gate/bar/serve files untouched"
+}
