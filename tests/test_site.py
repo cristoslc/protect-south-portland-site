@@ -5204,9 +5204,13 @@ def test_hero_card_cta_row157_spacing_and_size(docs):
     The annotation rule holds: the filer's screenshot is intent ("more
     space, bigger emphasis"), so the values are tokens, not sampled geometry.
     The fill pair is untouched: the button keeps `.btn--cta` (white on the
-    dark red variant, the declared 5.55:1 pair), and at 1.05rem the uppercase
-    800-weight label is still below the WCAG AA-large threshold (18.66px
-    bold), so the 4.5:1 body-text floor still governs it and it still passes.
+    dark red variant, 7.33:1, recomputed for the record), and the larger
+    label only helps there: at 1.05rem over the site's 112.5% root the
+    uppercase 800-weight label renders 18.9px, which crosses WCAG's AA-large
+    threshold (18.66px bold) and lowers that text's formal minimum to 3:1, a
+    floor the pair clears with room to spare alongside the 4.5:1 body floor
+    it also still clears. Rendered metrics are recorded in
+    tests/evidence/home-hero-cta-2026-11-25/.
     The row-131 placement decision (inline with the ask line) is unchanged:
     the same paragraph, the button still inside it.
     """
@@ -5232,13 +5236,13 @@ def test_hero_card_cta_row157_spacing_and_size(docs):
     assert pad and int(pad.group(1)) >= 12 and int(pad.group(2)) >= 26, (
         "the pill grows in both axes, proportionate to the label bump")
     # the family is untouched: the bump is the hero card's alone
-    family = re.search(r"\.btn\s*\{([^}]*)\}", css)
+    family = re.search(r"(?m)^\.btn\s*\{([^}]*)\}", css)
     assert family and "padding: 11px 22px" in family.group(1), (
         "the .btn family keeps its own metrics; only the hero card's CTA "
         "steps up")
     # the fill pair is untouched, whatever the size
-    cta = re.search(r"\.btn--cta\s*\{([^}]*)\}", css)
-    assert cta and "background: var(--orange-dark)" in cta.group(1)
+    cta = re.search(r"(?m)^\.btn--cta\s*\{([^}]*)\}", css)
+    assert cta and "background: var(--red-kite-dark)" in cta.group(1)
     assert cta and "color: #fff" in cta.group(1)
     # placement held from row 131: the button rides inside the ask paragraph
     idx = read(docs, "index.html")

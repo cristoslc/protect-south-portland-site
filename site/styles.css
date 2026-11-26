@@ -440,6 +440,31 @@ img { max-width: 100%; height: auto; }
 
 .hero__ask { margin: 0; }
 
+/* The ask line's pill, scoped to the hero card (board item #14 filer
+   finding, relayed 2026-11-25, verbatim: "the button crowds the line").
+   The button rides inline with the sentence and had almost no gap to the
+   text it answers. A scoped rule, not a .btn
+   family change: margin-left gives the pill a real gap to the sentence on
+   the line they share, the top and bottom margins give it breathing room
+   where the narrow card wraps it onto its own line, and the label steps up
+   a notch (13px x 27px padding, 1.05rem) for emphasis without becoming a
+   banner. The fill pair is untouched: white on the dark red variant keeps
+   its declared 7.33:1 (recomputed for this record: white on #a02b23 is
+   7.33:1, hover 9.28:1), and the larger label only helps there - at
+   1.05rem over the site's 112.5% root the uppercase 800-weight label
+   renders 18.9px, which crosses WCAG's AA-large threshold (18.66px
+   bold) and lowers that text's formal minimum to 3:1, a floor the pair
+   clears with room to spare alongside the 4.5:1 body floor it also
+   still clears. Before/after
+   captures and the rendered-size record:
+   tests/evidence/home-hero-cta-2026-11-25/. */
+
+.hero__ask .btn {
+  margin: 0.5rem 0 0.5rem 0.85rem;
+  font-size: 1.05rem;
+  padding: 13px 27px;
+}
+
 /* ---------- buttons ---------- */
 
 .btn {
