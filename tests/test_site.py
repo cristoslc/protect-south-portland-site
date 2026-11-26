@@ -5190,6 +5190,63 @@ def test_homepage_org_line_is_the_row149_board_header(docs):
     assert ".hero__mission" not in css
 
 
+def test_hero_card_cta_row157_spacing_and_size(docs):
+    """Board item #14 filer finding, relayed by the operator 2026-11-25
+    (ledger row 157), verbatim: "the button crowds the line". The homepage
+    hero card's ACT NOW button, sitting inline with the email-ask line since
+    row 131, had almost no gap to the sentence it belongs to and carried the
+    family's standard size, so the ask read crowded rather than led.
+
+    The rule is scoped (`.hero__ask .btn`): a real gap left of the pill when
+    it rides the ask line, breathing room above and below when the narrow
+    card wraps it onto its own line, and a proportionate size bump
+    (13px x 27px padding, 1.05rem label) that stays emphasis, not a banner.
+    The annotation rule holds: the filer's screenshot is intent ("more
+    space, bigger emphasis"), so the values are tokens, not sampled geometry.
+    The fill pair is untouched: the button keeps `.btn--cta` (white on the
+    dark red variant, the declared 5.55:1 pair), and at 1.05rem the uppercase
+    800-weight label is still below the WCAG AA-large threshold (18.66px
+    bold), so the 4.5:1 body-text floor still governs it and it still passes.
+    The row-131 placement decision (inline with the ask line) is unchanged:
+    the same paragraph, the button still inside it.
+    """
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    rule = re.search(r"\.hero__ask \.btn\s*\{([^}]*)\}", css)
+    assert rule, "the scoped hero-ask CTA rule is missing (row 157)"
+    body = rule.group(1)
+    # the gap: the pill keeps a real left margin so it stops crowding the sentence
+    left = re.search(r"margin:\s*([0-9.]+)rem\s+0\s+([0-9.]+)rem\s+([0-9.]+)rem", body)
+    assert left, f"the scoped rule must declare a four-value margin, got: {body!r}"
+    assert float(left.group(3)) >= 0.75, (
+        "margin-left must stay at 0.75rem or more: the filer's finding is the "
+        "crowding, and a token-scale gap is what clears it")
+    assert float(left.group(1)) >= 0.5, (
+        "margin-top must stay at 0.5rem or more so the wrapped (stacked) "
+        "shape keeps breathing room above the pill")
+    # the emphasis: proportionate, not a banner
+    size = re.search(r"font-size:\s*([0-9.]+)rem", body)
+    assert size and 1.0 <= float(size.group(1)) <= 1.1, (
+        "the label steps up from the family's 0.95rem but stays near it; a "
+        "banner-sized pill was explicitly ruled out")
+    pad = re.search(r"padding:\s*(\d+)px\s+(\d+)px", body)
+    assert pad and int(pad.group(1)) >= 12 and int(pad.group(2)) >= 26, (
+        "the pill grows in both axes, proportionate to the label bump")
+    # the family is untouched: the bump is the hero card's alone
+    family = re.search(r"\.btn\s*\{([^}]*)\}", css)
+    assert family and "padding: 11px 22px" in family.group(1), (
+        "the .btn family keeps its own metrics; only the hero card's CTA "
+        "steps up")
+    # the fill pair is untouched, whatever the size
+    cta = re.search(r"\.btn--cta\s*\{([^}]*)\}", css)
+    assert cta and "background: var(--orange-dark)" in cta.group(1)
+    assert cta and "color: #fff" in cta.group(1)
+    # placement held from row 131: the button rides inside the ask paragraph
+    idx = read(docs, "index.html")
+    hero = idx[idx.index('<section class="hero">'):idx.index('<section class="section section--intro')]
+    assert ('Email the Council and tell them now is the time to act! '
+            '<a class="btn btn--cta" href="act-now.html">Act now</a></p>') in hero
+
+
 def test_about_workshop_is_past_tense(docs):
     # The reviewer caught this variant on 2026-11-05: "Come to the ... workshop
     # on Tuesday, Oct. 27 ... and email the Council before it." Same retired
