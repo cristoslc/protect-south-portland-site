@@ -440,30 +440,6 @@ img { max-width: 100%; height: auto; }
 
 .hero__ask { margin: 0; }
 
-/* mission line, the hero's quiet sign-off under the CTA. Demoted 2026-11-25
-   by operator directive: the organization line renders as SECONDARY text -
-   clearly subordinate to the card's primary paragraph (hero__meta, 0.95rem)
-   - so it is smaller (0.85rem) and dimmer. The ink is the card's white at
-   0.75 alpha, the same white the 0.88 sign-off wore, not a new palette
-   colour. Measured against the card's composited worst case (the brightest
-   fill-over-photo pixel from the shipped sampling method, #415556) it reads
-   5.30:1, above the 4.5:1 AA body-text floor; the method and the per-width
-   numbers are in tests/evidence/home-hero-card-2026-11-25/. */
-
-.hero__signoff {
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-  width: 100%;
-  max-width: 46rem;
-  padding-top: 12px;
-}
-
-.hero__mission {
-  margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.75);
-}
-
 /* ---------- buttons ---------- */
 
 .btn {

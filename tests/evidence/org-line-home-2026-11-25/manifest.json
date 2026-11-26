@@ -1,0 +1,16 @@
+{
+  "leg": "The homepage org line moves to a bold header atop the decade section (cut-rider on board issue #10, ledger row 149)",
+  "date": "2026-11-25",
+  "branch": "bb/org-line-home-2026-11-25",
+  "base": "a4493fc (origin/main; PR 143's sticky-banner leg already merged)",
+  "filer_verbatim": "\"would it make more sense to move this text block out of the ACT NOW section at the top of the homepage to it's own standalone and bold section?\" / \"I could see it moving down into the next section that starts with 'For over a decade...' as a bold header or being right at the top of the page as its own header?\" (filed by alexgulachenski-arch)",
+  "tension_named": "row 131 demoted this exact line to secondary hero-card text by operator directive TODAY (0.85rem, rgba(255,255,255,0.75), measured 4.5:1-floor-safe against the composited hero worst case); this filer proposes elevating it the same day. Under the annotation rule the filer's input is intent, not a token source; the design call is ours, judged by the review verdict",
+  "design_choice_named": "top-of-decade-section bold h2, per the lane's read: ONE home for the line (no duplication anywhere on the site, grep-verified and pinned), the intro section gains its first heading (an a11y win), the decade paragraph keeps its momentum as the section body, and the hero card loses its faintest line; the very-top-of-page option rejected for fighting the h1 for first read",
+  "bytes": "index.html: the hero__signoff block (mission line) removed from the hero card; the sentence ships as the intro section's first h2, immediately above the decade paragraph; styles.css: the .hero__mission and .hero__signoff rules removed (no other element used them)",
+  "measured_before": "on main at a4493fc the sentence shipped exactly once site-wide (grep), in the hero signoff; the intro section carried no heading",
+  "pins": "red-first: 2 pins red on the unchanged tree (the retargeted row-131 pin asserting hero__mission gone from source and CSS with the tension recorded in the comment, and the new row-149 pin asserting the sentence exactly once site-wide as the intro h2 BEFORE the decade paragraph); a seam defect was caught mid-phase (the retarget split the row-131 test's tail asserts; NameError exposed it; repaired before green), and the row-131 hero__meta 0.95rem styling guard stays pinned",
+  "checks": {"suite": "303 passed, 1 skipped (main at a4493fc sits at 302 after the merged sticky-banner leg; the delta is the one new pin)", "scanner": "[]", "release_check": "publication-clean", "visual_check": "clean"},
+  "captures": "org-line-after-412.png and org-line-after-1440.png with h2 tag/position measurements, read before reporting: the bold header reads above the decade paragraph at both widths, hero card clean",
+  "cut_ride_timing": "PR 141 (visual brand) merged; the production cutover per the phase-3 flow is the next sequencing fact. Per the cut-rider rule: this leg MAY merge and re-stage before the phase-3 promote and ride the cut; if still in review at the operator's promote call, it HOLDS for the first forward release",
+  "not_done": "not published, not merged; report before merging per the order; the shared root checkout untouched"
+}

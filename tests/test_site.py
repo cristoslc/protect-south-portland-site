@@ -5043,20 +5043,46 @@ def test_homepage_hero_card_row131_copy_button_and_mission(docs):
     assert "ask it to require better technology" not in hero, (
         "the dropped sentence is gone from the hero card (row 131)")
     assert "require better technology at the tank farms" in idx
-    # the mission line is demoted: smaller than the meta paragraph and lighter
-    # than the white it used to wear (was 1rem at rgba(255,255,255,0.88))
+    # recorded corrections (2026-11-25): the mission line left the hero
+    # card. The row-131 leg demoted it to secondary hero text; the same day,
+    # board issue #10 (row 149, filer alexgulachenski-arch) asked for it as
+    # its own standalone bold section, and the design call re-homed it as
+    # the bold h2 at the top of the decade section -- one home, not two
+    assert "hero__mission" not in hero and "volunteer-run" not in hero, (
+        "the hero card no longer carries the mission line (row 149)")
+    # the stylesheet: the .hero__mission rule went with the line; the
+    # row-131 hero__meta styling itself stays pinned, the card's primary
+    # paragraph keeps its 0.95rem size
     css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
-    mission = re.search(r"\.hero__mission\s*\{([^}]*)\}", css)
-    assert mission, ".hero__mission rule missing"
-    size = re.search(r"font-size:\s*([0-9.]+)rem", mission.group(1))
-    assert size and float(size.group(1)) < 0.95, (
-        "the mission line must render smaller than the hero's primary "
-        "paragraph (hero__meta at 0.95rem)")
+    assert "hero__mission" not in css, (
+        "the .hero__mission rule went with the line (row 149)")
     meta = re.search(r"\.hero__meta\s*\{([^}]*)\}", css)
     assert meta and "0.95rem" in meta.group(1)
-    assert "rgba(255, 255, 255, 0.75)" in mission.group(1), (
-        "the mission line's ink is the dimmed white the row-131 evidence "
-        "measured; a lighter token would need its own measurement")
+
+
+def test_homepage_org_line_is_the_row149_board_header(docs):
+    """Ledger row 149 (2026-11-25), cut-rider leg on board issue #10, filed
+    by alexgulachenski-arch: the mission line asked for a standalone bold
+    section. The design call (named in the PR): it re-homes as the bold h2
+    at the top of the "For over a decade..." section -- one home for the
+    line, not duplicated; the very-top-of-page option was rejected for
+    fighting the h1 for first read."""
+    idx = read(docs, "index.html")
+    SENTENCE = "We are a community-based, volunteer-run organization working together to protect the environment and the health and well-being of South Portland residents."
+    # exactly one copy, site-wide
+    assert idx.count(SENTENCE) == 1
+    # it ships as its own bold header: an h2, immediately above the decade
+    # paragraph, inside the intro section
+    intro = idx[idx.index('<section class="section section--intro'):]
+    intro = intro[:intro.index("</section>")]
+    assert f"<h2>{SENTENCE}</h2>" in intro
+    assert intro.index(f"<h2>{SENTENCE}</h2>") < intro.index("For over a decade, we")
+    # the hero card no longer carries it (the row-131 demotion rule lives on
+    # only in the recorded correction above)
+    hero = idx[idx.index('<section class="hero">'):idx.index('<section class="section section--intro')]
+    assert SENTENCE not in hero
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    assert ".hero__mission" not in css
 
 
 def test_about_workshop_is_past_tense(docs):
