@@ -121,6 +121,33 @@
         </div>
       </div>
     </div>
+    <script>
+      (function () {
+        var details = document.querySelector('.cal-add');
+        if (!details) return;
+        /* Cut-rider #13: the filer's finding, verbatim, was
+           "clicking outside it does nothing - they had to click the calendar
+           button again to close." A native details element only closes on a
+           second trigger click, so this progressive enhancement wires the
+           missing affordances with the same dependency-free inline approach
+           the page's alert-strip script uses: a document-level click closes
+           the dropdown when the click lands outside the details subtree, and
+           an Escape keydown closes it with keyboard parity, handing focus
+           back to the summary. Nothing about the popup's look, its three
+           entries, or the static .ics asset changes. */
+        document.addEventListener('click', function (event) {
+          if (details.open && !details.contains(event.target)) {
+            details.open = false;
+          }
+        });
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape' && details.open) {
+            details.open = false;
+            details.querySelector('summary').focus();
+          }
+        });
+      })();
+    </script>
     <div class="prose">
       <div class="card-grid card-grid--act">
         <div class="card card--glow">

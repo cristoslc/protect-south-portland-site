@@ -3902,6 +3902,52 @@ def test_act_now_ask_paragraphs_pin_no_orphans(docs):
                 f"{para['last_line_word_count']} word on its last line")
 
 
+def test_act_now_calendar_closes_on_outside_click_and_escape(docs):
+    """Cut-rider leg #13 (ledger row 153), the staging-website-feedback
+    filer's finding verbatim: "clicking outside it does nothing - they had
+    to click the calendar button again to close." The native details element
+    (row 129) gains a small inline, dependency-free progressive enhancement:
+    a document-level click listener closes the dropdown when a click lands
+    outside the details subtree, and an Escape keydown handler closes it with
+    keyboard parity, returning focus to the summary. Keyboard parity is the
+    same mechanism, part of the fix, not scope creep. The no-third-party
+    rule holds: the script is inline (no new script src anywhere), ships only
+    on the page carrying the dropdown (the grep found no other carrier), and
+    changes nothing about the popup's look or the static .ics asset.
+    """
+    act = read(docs, "act-now.html")
+    # the inline script ships, dependency-free, as its own block
+    scripts = re.findall(r"<script>(.*?)</script>", act, re.S)
+    mine = [s for s in scripts if "cal-add" in s]
+    assert len(mine) == 1, (
+        f"{len(mine)} inline scripts target the calendar element; exactly one "
+        "progressive-enhancement block ships")
+    script = mine[0]
+    assert "querySelector('.cal-add')" in script, (
+        "the script must target the calendar details element")
+    assert "details.contains(event.target)" in script, (
+        "outside clicks must close the dropdown")
+    assert "details.open = false" in script
+    assert "event.key === 'Escape'" in script, (
+        "Escape closes the dropdown with keyboard parity")
+    assert "summary" in script, (
+        "closing hands focus back to the summary")
+    # the no-third-party rule: inline only, no new src, dropdown page only
+    for src in re.findall(r"<script[^>]*src=\"([^\"]+)\"", act):
+        assert src == "assets/js/staging-bar.js", src
+    carriers = [n for n in html_files(docs) if 'class="cal-add"' in read(docs, n)]
+    assert carriers == ["act-now.html"], (
+        f"the dropdown pattern ships on {carriers}")
+    for other in [n for n in html_files(docs) if n != "act-now.html"]:
+        assert "querySelector('.cal-add')" not in read(docs, other), (
+            f"{other} carries the calendar script without the dropdown")
+    # the dropdown itself is unchanged: three entries, same asset
+    assert act.count('class="cal-add"') == 1
+    assert ">Google Calendar</a>" in act
+    assert ">Apple / download .ics</a>" in act
+    assert "Copy this link into your calendar app." in act
+
+
 def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
     """Ledger row 95: the family keeps a visible ring wherever it renders.
 

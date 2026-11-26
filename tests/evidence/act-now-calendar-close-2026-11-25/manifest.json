@@ -1,0 +1,17 @@
+{
+  "leg": "Cut-rider #13: the Add to calendar popup closes on outside click and Escape (board item #13, ledger row 153)",
+  "date": "2026-11-25",
+  "branch": "bb/act-now-calendar-close-thr_t9dvrarnfz (STACKED on the #12 branch bb/act-now-orphan-words-thr_t9dvrarnfz, open PR #151 - this PR carries the #11+#12 commits until they merge)",
+  "base": "the #12 branch head 55f2bfc",
+  "filer_credits": "staging-website-feedback filer verbatim via the lane: \"clicking outside it does nothing - they had to click the calendar button again to close\"",
+  "mechanism_named": "ONE inline, dependency-free script after the ask-actions region in act-now.html: a document-level click listener closes the details when a click lands outside the details subtree, and an Escape keydown handler closes it with keyboard parity and returns focus to the summary. Row 129's native details/summary stands - this is progressive enhancement, not a replacement. KEYBOARD PARITY IS PART OF THE FIX, named as such: the dropdown now closes by Enter-toggle (native), outside click, or Escape, in one mechanism.",
+  "grep_scope": "details class=\"cal-add\" ships on exactly one built page (act-now.html) - verified by the dispatch's other-carrier check and pinned; nothing else patched",
+  "no_third_party": "the script is inline (no new script src anywhere - the suite's per-page src pin plus the new pin both assert only staging-bar.js carries a src); the popup's look, its three entries, and the static .ics asset are untouched",
+  "browser_proofs": "behavior-proof.json: outside click closes (true), Escape closes (true), focus returns to the summary (true); dropdown still opens; the three options unchanged",
+  "shock_catch": "the sha-locked orphan pin (row 151) fired on this leg - the script changed act-now.html bytes - and the recording was refreshed with a fresh browser measurement: counts 2/2/4 and 7/9/5 unchanged (the script affects behavior, not wrap). Also the payload sweep's standalone run initially refused for a missing PSP_STAGING_PASSPHRASE (loud by design in a worktree without the workspace .env); passing the env var from the workspace .env, the sweep ran CLEAN: 20 pages, 0 findings, digest filed as issue #152 on the site repo",
+  "scanner_lesson_held": "the script's comment draft cited a ledger row and the scanner flagged it (same class as row 140's lesson); the shipped comment names no internal citation",
+  "checks": {"suite": "306 passed, 1 skipped (baseline 305 + the close/escape pin)", "scanner": "[]", "payload_sweep": "CLEAN, 0 findings (exit 0 with the passphrase sourced)", "release_check": "clean"},
+  "captures": ["open-412.jpg / closed-412.jpg", "open-1440.jpg / closed-1440.jpg", "the open and closed states at both breakpoints, read; behavior-proof.json carries the outside-click, Escape and focus proofs"],
+  "cut_riding_timing": "per the lane's cut-ride rule: may merge and re-stage BEFORE the phase-3 promote and ride the cut with fresh act-now captures + verdict on the changed page; still in review at the promote call means hold for the first forward release. STACKED on PR #151",
+  "not_done": "not published, not merged; report-before-merge; root checkout and gate/bar/serve files untouched"
+}

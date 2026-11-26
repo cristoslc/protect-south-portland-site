@@ -1,0 +1,22 @@
+{
+  "leg": "Cut-rider #13 outside-click and Escape proofs (ledger row 153)",
+  "recorded": "2026-11-25",
+  "method": "headless Chromium over the built page: open the dropdown, click the page headline (outside the details subtree), assert open attribute removed; re-open, press Escape, assert closed and the summary re-holds focus",
+  "closes_on_outside_click": true,
+  "closes_on_escape": true,
+  "focus_returns_to_summary": true,
+  "orphan_counts_unchanged": {
+    "412": [
+      2,
+      2,
+      4
+    ],
+    "1440": [
+      7,
+      9,
+      5
+    ]
+  },
+  "dropdown_opened_on_evaluate_open": true,
+  "still_openable": true
+}

@@ -2,7 +2,7 @@
   "leg": "Cut-rider #12 orphan measurements (ledger row 151)",
   "recorded": "2026-11-25",
   "method": "headless Chromium over the freshly built docs/: for every .callout--ask .ask-step .lede paragraph, per-word Range rects grouped by line-top; last-line word count recorded at the two pinning widths",
-  "page_sha256": "6594a2657b9fb42c56457954e629caa136fd19fa41515c498600afbfdb9ea7f0",
+  "page_sha256": "7ebd74332c6890a0bfc8831572c0eb0ed133153d3eab06cc30d2010e6aa78720",
   "pin_contract": "the sha256 must equal the built act-now.html's hash at test time, so any copy change invalidates the pin until a fresh measurement is recorded; every last_line_word_count must be >= 2",
   "widths": {
     "412": [
@@ -39,5 +39,6 @@
         "last_line": "Council Chambers, 25 Cottage Road."
       }
     ]
-  }
+  },
+  "note": "sha and counts refreshed on the row-153 head (the inline calendar-close script changed act-now.html bytes, not wrapping: counts 2/2/4 and 7/9/5 unchanged)"
 }
