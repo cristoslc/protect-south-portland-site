@@ -6326,3 +6326,66 @@ def test_hero_phone_sky_band_is_a_second_pass_sliver():
         "the crop's focal point does not move")
     assert ".hero__inner { padding: 360px 20px 20px; min-height: 600px; }" in css, (
         "the tablet band keeps its own composition")
+
+
+def test_tank_farms_media_coverage_carries_issue_9_verbatim(docs):
+    """staging-website-feedback issue #9 (ledger row 149): the three new
+    entries the filer cites ship verbatim in title, author and date, in the
+    section's existing entry format, at the top of the list where the newest
+    items read first. Every fact came from the issue body itself, not from
+    memory or a search result.
+
+    Named observation carried, not fixed: the filer dates the third piece
+    Oct. 12, 2026 while its URL carries 2026/10/08 — the citation ships
+    verbatim per the filer.
+    """
+    page = read(docs, "tank-farms.html")
+    section = page[page.index("<h2>Media coverage</h2>"):
+                   page.index("</ul>", page.index("<h2>Media coverage</h2>"))]
+    expected = [
+        ('https://www.pressherald.com/2026/11/14/south-portland-tank-farms-'
+         'require-strongest-possible-action-opinion/',
+         "OpEd: South Portland Tank Farms Require Strongest Possible Action",
+         "Chelsea Byun and Lucy Perkins, Nov. 14, 2026"),
+        ('https://www.pressherald.com/2026/11/10/south-portlands-tank-farm-'
+         'has-been-linked-to-chronic-health-risks-now-what/',
+         "South Portland&rsquo;s Tank Farm Has Been Linked to Chronic "
+         "Health Risks. Now what?",
+         "Dana Richie, Portland Press Herald, Nov 2026"),
+        ('https://www.pressherald.com/2026/10/08/exposure-to-south-portland-'
+         'tank-emissions-increases-cancer-chronic-illness-risks-report-says/',
+         "Exposure to South Portland tank emissions increase cancer, "
+         "chronic illness risks, report says",
+         "Dana Richie, Oct 12, 2026"),
+    ]
+    for href, title, credit in expected:
+        entry = (f'<li><a href="{href}">{title}</a> &mdash; {credit}</li>')
+        assert entry in section, (
+            f"issue #9's entry must ship verbatim in the section's format: "
+            f"{entry}")
+    # newest first: the three 2026 items sit above the list's former head
+    first_li = section[section.index("<li>"):]
+    assert "2026/11/14/south-portland-tank-farms-require-strongest" in first_li, (
+        "the Nov. 14, 2026 OpEd leads the list, the newest entry first")
+    assert first_li.index("2026/11/10/") < first_li.index("2020/07/04/"), (
+        "the 2026 additions sit above the pre-existing entries")
+
+
+def test_tank_farms_media_coverage_issue_9_urls_resolve(docs):
+    """Ledger row 149's rule: every URL the section ships must resolve. The
+    statuses recorded 2026-11-25 are 200 for all three (paywalled pages may
+    gate their bodies, but the URLs must load). This pin runs against the
+    recorded statuses, not the network: the network check is a fetch step
+    with its numbers written into the ledger row, so a later rerun of the
+    suite never depends on a third party being up.
+    """
+    recorded = {
+        "https://www.pressherald.com/2026/11/14/south-portland-tank-farms-require-strongest-possible-action-opinion/": 200,
+        "https://www.pressherald.com/2026/11/10/south-portlands-tank-farm-has-been-linked-to-chronic-health-risks-now-what/": 200,
+        "https://www.pressherald.com/2026/10/08/exposure-to-south-portland-tank-emissions-increases-cancer-chronic-illness-risks-report-says/": 200,
+    }
+    page = read(docs, "tank-farms.html")
+    for href, status in recorded.items():
+        assert f'href="{href}"' in page, (
+            f"{href} must stay in the section this leg added it to")
+        assert status == 200, f"{href} was recorded at HTTP {status}, not 200"

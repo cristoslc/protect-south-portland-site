@@ -21,7 +21,6 @@ PRIVATE_MARKERS = (
     "report.html",
     "data.html",
     "github.com/cristoslc",
-    "south-portland-tank-farms",
     "cristoslc.github.io",
     "wixstatic",
     "PULL-PROVENANCE",
@@ -52,6 +51,17 @@ PRIVATE_MARKERS = (
 # is retired so the sanctioned Action-Oriented bullet passes the scan. The
 # private-surface markers above and the draft-artifact markers below are
 # unchanged.
+# The private research repo's NAME still trips the scan, but with slug
+# boundaries: a bare "south-portland-tank-farms" token (spelled out, or
+# inside the repo URL) is a private-surface reference, while a longer
+# hyphen-joined URL slug that merely contains it is not — the Press Herald
+# slugs the media-coverage leg shipped (2026-11-25,
+# /2026/11/14/south-portland-tank-farms-require-.../) are public newspaper
+# URLs, not research links. The host markers above stay literal, so the
+# repo's URL trips whatever surrounds it.
+PRIVATENAME_PATTERN = re.compile(
+    r"(?<![\w-])south-portland-tank-farms(?![\w-])", re.IGNORECASE)
+
 EVENT_MARKERS: tuple = ()
 
 # AGENTS.md release gate, rule 4: scan for the draft-artifact pattern class,
@@ -195,7 +205,8 @@ def find_map_source_docs():
     return SIBLING_MAP_DOCS if os.path.isdir(SIBLING_MAP_DOCS) else None
 
 
-def scan_text(text, label, markers=ALL_MARKERS, patterns=INTERNAL_REFERENCE_PATTERNS):
+def scan_text(text, label, markers=ALL_MARKERS,
+             patterns=INTERNAL_REFERENCE_PATTERNS + (PRIVATENAME_PATTERN,)):
     """Violations for one text blob (case-insensitive); empty list = clean.
 
     Checks the literal marker set and the internal-reference pattern set, so

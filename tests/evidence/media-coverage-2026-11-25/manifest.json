@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-25",
+  "leg": "media coverage additions to tank-farms.html, cut-rider (ledger row 149)",
+  "source": "staging-website-feedback issue #9, filer Alex Gulachenski (alexgulachenski-arch); every fact fetched from the issue body, none from memory",
+  "entries_shipped": [
+    {
+      "title": "OpEd: South Portland Tank Farms Require Strongest Possible Action",
+      "url": "https://www.pressherald.com/2026/11/14/south-portland-tank-farms-require-strongest-possible-action-opinion/",
+      "author_date": "Chelsea Byun and Lucy Perkins, Nov. 14, 2026",
+      "fetched_status": 200
+    },
+    {
+      "title": "South Portland's Tank Farm Has Been Linked to Chronic Health Risks. Now what?",
+      "url": "https://www.pressherald.com/2026/11/10/south-portlands-tank-farm-has-been-linked-to-chronic-health-risks-now-what/",
+      "author_date": "Dana Richie, Portland Press Herald, Nov 2026",
+      "fetched_status": 200
+    },
+    {
+      "title": "Exposure to South Portland tank emissions increase cancer, chronic illness risks, report says",
+      "url": "https://www.pressherald.com/2026/10/08/exposure-to-south-portland-tank-emissions-increases-cancer-chronic-illness-risks-report-says/",
+      "author_date": "Dana Richie, Oct 12, 2026",
+      "fetched_status": 200
+    }
+  ],
+  "named_observation": "the filer dates the third piece Oct. 12, 2026 while its URL carries 2026/10/08; shipped verbatim per the filer, not corrected",
+  "url_verification": "all three fetched 2026-11-25 with a browser UA, following redirects: HTTP 200 each, no redirect chain",
+  "format": "the section's existing entry format kept exactly (<a href>title</a> &mdash; author, date; typographic apostrophe per house style); newest first at the top of the contact-list; before 21 items, after 24",
+  "scanner_boundary_fix": "a red-first companion fix: the private-name marker moved from a bare substring to a slug-boundary pattern (tools/psp_public.py PRIVATENAME_PATTERN) because the Press Herald slugs contain 'south-portland-tank-farms' as a hyphenated middle segment; the bare name and the repo URL still trip (pin test_privatename_marker_honors_slug_boundaries)",
+  "captures": [
+    {
+      "file": "after-tank-farms-1440.png",
+      "leg": "after",
+      "page": "tank-farms.html",
+      "clip": null,
+      "bytes": 295433,
+      "sha256": "0fd82a1bb0160e326fc884bf6773fb376895640f3a0d1a739b0c2f7d9d7a9bf0"
+    },
+    {
+      "file": "after-tank-farms-412.png",
+      "leg": "after",
+      "page": "tank-farms.html",
+      "clip": null,
+      "bytes": 330313,
+      "sha256": "63306b505d19322240424604686640e1fb39906d1c07919cc143f22c9451b40d"
+    },
+    {
+      "file": "before-tank-farms-1440.png",
+      "leg": "before",
+      "page": "tank-farms.html",
+      "clip": null,
+      "bytes": 257969,
+      "sha256": "f178cd102c73b9e561e48af6f1c4db001388f314275a014b9167d9e7c34d45e9"
+    },
+    {
+      "file": "before-tank-farms-412.png",
+      "leg": "before",
+      "page": "tank-farms.html",
+      "clip": null,
+      "bytes": 285913,
+      "sha256": "13c8a288a10446aa1fb2c41c5e103b80248e9335c3dd18fae474fb1fa1e2a1e8"
+    }
+  ],
+  "suite": "305 passed, 1 skipped (repo venv, tests/, head at commit time)",
+  "scanner": "0 violations across the 91 built files in docs/ (psp_public.scan_tree)",
+  "cut_ride_timing": "the lane's cut-rider rule: this leg may merge and re-stage before the phase-3 promote and ride the cut; the changed page (tank-farms.html) gets fresh captures (this dir) and a fresh verdict before the promote, and the lane updates the release PR's aboard-set; if still in review when the operator calls the merge, the leg holds for the first forward release instead; stated in the PR body"
+}

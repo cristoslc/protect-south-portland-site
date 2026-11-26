@@ -85,6 +85,45 @@ def test_scan_flags_a_planted_marker(tmp_path):
     assert any("south-portland-tank-farms" in v for v in violations), violations
 
 
+def test_privatename_marker_honors_slug_boundaries():
+    """Ledger row 149 (2026-11-25): the private research repo's NAME trips
+    the scan as a bare token or inside the repo URL, but a longer
+    hyphen-joined URL slug that merely contains it does not.
+
+    The false positive is real and shipped: the filer-cited Press Herald
+    slugs (/2026/11/14/south-portland-tank-farms-require-.../) contain
+    "south-portland-tank-farms" as a hyphenated middle segment, and these
+    are public newspaper URLs, not research-surface links. The rule's intent
+    is unchanged: the repo's name spelled out still trips, whatever follows
+    or precedes it except a continuation character, and the separately
+    banned host markers (github.com/cristoslc, cristoslc.github.io) keep
+    tripping on any context. Red-first: written against the shipped
+    substring marker, it failed before the boundary rule existed.
+    """
+    slug = ("https://www.pressherald.com/2026/11/14/"
+            "south-portland-tank-farms-require-strongest-possible-action-opinion/")
+    clean = ('<li><a href="%s">Exposure to emissions</a> &mdash; Dana '
+             'Richie, Oct 12, 2026</li>' % slug)
+    assert release_check.scan_docs(str(_planted(clean))) == [], (
+        "a hyphen-joined public URL slug must not trip the private-name marker")
+    for leak in ("the repo at south-portland-tank-farms is private",
+                 '<a href="https://github.com/cristoslc/south-portland-tank-farms">GitHub</a>',
+                 "cristoslc.github.io/south-portland-tank-farms"):
+        violations = release_check.scan_docs(str(_planted(leak)))
+        assert any("south-portland-tank-farms" in v for v in violations), (
+            f"the bare name still trips: {leak}")
+
+
+def _planted(text):
+    """One temp tree with one seeded page; the boundary pin's helper."""
+    import shutil
+    import tempfile
+    base = tempfile.mkdtemp()
+    with open(os.path.join(base, "page.html"), "w", encoding="utf-8") as fh:
+        fh.write(text)
+    return base
+
+
 def _report_for_current_tree(path, tamper=None):
     pages = {}
     for name in sorted(os.listdir(os.path.join(ROOT, "site", "pages"))):
