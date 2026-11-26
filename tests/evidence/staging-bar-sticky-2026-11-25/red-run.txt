@@ -1,0 +1,93 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_________ TestStagingBarSticky.test_bar_sticks_and_stack_seats_at_1440 _________
+
+self = <test_staging_bar_sticky_uat.TestStagingBarSticky object at 0x10780aad0>
+docs = PosixPath('/private/var/folders/05/9j9563qs7k1gj2nw0jv_qlf40000gn/T/pytest-of-cristos/pytest-2099/docs-build0')
+session = '9ec17358-7205-4506-810e-9fb056fc6006'
+staging_base = 'http://staging.protectsouthportland.localhost:52401/'
+
+    def test_bar_sticks_and_stack_seats_at_1440(self, docs, session, staging_base):
+        result = _probe(session, _midscroll_probe_script(staging_base, 1440))
+>       self._assert_stack(result)
+
+tests/test_staging_bar_sticky_uat.py:141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'width': 1440, 'scrolled': 600, 'barText': 'Staging preview. Live site: protectsouthportland.org. Feedba', 'barRect': {'top': -600, 'bottom': -563.828125, 'height': 36.171875}, ...}
+
+    @staticmethod
+    def _assert_stack(result):
+        assert result["scrolled"] == SCROLL_TO, "the probe must measure mid-scroll"
+        bar, masthead, banner = (result["barRect"], result["mastheadRect"],
+                                 result["bannerRect"])
+        assert bar and masthead and banner, "all three chrome elements must exist"
+>       assert abs(bar["top"]) < 0.5, (
+            f"the sticky bar must sit at the viewport top mid-scroll, saw "
+            f"top {bar['top']}")
+E       AssertionError: the sticky bar must sit at the viewport top mid-scroll, saw top -600
+E       assert 600 < 0.5
+E        +  where 600 = abs(-600)
+
+tests/test_staging_bar_sticky_uat.py:159: AssertionError
+_________ TestStagingBarSticky.test_bar_sticks_and_stack_seats_at_412 __________
+
+self = <test_staging_bar_sticky_uat.TestStagingBarSticky object at 0x10780a710>
+docs = PosixPath('/private/var/folders/05/9j9563qs7k1gj2nw0jv_qlf40000gn/T/pytest-of-cristos/pytest-2099/docs-build0')
+session = '9ec17358-7205-4506-810e-9fb056fc6006'
+staging_base = 'http://staging.protectsouthportland.localhost:52401/'
+
+    def test_bar_sticks_and_stack_seats_at_412(self, docs, session, staging_base):
+        """The two-line mobile wrap makes the bar's height variable: the
+        seats must still track the real rendered height, never a constant."""
+        result = _probe(session, _midscroll_probe_script(staging_base, 412))
+>       self._assert_stack(result)
+
+tests/test_staging_bar_sticky_uat.py:147: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'width': 412, 'scrolled': 600, 'barText': 'Staging preview. Live site: protectsouthportland.org. Feedba', 'barRect': {'top': -600, 'bottom': -540.65625, 'height': 59.34375}, ...}
+
+    @staticmethod
+    def _assert_stack(result):
+        assert result["scrolled"] == SCROLL_TO, "the probe must measure mid-scroll"
+        bar, masthead, banner = (result["barRect"], result["mastheadRect"],
+                                 result["bannerRect"])
+        assert bar and masthead and banner, "all three chrome elements must exist"
+>       assert abs(bar["top"]) < 0.5, (
+            f"the sticky bar must sit at the viewport top mid-scroll, saw "
+            f"top {bar['top']}")
+E       AssertionError: the sticky bar must sit at the viewport top mid-scroll, saw top -600
+E       assert 600 < 0.5
+E        +  where 600 = abs(-600)
+
+tests/test_staging_bar_sticky_uat.py:159: AssertionError
+________________ test_staging_bar_is_sticky_and_seats_the_stack ________________
+
+    def test_staging_bar_is_sticky_and_seats_the_stack():
+        """Ledger row 148 (2026-11-25), the operator's sticky directive relayed
+        verbatim in substance: "on staging, the staging preview bar should be
+        STICKY — it must not disappear when scrolling."
+    
+        The bar joins the sticky stack it sits above: the bar sticks at the
+        viewport top, the masthead seats below the bar's real rendered height,
+        and the event banner seats below both, so all three are fully visible
+        mid-scroll and nothing partially occludes anything (the row-132 pins
+        keep their verdicts). The seats are measured live — offsetHeight on
+        load and on resize, the row-146 refine pattern — never magic numbers:
+        at 412 the bar wraps to two lines and its height varies. Production
+        never sees any of it: the matcher returns before this code runs, so no
+        production page byte changes."""
+        css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+        start = css.index(".staging-bar {")
+        block = css[start:css.index("}", start)]
+>       assert "position: sticky" in block, "the bar must stay visible while scrolling"
+E       AssertionError: the bar must stay visible while scrolling
+E       assert 'position: sticky' in '.staging-bar {\n  background: var(--cyan-soft);\n  border-bottom: 1px dashed var(--teal-700);\n  color: var(--ink);\n  font-size: 0.78rem;\n  letter-spacing: 0.02em;\n  padding: 6px 16px;\n  text-align: center;\n'
+
+tests/test_site.py:694: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_staging_bar_sticky_uat.py::TestStagingBarSticky::test_bar_sticks_and_stack_seats_at_1440
+FAILED tests/test_staging_bar_sticky_uat.py::TestStagingBarSticky::test_bar_sticks_and_stack_seats_at_412
+FAILED tests/test_site.py::test_staging_bar_is_sticky_and_seats_the_stack - A...
+3 failed in 7.14s
