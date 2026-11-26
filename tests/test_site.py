@@ -5228,8 +5228,9 @@ def test_hero_card_cta_row157_spacing_and_size(docs):
         "margin-left must stay at 0.75rem or more: the filer's finding is the "
         "crowding, and a token-scale gap is what clears it")
     assert float(left.group(1)) >= 0.5, (
-        "margin-top must stay at 0.5rem or more so the wrapped (stacked) "
-        "shape keeps breathing room above the pill")
+        "margin-top must stay at 0.5rem or more so the pill's taller line "
+        "box keeps its breathing room on the narrow card (the pill stays "
+        "inline everywhere it has been captured; there is no stacked shape)")
     # the emphasis: proportionate, not a banner
     size = re.search(r"font-size:\s*([0-9.]+)rem", body)
     assert size and 1.0 <= float(size.group(1)) <= 1.1, (
