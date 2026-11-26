@@ -838,7 +838,13 @@ blockquote {
    staging.protectsouthportland.<tld> and injects this bar above the nav;
    production, localhost and review checkouts render nothing. Muted and
    dashed so it is unmistakably not the campaign banner it sits above.
-   In document flow (it scrolls away; not sticky). */
+   The same-day sticky directive: the bar joins the sticky stack
+   it sits above - it stays at the viewport top while scrolling, and the
+   staging-bar.js seating code sticks the masthead below the bar's real
+   rendered height and the event banner below both (measured heights,
+   never constants). z 60 keeps the whole bar over the masthead's 50 and
+   the banner's 40 while staying far below the gated state's max-int
+   layer and the gate curtain. */
 
 .staging-bar {
   background: var(--cyan-soft);
@@ -848,6 +854,9 @@ blockquote {
   letter-spacing: 0.02em;
   padding: 6px 16px;
   text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 60;
 }
 
 /* no nowrap: the "Last updated" line carries spaces and wraps at narrow

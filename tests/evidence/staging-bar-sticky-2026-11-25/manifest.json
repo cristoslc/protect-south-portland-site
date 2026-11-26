@@ -1,0 +1,26 @@
+{
+  "leg": "Staging preview bar is sticky: the bar stays at the viewport top while scrolling, and the chrome stack reseats below it from measured heights (operator directive, ledger row 148)",
+  "date": "2026-11-25",
+  "branch": "bb/staging-bar-sticky-thr_pemragsvwf",
+  "base": "a4493fc (origin/main)",
+  "operator_directive_verbatim": "on staging, the staging preview bar should be STICKY — it must not disappear when scrolling. (Screenshot: desktop mid-scroll, the mint strip scrolled half off the viewport top.) Per the annotation rule the intent is READ, nothing sampled.",
+  "mechanism": {
+    "bar": ".staging-bar gains position sticky, top 0, z-index 60 — above the masthead's 50 and the banner's 40, far below the gated state's max-int layer (publish.py's .staging-gate .staging-bar rule, untouched, still holds visibility and 2147483647 while locked; its position:relative keeps the locked state's row-128 reading: a locked reviewer sees where they are)",
+    "seating": "staging-bar.js seats the stack from real rendered heights on load and on window resize: masthead.style.top = bar.offsetHeight, alert-strip top = bar.offsetHeight + masthead.offsetHeight (the banner leg's offsetHeight-refine pattern, never magic numbers: at 412 the bar wraps to two lines and its height varies). The shell's own banner script seats the banner from the masthead alone and registered its resize listener first; the deferred bar script corrects both seats after it and its resize listener fires after the shell's on every resize, so the corrected seats win on staging while production behavior (where the matcher returns before any of this) is byte-identical",
+    "surface": "only staging-bar.js and the .staging-bar block: no build.py change, no page byte changes at all, no gate-report re-hash; the manifest-fed Last-updated line and the Feedback link keep working in the sticky state"
+  },
+  "red_first": "tests/evidence/staging-bar-sticky-2026-11-25/red-run.txt: the static pin and both browser pins failed on the unmodified tree (bar top -600 at a 600px scroll - the operator's screenshot reproduced), then passed after the fix",
+  "tests": {
+    "new_pins": "static: .staging-bar sticky top 0 z 60 pinned in the shipped stylesheet, seating tokens pinned in the shipped script, matcher guard proven to precede the seating code; browser (tests/test_staging_bar_sticky_uat.py, over staging.protectsouthportland.localhost so the real matcher and script run end to end): at 1440 and at 412 mid-scroll the bar rect top is 0, the masthead rect top equals the bar's rendered height, the banner rect top equals bar + masthead heights, each element's bottom stays above the next one's top, every masthead link is still the top element at its own center (row-132 property), and the bar keeps the row-133 format",
+    "guards_kept": "the row-146 banner pins (top 70px default + offsetHeight refine) pass unchanged on their bar-less runs; the row-132 nav pins pass unchanged; test_site.py:4424's gated-bar rule pin passes; the row-133 format pins, matcher pins and non-dismissable pins pass untouched",
+    "suite": "305 passed, 1 skipped (302 at a4493fc including the row-132 and row-146 browser files, + 3 new pins)"
+  },
+  "captures": "bar-sticky-midscroll-412.png / bar-sticky-midscroll-1440.png, read: at both widths, scrolled 600px, the bar is stuck at the viewport top with the full format and Feedback link, the masthead is stuck directly below it, the red banner is seated below the masthead, and nothing is partially occluded; the 412 wrap makes the bar three lines and the seats track it",
+  "capture_recipe": "the committed docs plus a hand-written staging-manifest.json exactly as prepare_serve_tree writes it (served 2026-11-25T15:18:33+00:00, head a4493fc1f2499764a6c758bbc67a0104f5d0ad28), served over http://staging.protectsouthportland.localhost:8958 so the real shipped matcher runs end to end",
+  "sequencing": "MERGE HELD per the lane ruling: PR stays open until PR #144 (the phase-3 production cut) is merged and the flip verifies, then merges; the bar never touches production page bytes, so holding costs nothing",
+  "checks": {
+    "suite": "305 passed, 1 skipped",
+    "release_check": "fresh (committed docs equals a fresh build) and publication-clean",
+    "scanner": "clean; ledger-row references kept out of shipped bytes"
+  }
+}

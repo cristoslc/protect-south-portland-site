@@ -21,8 +21,21 @@
    serve time renders in US Eastern (America/New_York) as e.g.
    "Nov 25, 2026, 10:18 a.m. EST", and the fork sha shows in 12-char short
    form. The "Feedback >>" link opens the staging feedback board's guided
-   issue form in a new tab. In document flow at the top (not sticky): the
-   bar scrolls away with the page. */
+   issue form in a new tab.
+
+   Sticky (2026-11-25 directive: "on staging, the staging preview bar should
+   be STICKY - it must not disappear when scrolling"): the bar sticks at
+   the viewport top (.staging-bar position sticky, top 0, z 60 above the
+   masthead's 50 and the banner's 40, below the gated state's max-int
+   layer), and the stack reseats from real rendered heights - the masthead
+   sticks below the bar's own offsetHeight and the event banner sticks
+   below bar + masthead - measured on load and on window resize (the
+   banner leg's refine pattern, never magic numbers: at 412 the bar wraps
+   to two lines and its height varies). The banner's own shell script seats
+   it from the masthead alone; this script runs after it (deferred) and
+   its resize listener registers after, so the corrected seat always
+   wins on staging and the shell's behavior is untouched in production,
+   where this code never runs (the matcher returns above). */
 (function () {
   var STAGING_HOST = /^staging\.protectsouthportland\.[a-z]{2,}$/i;
   if (!STAGING_HOST.test(window.location.hostname)) return;
@@ -64,6 +77,24 @@
   } else {
     document.body.prepend(bar);
   }
+
+  /* The sticky stack reseats from measured heights: the bar sticks at top
+     0 (.staging-bar), the masthead sticks below the bar's real rendered
+     height, and the event banner sticks below both. offsetHeight on load
+     and on resize, never magic numbers - at 412 the bar wraps to two
+     lines and its height varies. The banner's own shell script seats the
+     banner from the masthead alone and registered its resize listener
+     first; this deferred script corrects both seats and its listener
+     fires after the shell's on every resize, so the corrected seats win
+     wherever the bar exists. */
+  var banner = document.getElementById('alert-strip');
+  var seat = function () {
+    var barHeight = bar.offsetHeight;
+    if (masthead) masthead.style.top = barHeight + 'px';
+    if (banner && masthead) banner.style.top = (barHeight + masthead.offsetHeight) + 'px';
+  };
+  seat();
+  window.addEventListener('resize', seat);
 
   fetch('/staging-manifest.json').then(function (res) {
     return res.ok ? res.json() : null;

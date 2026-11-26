@@ -674,6 +674,45 @@ def test_staging_bar_copy_time_hash_and_feedback(docs):
             in js), "the accessible name"
 
 
+def test_staging_bar_is_sticky_and_seats_the_stack():
+    """Ledger row 148 (2026-11-25), the operator's sticky directive relayed
+    verbatim in substance: "on staging, the staging preview bar should be
+    STICKY — it must not disappear when scrolling."
+
+    The bar joins the sticky stack it sits above: the bar sticks at the
+    viewport top, the masthead seats below the bar's real rendered height,
+    and the event banner seats below both, so all three are fully visible
+    mid-scroll and nothing partially occludes anything (the row-132 pins
+    keep their verdicts). The seats are measured live — offsetHeight on
+    load and on resize, the row-146 refine pattern — never magic numbers:
+    at 412 the bar wraps to two lines and its height varies. Production
+    never sees any of it: the matcher returns before this code runs, so no
+    production page byte changes."""
+    css = open(os.path.join(ROOT, "site", "styles.css"), encoding="utf-8").read()
+    start = css.index(".staging-bar {")
+    block = css[start:css.index("}", start)]
+    assert "position: sticky" in block, "the bar must stay visible while scrolling"
+    assert "top: 0" in block, "the bar sticks at the viewport top"
+    assert "z-index: 60" in block, (
+        "the bar layers above the masthead's 50 and the banner's 40, and "
+        "below the gated state's max-int layer")
+    js = open(os.path.join(ROOT, "site", "assets", "js", "staging-bar.js"),
+              encoding="utf-8").read()
+    # the seats are measured, never magic numbers (the row-146 refine
+    # pattern: read the real rendered heights on load and resize)
+    assert "var barHeight = bar.offsetHeight;" in js
+    assert "masthead.style.top = barHeight + 'px';" in js
+    assert "banner.style.top = (barHeight + masthead.offsetHeight) + 'px';" in js
+    assert "seat();" in js, "the seats are taken on load"
+    assert "window.addEventListener('resize', seat);" in js, (
+        "the seats are retaken on resize")
+    # the matcher guard returns before any seating code runs: production
+    # pages keep byte-identical behavior
+    guard = js.index("if (!STAGING_HOST.test(window.location.hostname)) return;")
+    assert guard < js.index("masthead.style.top")
+    assert guard < js.index("banner.style.top")
+
+
 def test_toolkit_reference_page(docs):
     """Ruling on `dec_inuqu6bhpw6r`, option one-page ("One reference page,
     durable chapters only"), ledger row 78: `toolkit.html` carries four
