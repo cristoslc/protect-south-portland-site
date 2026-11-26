@@ -2,7 +2,7 @@
   "leg": "ledger row 157, homepage hero card CTA spacing + size (2026-11-25), board item #14 filer finding \"the button crowds the line\"",
   "rebase_note": "rebased onto origin/main 045ff1c after the first evidence set: the row-149 leg (b085fbc) moved the org line out of the hero card, changing the card's shape, so BOTH capture sets were retaken from the correct trees; the first set (cut from a4493fc) is superseded and deleted",
   "base": "before = built docs at origin/main 045ff1c (a detached verification worktree); after = the leg's head build on the rebased branch",
-  "change": "scoped .hero__ask .btn rule: margin 0.5rem 0 0.5rem 0.85rem, font-size 1.05rem, padding 13px 27px; .btn family untouched; row-131 inline placement held in the markup",
+  "change": "scoped .hero__ask .btn rule: margin 0.5rem 0 0.5rem 0.85rem, font-size 1.05rem, padding 13px 27px; .btn family untouched; row-131 inline placement held in the markup and in the rendering at both widths",
   "capture_tool": "tools/capture_hero_card.sh (local http server over the built docs/; bb browser-automation headless Chrome, hero section rect cropped with 8px pad)",
   "breakpoints": [
     412,
@@ -66,7 +66,7 @@
         "margin": "9px 0px 9px 15.3px",
         "btn_w": 153,
         "btn_h": 61,
-        "shape": "stacked: pill wraps to its own line below the \"time to act!\" line"
+        "shape": "inline on the wrapped last line, beside \"time to act!\" (text box right edge 128 + 15.3px margin-left = pill box left edge 143); the pill is taller (61px) than the text line (~22px) so its line box carries the extra height"
       },
       "1440": {
         "font_size": "18.9px",
@@ -90,7 +90,7 @@
     ]
   },
   "read": true,
-  "read_notes": "all four captures read (the rebased sets). BEFORE 1440 (origin/main 045ff1c): the pill box begins exactly where the sentence ends, zero gap, the filer's finding - what reads as space inside the pill is its own left padding. BEFORE 412: the pill rides flush under the wrapped ask line. AFTER 1440: the pill keeps its inline seat with a real 15.3px gap and the larger pill; card is now lighter (the row-149 org-line move removed the sign-off and divider from the card). AFTER 412 (the stacked shape): the enlarged pill wraps to its own line below \"time to act!\" with 9px air above and below. No clipping or overlap at either width.",
+  "read_notes": "all four captures read (this thread), verified against the round-2 and round-3 reviews. BEFORE 1440 (origin/main 045ff1c): the pill box begins exactly where the sentence ends, zero gap, the filer's finding; no org sign-off, no divider (the row-149 removal). BEFORE 412: the pill rides flush on the wrapped line. AFTER 1440: the pill keeps its inline seat with the 15.3px gap and the larger pill (153x61). AFTER 412: CORRECTED at round 3 - the pill does NOT wrap to its own line; it shares the wrapped line with \"time to act!\", flush text edge (128) to pill box (143) with the 15.3px margin-left between, the same inline shape as 1440; the pill's taller line box (61px) is what makes it read as air around the sentence. The earlier \"stacked at 412\" claim in this manifest and in the shipped comment was a misread of the capture at full-page scale; the round-3 review established the shape by direct pixel measurement (text box right edge 128 vs pill left edge 143), card-height delta (604.14 to 614.75 CSS px, about a 10px line-box growth, where a stacked line would add about 39px), and 3x zoomed transcription. No clipping or overlap at either width.",
   "contrast": {
     "pair": "white on --red-kite-dark #a02b23 (verified live, rgb(160, 43, 35))",
     "computed_ratio": 7.33,
@@ -104,5 +104,6 @@
     "after-hero-412.png": "3e869f15b6a18e8fd7140075530b9c1f170ccd3c789a03e405d53e6347bc9f9c",
     "after-hero-1440.png": "816076c3aea139dc316f32e5fd8db02d22de567b73d891838b0632287873ad1a"
   },
-  "fail_round_correction": "The round-2 fail verdict (comment 7180362711) caught a real evidence defect: the rebase retake copied the new captures under their original *2* filenames WITHOUT overwriting the stale evidence files, so the four files named in this manifest were still pre-rebase captures carrying the org sign-off (removed on main by the row-149 leg) and an after-412 shape from the old build. The files were replaced with the retaken captures under the canonical names (this thread re-read all four: no sign-off anywhere, before flush, after gap at 1440, stacked at 412), the eight-file listing collapsed back to four, and this correction records the failure honestly for the next reader."
+  "fail_round_correction": "The round-2 fail verdict (comment 7180362711) caught a real evidence defect: the rebase retake copied the new captures under their original *2* filenames WITHOUT overwriting the stale evidence files, so the four files named in this manifest were still pre-rebase captures carrying the org sign-off (removed on main by the row-149 leg) and an after-412 shape from the old build. The files were replaced with the retaken captures under the canonical names (this thread re-read all four: no sign-off anywhere, before flush, after gap at 1440, stacked at 412), the eight-file listing collapsed back to four, and this correction records the failure honestly for the next reader.",
+  "round3_correction": "Round 3 (comment 7180519527): FAIL, narrowly - the record misdescribed the 412 shape (stacked claim, above). The rendering itself was correct; this manifest was rewritten and the shipped comment and test docstring corrected in the same commit."
 }

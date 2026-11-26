@@ -5198,8 +5198,11 @@ def test_hero_card_cta_row157_spacing_and_size(docs):
     family's standard size, so the ask read crowded rather than led.
 
     The rule is scoped (`.hero__ask .btn`): a real gap left of the pill when
-    it rides the ask line, breathing room above and below when the narrow
-    card wraps it onto its own line, and a proportionate size bump
+    it rides the ask line (verified at both breakpoints: at 412 the pill
+    stays inline on the wrapped last line beside "time to act!" - a round-3
+    review catch corrected an earlier "wraps to its own line" misread of the
+    capture), breathing room in the taller pill's line box from the top and
+    bottom margins, and a proportionate size bump
     (13px x 27px padding, 1.05rem label) that stays emphasis, not a banner.
     The annotation rule holds: the filer's screenshot is intent ("more
     space, bigger emphasis"), so the values are tokens, not sampled geometry.

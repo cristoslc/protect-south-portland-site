@@ -445,8 +445,11 @@ img { max-width: 100%; height: auto; }
    The button rides inline with the sentence and had almost no gap to the
    text it answers. A scoped rule, not a .btn
    family change: margin-left gives the pill a real gap to the sentence on
-   the line they share, the top and bottom margins give it breathing room
-   where the narrow card wraps it onto its own line, and the label steps up
+   the line they share - at both breakpoints, 1440 and the narrow 412 card
+   where the ask wraps and the pill rides the wrapped last line beside
+   "time to act!" - while the top and bottom margins give the taller pill
+   air inside its line box so the ask row keeps its rhythm, and the label
+   steps up
    a notch (13px x 27px padding, 1.05rem) for emphasis without becoming a
    banner. The fill pair is untouched: white on the dark red variant keeps
    its declared 7.33:1 (recomputed for this record: white on #a02b23 is
