@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-25-16",
+  "review_model": "cove/text:ultra-heavy (GLM-5.3)",
+  "review_class": "full",
+  "pages": {
+    "404.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "6e0ce52a805531da1ef50eb0f35b8d036049ceddce8ca3b15b52f499e25585ec"
+    },
+    "about.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "02a865982a50028e9a6e1143dbc1171a4e3a84b5d6aec95908d1b7f88fc99a61"
+    },
+    "act-now.html": {
+      "rounds": 1,
+      "outcome": "pass",
+      "sha256": "7ebd74332c6890a0bfc8831572c0eb0ed133153d3eab06cc30d2010e6aa78720"
+    },
+    "clear-skies.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "367284d004b4dcf5c53fd7eea982460ec2701f1ec77251f42ffdd26f43d1e1bd"
+    },
+    "coastal-flooding.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "a8fc70307b54671230fd20b025efca74f1132949cd14b8b31ff58d9697199814"
+    },
+    "contact.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "bc11fa57aff01341e82e982e23c075b54bb7cf581466bdfac34718ba119dd8e2"
+    },
+    "donate.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "684ebc64ed553b750660072c4746e682781b5255f95b10a1815c1b2665a359df"
+    },
+    "fertilizer-ban.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "d34008cce4639eda136394cf02fe2b31cc38bc97747bbd020238eed906741006"
+    },
+    "index.html": {
+      "rounds": 1,
+      "outcome": "pass",
+      "sha256": "967be3eb27126d061748c23f560ab63754e26d011b553bd0ab1cf3c952791d07"
+    },
+    "newsletter.html": {
+      "rounds": 1,
+      "outcome": "pass",
+      "sha256": "aa065ef74bba2ded1529143cd24428dda5ced370b4ab4e05c2a80a211ba58210"
+    },
+    "our-campaigns.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "45116565c333fd5460f1dbadc9bda0c2ba314a7a8c68e551695ab55d038072f2"
+    },
+    "past-work.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "4cb302ba007d599aeccecbe48e75100132b8a3cff57abdd8b162af712addc831"
+    },
+    "pesticides.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "4ff069b7e0aa3b6b7f7a5d874a5c1d1c5c199358bd12f3d4fa785ff4800e9dc9"
+    },
+    "report-an-odor.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "d4c3ae66f9bf3307a27c2fa602e9279ffa843ffdce2ab65a895c4796ebac47e8"
+    },
+    "share-your-story.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "8ab876b946c539d6120f2a4fc155a652e693d8e7bcdb88f90116e6387296f632"
+    },
+    "tank-farms.html": {
+      "rounds": 1,
+      "outcome": "pass",
+      "sha256": "3eb336c6d466fe8a5c142a93a4937e26822a34473af2492d208fdd7e45117b2f"
+    },
+    "toolkit.html": {
+      "rounds": 2,
+      "outcome": "pass",
+      "sha256": "7b3092430be003871d2255769407e56db5e3047be76da844fbd27fdedee5e52a"
+    },
+    "yard-south-proposal.html": {
+      "rounds": 3,
+      "outcome": "pass",
+      "sha256": "41b7c259f401478bcb91568c683f0b5ba7573ac97377d0a2cce1881993229d4b"
+    }
+  },
+  "scope_note": "FINAL RELEASE GATE FOR THE PHASE-3 CUTOVER, RE-HASHED AT THE LANE'S FINAL HEAD (PR 144, release/phase-3-cutover head 582c770, rebased onto merged main 0762c19; operator GO verbatim: 'After 141, ship it.'). VERIFICATION-NOT-REVIEW: every page hash here is re-hashed fresh against this tree; verdicts carry forward from report 2026-11-25-15 unchanged because between that report (basis 1c304ff) and this tree only act-now.html's page bytes moved (#147 gutter was styles-only; #151 orphan split changed act-now page bytes; #153 calendar script changed act-now page bytes; the row-152 retarget was comment-only; #154 was tests-only) - and act-now's shipped bytes carry THREE landed full-class verdicts (PR #147 PASS round 1 comment 7180019919 judged 1304b78; PR #151 PASS round 1 comment 7179946581 judged 55f2bfc; PR #153 PASS round 1 comment 7180234031 judged ea51261), each verified at merge time tree-identical to the bytes on merged main and re-verified here byte-identical between this branch and main. ABOARD SET CLOSED: all six cut riders #9-#14 merged (media coverage, org line, gutter, orphan words, calendar close, hero CTA spacing). ZERO PENDING. Suite 311 passed + 1 skip on this tree; scanner []; docs/CNAME reads www. JUMP-FORWARD STATED: production day one serves the current staging tree per the operator's fresh word; the October-alignment restore is superseded for this cut (dec_4ipo2y19ltxa superseded). UAT SWEEP: the lane's definitive sweep runs against the live staging serve 80fe2e0 == this tree's pages; its verdict set is the operator's UAT judgment recorded at handoff. THE OPERATOR MERGES PR #144: that merge is the deploy; flip steps execute per row 147 on the standing GO. NOTHING HERE TOUCHES the October release records, report 2026-11-24-6, or PR 59."
+}
