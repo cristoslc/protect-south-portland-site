@@ -163,22 +163,67 @@ def branch_exists(branch, cwd, remote="origin"):
 # are allowed: they are not public scatter targets.
 FORK_REPO = "Protect-South-Portland/protect-south-portland-staging"
 
-_GITHUB_URL = re.compile(
-    r"(?:https://github\.com/|git@github\.com:)"
-    r"(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$")
+# Issue #140 (2026-11-25, the widening row 142 carried): the first fence
+# matched the two canonical spellings only, `https://github.com/...` and
+# `git@github.com:...`, so six valid-but-noncanonical forms naming upstream
+# passed it: the ssh scheme, ssh.github.com on its port, an embedded
+# credential, an http scheme, and a case-variant host. The judge below reads
+# the host and the repo path instead of the spelling, so scheme, port, host
+# case and credentials cannot disguise which repo a URL names. Still
+# deterrence, not a security boundary, in row 42's tradition: a remote that
+# git can resolve some other way is outside what a URL-shaped fence can see.
+_GITHUB_HOSTS = frozenset({"github.com", "ssh.github.com", "www.github.com"})
+_URL_SCHEME = re.compile(r"^(?P<scheme>[A-Za-z][A-Za-z0-9+.-]*)://(?P<rest>.*)$")
+# The scp-like form git still accepts: an optional user, a host (optionally
+# with a port), a colon, then the path. A local path has no colon before its
+# first slash, so `/tmp/x.git`, `../origin.git` and `C:\src\x.git` never match.
+_SCP_LIKE = re.compile(
+    r"^(?:[^@/]+@)?(?P<host>[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?)"
+    r"(?::[0-9]+)?:(?P<path>.*)$")
+
+
+def _github_repo(url):
+    """The `owner/repo` a GitHub-shaped push URL names, else None.
+
+    Returns "" for a GitHub host with no repo path, which names no fork and
+    is therefore refused rather than waved through.
+    """
+    url = url.strip()
+    scheme = _URL_SCHEME.match(url)
+    if scheme:
+        authority, _, tail = scheme.group("rest").partition("/")
+        if "@" in authority:  # credentials are not part of the host
+            authority = authority.rsplit("@", 1)[1]
+        host = authority.split(":", 1)[0]
+        path = "/" + tail
+    else:
+        scp = _SCP_LIKE.match(url)
+        if not scp:
+            return None
+        host, path = scp.group("host"), scp.group("path")
+    if host.lower() not in _GITHUB_HOSTS:
+        return None
+    repo = path.strip("/")
+    if repo.lower().endswith(".git"):
+        repo = repo[:-4]
+    return repo
 
 
 def serve_remote_ok(url):
     """True when a push URL may receive a serve push.
 
-    A GitHub repo URL (https or ssh) must name FORK_REPO; any other
-    GitHub repo — upstream included — is refused. A URL that is not a
-    GitHub repo shape (a local path) is allowed.
+    A URL whose host is GitHub, in any working spelling, must name FORK_REPO;
+    any other GitHub repo, upstream included, is refused, and so is a GitHub
+    host that names no repo at all. A URL whose host is not GitHub (a local
+    path, a bare fixture, another forge) is allowed: it is not the scatter
+    target this fence is built for.
     """
-    match = _GITHUB_URL.match(url)
-    if not match:
+    repo = _github_repo(url)
+    if repo is None:
         return True
-    return match.group("repo") == FORK_REPO
+    # GitHub compares owner and repo case-insensitively, so the fork's
+    # spelling in a different case still names the fork.
+    return repo.lower() == FORK_REPO.lower()
 
 
 # The machine identity the serve commit carries when the environment

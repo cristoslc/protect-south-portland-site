@@ -477,6 +477,89 @@ def test_serve_remote_judges_urls_by_host():
                      "protect-south-portland-site.git")
 
 
+# Every working way to spell this repository's own URL, canonical or not.
+# The first two are the shapes row 142's fence recognized; the rest are the
+# six forms that passed it (issue #140). A scheme, a port, a host case or
+# an embedded credential does not change which repo a URL names.
+UPSTREAM_URL_FORMS = [
+    "https://github.com/cristoslc/protect-south-portland-site.git",
+    "git@github.com:cristoslc/protect-south-portland-site.git",
+    "ssh://git@github.com/cristoslc/protect-south-portland-site.git",
+    "ssh://git@ssh.github.com:443/cristoslc/protect-south-portland-site.git",
+    "https://user@github.com/cristoslc/protect-south-portland-site.git",
+    "https://user:s3cret@github.com/cristoslc/protect-south-portland-site.git",
+    "http://github.com/cristoslc/protect-south-portland-site.git",
+    "https://GitHub.com/cristoslc/protect-south-portland-site.git",
+]
+
+
+def test_serve_remote_refuses_upstream_in_every_working_url_form():
+    """No spelling of upstream's URL gets past the judge (issue #140).
+
+    The first fence read the two canonical spellings only, so an ssh URL,
+    an ssh.github.com URL on port 443, an embedded credential, an http
+    scheme or a case-variant host named upstream and still passed. The
+    judge now resolves the host and the repo path, so scheme, port, host
+    case and credentials cannot disguise the target.
+    """
+    judge = staging_serve.serve_remote_ok
+    for url in UPSTREAM_URL_FORMS:
+        assert not judge(url), f"upstream must be refused in the form {url!r}"
+
+
+def test_serve_remote_accepts_the_fork_in_every_working_url_form():
+    """The widened fence still passes the fork wherever git can push it.
+
+    A fence that refuses the fork's own URLs would break the serve it
+    guards, so each accepted spelling is pinned: the canonical https and
+    scp forms, the ssh scheme, ssh.github.com on its port, an embedded
+    credential, a case-variant host, a trailing slash, the scp form with
+    no user, and the repo spelled in a different case the way GitHub
+    compares it.
+    """
+    judge = staging_serve.serve_remote_ok
+    fork_forms = [
+        "https://github.com/Protect-South-Portland/"
+        "protect-south-portland-staging",
+        "https://github.com/Protect-South-Portland/"
+        "protect-south-portland-staging.git",
+        "https://github.com/Protect-South-Portland/"
+        "protect-south-portland-staging.git/",
+        "git@github.com:Protect-South-Portland/"
+        "protect-south-portland-staging.git",
+        "github.com:Protect-South-Portland/protect-south-portland-staging.git",
+        "ssh://git@github.com/Protect-South-Portland/"
+        "protect-south-portland-staging.git",
+        "ssh://git@ssh.github.com:443/Protect-South-Portland/"
+        "protect-south-portland-staging.git",
+        "https://user:token@github.com/Protect-South-Portland/"
+        "protect-south-portland-staging.git",
+        "https://GitHub.com/Protect-South-Portland/"
+        "protect-south-portland-staging.git",
+        "https://github.com/protect-south-portland/"
+        "PROTECT-SOUTH-PORTLAND-STAGING.git",
+    ]
+    for url in fork_forms:
+        assert judge(url), f"the fork must still serve in the form {url!r}"
+
+
+def test_serve_remote_still_allows_shapes_that_name_no_github_repo():
+    """A local path or a non-GitHub host is not a GitHub scatter target.
+
+    The fence's job is upstream's URL, not every remote: the test world and
+    approved bare fixtures push by path, and a non-GitHub host is outside
+    the rows this fence covers. A GitHub host with no repo path names
+    nothing and is refused rather than waved through.
+    """
+    judge = staging_serve.serve_remote_ok
+    assert judge("/tmp/psp-serve-origin.git")
+    assert judge("../origin.git")
+    assert judge("file:///tmp/psp-serve-origin.git")
+    assert judge("https://gitlab.com/someone/else.git")
+    assert not judge("https://github.com/")
+    assert not judge("git@github.com:")
+
+
 def _remote_list(repo, *git_args):
     origin_dir = os.path.abspath(os.path.join(repo, "..", "origin.git"))
     return subprocess.run(
