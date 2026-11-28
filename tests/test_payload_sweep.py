@@ -237,6 +237,12 @@ def test_infra_failure_is_the_only_nonzero_exit(monkeypatch):
 # with findings closes nothing.
 
 def test_clean_sweep_closes_own_and_stale_payload_digests(monkeypatch):
+    # gh is a real boundary here too: main reads the previous digest before
+    # the close step, and an unauthenticated runner must not change the
+    # verdict (CI lesson, 2026-11-27 — green must not depend on credentials)
+    monkeypatch.setattr(ps, "last_digest_issue",
+                        lambda repo, label="payload-sweep": None)
+    monkeypatch.setattr(ps, "ensure_labels", lambda *a, **k: None)
     closed = {}
 
     def fake_close(repo, label, own_number, stamp, tool=""):
@@ -256,6 +262,9 @@ def test_clean_sweep_closes_own_and_stale_payload_digests(monkeypatch):
 
 
 def test_dirty_sweep_closes_nothing(monkeypatch):
+    monkeypatch.setattr(ps, "last_digest_issue",
+                        lambda repo, label="payload-sweep": None)
+    monkeypatch.setattr(ps, "ensure_labels", lambda *a, **k: None)
     calls = []
 
     def fake_close(*a, **k):
@@ -276,6 +285,12 @@ def test_dirty_sweep_closes_nothing(monkeypatch):
 
 
 def test_sweep_close_failure_exits_loud(monkeypatch):
+    # same credential boundary as the clean-run test: main reads the
+    # previous digest before the close step, so gh must be faked too
+    monkeypatch.setattr(ps, "last_digest_issue",
+                        lambda repo, label="payload-sweep": None)
+    monkeypatch.setattr(ps, "ensure_labels", lambda *a, **k: None)
+
     def broken_close(*a, **k):
         raise AuditInfraError("gh issue close failed")
 
