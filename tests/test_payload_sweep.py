@@ -54,8 +54,9 @@ def test_sweep_pages_covers_the_real_built_pages():
     # never a silent change to what the schedule reads (row 111's rule).
     assert ps.sweep_pages() == [
         "404.html", "about.html", "act-now.html", "clear-skies.html",
-        "coastal-flooding.html", "contact.html", "donate.html",
-        "fertilizer-ban.html", "index.html", "map/embed.html", "map/map.html",
+        "coastal-flooding.html", "contact.html", "dec-1-workshop.html",
+        "donate.html", "fertilizer-ban.html", "index.html",
+        "map/embed.html", "map/map.html",
         "newsletter.html", "our-campaigns.html", "past-work.html",
         "pesticides.html", "report-an-odor.html", "share-your-story.html",
         "tank-farms.html", "toolkit.html", "yard-south-proposal.html",
