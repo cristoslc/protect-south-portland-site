@@ -8,7 +8,10 @@ weekday-morning schedule beside the staging audit
 (.github/workflows/payload-sweep.yml), and files one digest issue per run
 the way tools/staging_audit.py files its digest: an issue whose body ends in
 a ```json machine block the next run diffs against (delta: added, resolved,
-persisting).
+persisting). Like the audit, a CLEAN sweep closes its own digest and every
+stale payload-sweep digest still open (operator directive, 2026-11-27),
+reusing staging_audit's close helpers over the sweep's label stream; a run
+with findings closes nothing.
 
 PAGES: every .html in the committed docs/ build except build.REDIRECTS'
 stubs. The ladder reads its page plan from the workspace uat-suite.json,
@@ -59,10 +62,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build
 import publish
 import uat_payload
-from staging_audit import (AuditInfraError, Finding, create_issue,
-                           decide_exit, delta, ensure_labels,
+from staging_audit import (AuditInfraError, Finding, close_clean_digests,
+                           create_issue, decide_exit, delta, ensure_labels,
                            extract_previous_findings, gate_expected,
-                           gate_extra_headers,
+                           gate_extra_headers, issue_number_from_url,
                            last_digest_issue)
 
 SITE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -246,6 +249,24 @@ def main(argv=None):
         issue_url = create_issue(args.repo, f"Payload sweep {stamp}", body,
                                  labels=("payload-sweep",))
         print(f"digest issue: {issue_url}")
+        if not findings:
+            # Operator directive (2026-11-27): "on github repos, clean
+            # audits and runs should be auto-closed as issues." The sweep
+            # shares the audit's close helpers over its own label stream.
+            try:
+                closed = close_clean_digests(
+                    args.repo, "payload-sweep",
+                    issue_number_from_url(issue_url), stamp,
+                    tool="payload sweep")
+            except AuditInfraError as exc:
+                print(f"INFRASTRUCTURE FAILURE — the digest was filed but "
+                      f"closing the digest issues failed — {exc}",
+                      file=sys.stderr)
+                print("The close step fails loud so the digest stream is "
+                      "never silently left open.", file=sys.stderr)
+                return 1
+            print("clean run: closed digest issue(s) "
+                  + ", ".join(f"#{n}" for n in closed))
     verdict = "CLEAN" if not findings else f"{len(findings)} FINDING(S) (non-blocking)"
     print(f"payload sweep {stamp} — {base}: {verdict}")
     print(f"payload sweep: {len(reports)} pages, "

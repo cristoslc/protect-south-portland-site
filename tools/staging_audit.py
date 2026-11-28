@@ -14,6 +14,12 @@ Lighthouse arrives through npx, GitHub through the gh CLI):
    inside the last GitHub issue labeled staging-audit.
 5. One digest issue per run on the site repo, labeled staging-audit +
    accessibility.
+6. A CLEAN run (zero findings) closes its own digest issue and every other
+   still-open digest carrying the staging-audit label, each with a one-line
+   comment naming the clean run (operator directive, 2026-11-27: "on
+   github repos, clean audits and runs should be auto-closed as issues").
+   A run with findings closes nothing, so earlier findings stay visible
+   until a clean run retires them.
 
 Non-blocking contract: a site-shaped problem (404, Lighthouse findings, a
 floor miss) records a FINDING and still exits 0 — the audit must never be
@@ -452,6 +458,60 @@ def create_issue(repo, title, body, labels=("staging-audit", "accessibility")):
     return proc.stdout.strip().splitlines()[-1]
 
 
+def issue_number_from_url(url):
+    """The issue number from a `gh issue create` URL, or None."""
+    match = re.search(r"/issues/(\d+)/?$", (url or "").strip())
+    return int(match.group(1)) if match else None
+
+
+def open_digest_issues(repo, label):
+    """Every OPEN issue carrying `label` on `repo` (the digest stream's
+    stale tail), as [{number, title}]. Only open issues are listed, so
+    already-closed digests are skipped by construction (idempotent)."""
+    proc = _gh(["issue", "list", "-R", repo, "--label", label,
+                "--state", "open", "--limit", "200", "--json", "number,title"])
+    if proc.returncode != 0:
+        raise AuditInfraError(f"gh issue list failed:\n{proc.stderr}")
+    return json.loads(proc.stdout or "[]")
+
+
+def close_digest_issue(repo, number, comment):
+    """Comment and close one issue; a gh failure is infrastructure (loud)."""
+    proc = _gh(["issue", "close", "-R", repo, str(number),
+                "--comment", comment])
+    if proc.returncode != 0:
+        raise AuditInfraError(
+            f"gh issue close failed for #{number}:\n{proc.stderr}")
+
+
+def clean_close_comment(stamp, tool):
+    """The one-line close comment: names the clean run that closed the
+    digest (repo GitHub voice: plain first person, no em dashes)."""
+    return (f"Clean {tool} run at {stamp}: no findings. "
+            "Closing this digest.")
+
+
+def close_clean_digests(repo, label, own_number, stamp, tool="staging audit"):
+    """A clean run retires its digest stream: it closes every still-open
+    issue carrying `label` (stale digests from earlier runs) and its own
+    just-filed digest, each with a one-line comment naming the clean run.
+    Only open issues are listed, so already-closed ones are skipped without
+    error. A gh failure raises AuditInfraError — loud, per the close-step
+    contract. Returns the closed issue numbers."""
+    comment = clean_close_comment(stamp, tool)
+    closed = []
+    for issue in open_digest_issues(repo, label):
+        number = issue["number"]
+        if number == own_number:
+            continue
+        close_digest_issue(repo, number, comment)
+        closed.append(number)
+    if own_number is not None:
+        close_digest_issue(repo, own_number, comment)
+        closed.append(own_number)
+    return closed
+
+
 # ---------- entry point ----------
 
 def main(argv=None):
@@ -495,6 +555,25 @@ def main(argv=None):
         ensure_labels(args.repo)
         issue_url = create_issue(args.repo, f"Staging audit {stamp}", body)
         print(f"digest issue: {issue_url}")
+        if not findings:
+            # Operator directive (2026-11-27): "on github repos, clean
+            # audits and runs should be auto-closed as issues." A clean run
+            # retires its own digest and every stale digest still open; a
+            # run with findings closes nothing, so its findings stay
+            # visible until a clean run retires them.
+            try:
+                closed = close_clean_digests(
+                    args.repo, "staging-audit",
+                    issue_number_from_url(issue_url), stamp)
+            except AuditInfraError as exc:
+                print(f"INFRASTRUCTURE FAILURE — the digest was filed but "
+                      f"closing the digest issues failed — {exc}",
+                      file=sys.stderr)
+                print("The close step fails loud so the digest stream is "
+                      "never silently left open.", file=sys.stderr)
+                return 1
+            print("clean run: closed digest issue(s) "
+                  + ", ".join(f"#{n}" for n in closed))
     verdict = "CLEAN" if not findings else f"{len(findings)} FINDING(S) (non-blocking)"
     print(f"staging audit {stamp}: {verdict}")
     for found in findings:

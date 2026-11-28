@@ -127,6 +127,8 @@ The UAT cycle's visual sweep is `tools/uat_snapshots.py` (per-page full snapshot
 
 One operational fact from the first run day (2026-10-15): an audit racing a Pages rebuild can read a stale serve (the digest's typography findings then flag the OLD stylesheet). The deltas self-heal — the next run records the stale findings as resolved — so a run right after a publish should be read together with whatever follows it.
 
+Clean-run auto-close (2026-11-27): on the operator's directive, verbatim, "on github repos, clean audits and runs should be auto-closed as issues", a clean run (zero findings) of the digest tools now closes its own digest issue and every other still-open digest carrying that tool's label (`staging-audit` for the audit, `payload-sweep` for the sweep), each with a one-line comment naming the clean run. A run with findings files its digest and closes nothing, so earlier findings stay visible until a clean run retires them; a close-step failure exits loud.
+
 ## Hard constraints (tests enforce; never bypass)
 
 1. No links to the tank-farms research surfaces anywhere public: `report.html`, `factcheck.html`, `data.html`, `github.com/cristoslc/south-portland-tank-farms`, or their nav labels ("Research report", "Fact-check log", "Data files", "GitHub repo"). The map is self-hosted: index.html and tank-farms.html iframe the RELATIVE `map/embed.html` copy built into this repo's `docs/` (constraint text revised 2026-10-13 by orchestrator — the absolute github.io embed URL is superseded; the publish scanner also bans that host from the public tree).
