@@ -230,6 +230,75 @@ def test_infra_failure_is_the_only_nonzero_exit(monkeypatch):
         assert ps.main(["--skip-issue"]) == 1
 
 
+# ---------- clean-run digest auto-close (operator directive, 2026-11-27) ----------
+#
+# The sweep shares the audit's close helpers but keeps its own label
+# stream: a clean sweep retires payload-sweep digests only, and a run
+# with findings closes nothing.
+
+def test_clean_sweep_closes_own_and_stale_payload_digests(monkeypatch):
+    closed = {}
+
+    def fake_close(repo, label, own_number, stamp, tool=""):
+        closed.update(label=label, own=own_number, stamp=stamp, tool=tool)
+        return [21, own_number]
+
+    monkeypatch.setattr(ps, "run_sweep",
+                        lambda base, pages, fetcher=None, extra_headers=None: ([], {}))
+    monkeypatch.setattr(ps, "sweep_pages", lambda: ["act-now.html"])
+    monkeypatch.setattr(ps, "create_issue",
+                        lambda *a, **k: "https://github.com/o/r/issues/22")
+    monkeypatch.setattr(ps, "close_clean_digests", fake_close)
+    assert ps.main(["--url", "https://staging.example.org/"]) == 0
+    assert closed["label"] == "payload-sweep"
+    assert closed["own"] == 22
+    assert closed["tool"] == "payload sweep"
+
+
+def test_dirty_sweep_closes_nothing(monkeypatch):
+    calls = []
+
+    def fake_close(*a, **k):
+        calls.append(a)
+        return []
+
+    findings, _ = ps.run_sweep("https://staging.example.org/",
+                               ["act-now.html"], lambda page: MISMATCH_PAGE)
+    monkeypatch.setattr(ps, "run_sweep",
+                        lambda base, pages, fetcher=None, extra_headers=None:
+                        (findings, {}))
+    monkeypatch.setattr(ps, "sweep_pages", lambda: ["act-now.html"])
+    monkeypatch.setattr(ps, "create_issue",
+                        lambda *a, **k: "https://github.com/o/r/issues/23")
+    monkeypatch.setattr(ps, "close_clean_digests", fake_close)
+    assert ps.main(["--url", "https://staging.example.org/"]) == 0
+    assert calls == [], "findings keep every digest open"
+
+
+def test_sweep_close_failure_exits_loud(monkeypatch):
+    def broken_close(*a, **k):
+        raise AuditInfraError("gh issue close failed")
+
+    monkeypatch.setattr(ps, "run_sweep",
+                        lambda base, pages, fetcher=None, extra_headers=None: ([], {}))
+    monkeypatch.setattr(ps, "sweep_pages", lambda: ["act-now.html"])
+    monkeypatch.setattr(ps, "create_issue",
+                        lambda *a, **k: "https://github.com/o/r/issues/24")
+    monkeypatch.setattr(ps, "close_clean_digests", broken_close)
+    assert ps.main(["--url", "https://staging.example.org/"]) == 1
+
+
+def test_sweep_skip_issue_never_closes(monkeypatch):
+    def broken_close(*a, **k):
+        raise AssertionError("skip-issue must not close anything")
+
+    monkeypatch.setattr(ps, "run_sweep",
+                        lambda base, pages, fetcher=None, extra_headers=None: ([], {}))
+    monkeypatch.setattr(ps, "sweep_pages", lambda: ["act-now.html"])
+    monkeypatch.setattr(ps, "close_clean_digests", broken_close)
+    assert ps.main(["--url", "https://staging.example.org/", "--skip-issue"]) == 0
+
+
 # ---------- the schedule itself ----------
 
 def test_workflow_sweeps_on_a_weekday_morning_and_files_issues():

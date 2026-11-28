@@ -16,6 +16,7 @@ pure logic with zero network:
 """
 
 import hashlib
+import json
 import os
 import sys
 
@@ -342,6 +343,125 @@ def test_audit_accepts_a_200_page_carrying_the_gate_marker():
                           lh=FakeLighthouse(),
                           extra_headers={"Cookie": "psp_staging=x"})
     assert result["findings"] == []
+
+
+# ---------- clean-run digest auto-close (operator directive, 2026-11-27) ----------
+#
+# "on github repos, clean audits and runs should be auto-closed as issues".
+# A clean run files its digest as usual, then closes its own digest and
+# every other still-open digest carrying the tool's label; a run with
+# findings closes nothing; a close-step failure exits loud.
+
+class GHResult:
+    def __init__(self, returncode=0, stdout="[]", stderr=""):
+        self.returncode, self.stdout, self.stderr = returncode, stdout, stderr
+
+
+class FakeGH:
+    """A stand-in for the gh CLI: answers `issue list` from open_by_label,
+    records `issue close` calls, and fails a close whose number is in
+    fail_close."""
+
+    def __init__(self, open_by_label=None, fail_close=()):
+        self.open_by_label = open_by_label or {}
+        self.fail_close = set(fail_close)
+        self.closes = []
+
+    def __call__(self, args):
+        if args[:2] == ["issue", "list"]:
+            label = args[args.index("--label") + 1]
+            return GHResult(0, json.dumps(self.open_by_label.get(label, [])))
+        if args[:2] == ["issue", "close"]:
+            number, comment = int(args[4]), args[args.index("--comment") + 1]
+            self.closes.append((number, comment))
+            if number in self.fail_close:
+                return GHResult(1, "", "gh close failed")
+            return GHResult(0, "")
+        return GHResult(0, "")
+
+
+def test_close_clean_digests_closes_own_and_stale_digests(monkeypatch):
+    fake = FakeGH(open_by_label={"staging-audit": [
+        {"number": 3, "title": "Staging audit — earlier run"},
+        {"number": 9, "title": "Staging audit — this run"}]})
+    monkeypatch.setattr(sa, "_gh", fake)
+    closed = sa.close_clean_digests("o/r", "staging-audit", 9, "STAMP")
+    assert sorted(closed) == [3, 9]
+    assert {number for number, _ in fake.closes} == {3, 9}
+    for _, comment in fake.closes:
+        assert "STAMP" in comment and "no findings" in comment
+        assert "—" not in comment
+
+
+def test_close_clean_digests_is_idempotent_on_already_closed_digests(monkeypatch):
+    # earlier digests are already closed, so the open list is empty: the
+    # clean run closes only its own digest and errors on nothing
+    fake = FakeGH(open_by_label={"staging-audit": []})
+    monkeypatch.setattr(sa, "_gh", fake)
+    closed = sa.close_clean_digests("o/r", "staging-audit", 11, "STAMP")
+    assert closed == [11]
+    assert {number for number, _ in fake.closes} == {11}
+
+
+def test_close_digest_issue_failure_is_infra_loud(monkeypatch):
+    fake = FakeGH(fail_close={4})
+    monkeypatch.setattr(sa, "_gh", fake)
+    with pytest.raises(sa.AuditInfraError):
+        sa.close_digest_issue("o/r", 4, "comment")
+
+
+def test_issue_number_from_url():
+    assert sa.issue_number_from_url("https://github.com/o/r/issues/12") == 12
+    assert sa.issue_number_from_url("not a url") is None
+
+
+def test_clean_run_files_then_closes_own_and_stale_digests(monkeypatch):
+    fake = FakeGH(open_by_label={"staging-audit": [{"number": 3, "title": "old"}]})
+    monkeypatch.setattr(sa, "_gh", fake)
+    monkeypatch.setattr(sa, "run_audit",
+                        lambda *a, **k: {"findings": [], "page_results": {}})
+    monkeypatch.setattr(sa, "ensure_labels", lambda *a, **k: None)
+    monkeypatch.setattr(sa, "create_issue",
+                        lambda *a, **k: "https://github.com/o/r/issues/7")
+    assert sa.main(["--base-url", "http://127.0.0.1:8814"]) == 0
+    assert {number for number, _ in fake.closes} == {3, 7}
+
+
+def test_dirty_run_files_its_digest_and_closes_nothing(monkeypatch):
+    fake = FakeGH(open_by_label={"staging-audit": [{"number": 3, "title": "old"}]})
+    monkeypatch.setattr(sa, "_gh", fake)
+    stale = sa.Finding("http:index.html", "HTTP 404")
+    monkeypatch.setattr(sa, "run_audit",
+                        lambda *a, **k: {"findings": [stale], "page_results": {}})
+    monkeypatch.setattr(sa, "ensure_labels", lambda *a, **k: None)
+    filed = []
+    monkeypatch.setattr(sa, "create_issue",
+                        lambda repo, title, body, labels=None:
+                        filed.append(title) or "https://github.com/o/r/issues/8")
+    assert sa.main(["--base-url", "http://127.0.0.1:8814"]) == 0
+    assert filed, "the dirty run still files its digest"
+    assert fake.closes == [], "findings keep every digest open"
+
+
+def test_close_failure_after_a_clean_digest_exits_loud(monkeypatch):
+    fake = FakeGH(open_by_label={"staging-audit": [{"number": 3, "title": "old"}]},
+                  fail_close={3})
+    monkeypatch.setattr(sa, "_gh", fake)
+    monkeypatch.setattr(sa, "run_audit",
+                        lambda *a, **k: {"findings": [], "page_results": {}})
+    monkeypatch.setattr(sa, "ensure_labels", lambda *a, **k: None)
+    monkeypatch.setattr(sa, "create_issue",
+                        lambda *a, **k: "https://github.com/o/r/issues/7")
+    assert sa.main(["--base-url", "http://127.0.0.1:8814"]) == 1
+
+
+def test_skip_issue_never_closes_anything(monkeypatch):
+    fake = FakeGH(open_by_label={"staging-audit": [{"number": 3, "title": "old"}]})
+    monkeypatch.setattr(sa, "_gh", fake)
+    monkeypatch.setattr(sa, "run_audit",
+                        lambda *a, **k: {"findings": [], "page_results": {}})
+    assert sa.main(["--base-url", "http://127.0.0.1:8814", "--skip-issue"]) == 0
+    assert fake.closes == []
 
 
 # ---------- parse_lighthouse (real runner shape) ----------
