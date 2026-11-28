@@ -73,7 +73,12 @@ EXTERNAL_ALLOWLIST = (
     "calendar.google.com",
     "docs.google.com",
     "drive.google.com",
-    "diligentoneplatform.com",
+    # 2026-11-27 (Dec. 1 venue hotpatch): the workshop landing page links
+    # Google's address-only Maps search for 637 Highland Ave — a hand-built
+    # directions link, like the calendar template above; BoardDocs carries
+    # the city's own meeting packets.
+    "google.com",
+    "go.boarddocs.com",    "diligentoneplatform.com",
     "smellmycity.org",
     "southportland2040.com",
     "oneclimatefuture.org",
@@ -370,9 +375,10 @@ def test_site_wide_alert_strip(docs):
         # the nav comes first; the banner sits directly below it
         assert page.index('<header class="masthead"') < page.index('class="alert-strip"'), (
             f"{name}: the banner must sit below the nav")
-        # the operator's copy, verbatim, with the Details glyph
-        assert "Next event: City Council meeting, Tuesday, Dec. 1 at 6:30 p.m., City Hall Council Chambers, 25 Cottage Road. Show up by wearing green!" in page, name
-        assert '<a class="alert-strip__details" href="act-now.html">Details</a>' in page, name
+        # the operator's copy, verbatim, with the urgent marker and the Details glyph;
+        # venue swapped 2026-11-27 (ledger row 159), Details now aimed at the landing page
+        assert "🚨 Next event: City Council meeting, Tuesday, Dec. 1 at 6:30 p.m., South Portland High School Lecture Hall, 637 Highland Ave. Show up by wearing green!" in page, name
+        assert '<a class="alert-strip__details" href="dec-1-workshop.html">Details</a>' in page, name
         # the close affordance ships hidden and carries a real label
         assert 'class="alert-strip__close" type="button" aria-label="Dismiss the event banner; it comes back tomorrow" hidden' in page, name
         # sticky while the page scrolls, in the shared stylesheet; the stuck
@@ -410,7 +416,7 @@ def test_site_wide_alert_strip(docs):
     # the featured block's facts agree with the banner's facts (wording
     # divergence named: the operator's comma form vs the block's "in")
     act = read(docs, "act-now.html")
-    assert "Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road" in act
+    assert "Tuesday, Dec. 1 at 6:30 p.m. in South Portland High School Lecture Hall, 637&nbsp;Highland&nbsp;Ave." in act
     # the map subtree is chrome-free by construction and stays outside the shell
     map_dir = os.path.join(docs, "map")
     if os.path.exists(os.path.join(map_dir, "map.html")):
@@ -512,7 +518,7 @@ def test_act_now_leads_with_the_newcomer_plea(docs):
     assert act.index("We know more than ever") < act.index('class="callout callout--ask"')
     # fact discipline: the lede adds no date/time/venue fact of its own
     lede = act[act.index("We know more than ever"):act.index('class="callout callout--ask"')]
-    for fact in ("Tuesday, Dec. 1", "6:30", "6:15", "25 Cottage Road", "Dec. 1"):
+    for fact in ("Tuesday, Dec. 1", "6:30", "6:15", "Highland Ave", "Dec. 1"):
         assert fact not in lede, (
             f"the lede must not duplicate the featured block's facts ({fact})")
 
@@ -2003,7 +2009,12 @@ def test_homepage_top_is_forward_looking(docs):
     assert "Oct. 27" not in idx
     assert "took no vote" not in idx
     assert "The Council is weighing what to require at the tank farms" in idx
-    assert "637 Highland Ave" not in idx
+    # 2026-11-27 (Dec. 1 venue hotpatch): the address returns because the Dec. 1
+    # workshop moved into the same high-school lecture hall the retired Oct. 27
+    # invitation pointed at. The forward-looking ruling is unchanged — the three
+    # occurrences are the banner strip, the hero's live-fact sentence and the
+    # workshop bullet, all speaking of what happens Tuesday, never of October.
+    assert idx.count("Highland") == 3
 
 
 # ---- content-gap rewrite (Oct 13, 2026): homepage cut-down, archive page, ----
@@ -2179,7 +2190,12 @@ def test_act_now_workshop_is_past_tense(docs):
     assert "The council&rsquo;s next workshop is" in act
     assert "Make plans to come to the City Council workshop" not in act
     assert "Attend the City Council workshop" not in act
-    assert "637 Highland Ave" not in act
+    # 2026-11-27 (Dec. 1 venue hotpatch): the same high-school address the
+    # retired Oct. 27 invitation carried is the live venue again — banner strip,
+    # the wear-green step and the more-ways paragraph, none of them October.
+    # Counted on "Highland" because the wear-green step keeps the street as one
+    # unbreakable unit (637&nbsp;Highland&nbsp;Ave., row-159 orphan fix).
+    assert act.count("Lecture Hall") == 3
 
 
 class _BlockquoteText(HTMLParser):
@@ -3863,7 +3879,7 @@ def test_act_now_wear_green_ask_splits_before_the_meeting_sentence(docs):
     # the break's shape: the ask sentence alone, then the meeting sentence
     # with its facts as a second paragraph of the same lede weight
     pair = ('<p class="lede"><strong>Wear green</strong> and come to the City Council meeting.</p>\n'
-            '          <p class="lede">The meeting is Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road.</p>')
+            '          <p class="lede">The meeting is Tuesday, Dec. 1 at 6:30 p.m. in South Portland High School Lecture Hall, 637&nbsp;Highland&nbsp;Ave.</p>')
     assert pair in act, (
         "the Wear-green step must carry the ask sentence alone followed by "
         "the meeting sentence as a second paragraph")
@@ -3947,6 +3963,76 @@ def test_act_now_calendar_closes_on_outside_click_and_escape(docs):
     assert ">Google Calendar</a>" in act
     assert ">Apple / download .ics</a>" in act
     assert "Copy this link into your calendar app." in act
+
+
+def test_act_now_dec_1_venue_hotpatch(docs):
+    """Operator-directed urgent leg, 2026-11-27 (ledger row 159), relayed
+    verbatim in substance through the lane: the Dec 1 council workshop venue
+    changed - no longer City Hall Council Chambers, 25 Cottage Road; the new
+    venue is South Portland High School Lecture Hall, 637 Highland Ave; date
+    and time are unchanged (Tuesday Dec. 1, 6:30 p.m., arrive 6:15).
+    """
+    venue = "South Portland High School Lecture Hall, 637 Highland Ave"
+    for name in html_files(docs):
+        page = read(docs, name)
+        if name == "dec-1-workshop.html":
+            # the one page that names the old venue, as the source of the
+            # change note: "originally planned for ... moved to ..."
+            assert page.count("25 Cottage Road") == 1, name
+            assert "originally planned this workshop for the City Hall Council Chambers at 25 Cottage Road" in page
+            continue
+        if name == "clear-skies.html":
+            continue  # historical rally-caption 'City Hall', not the Dec. 1 event
+        assert "25 Cottage Road" not in page, (
+            f"{name}: the workshop venue changed (ledger row 159)")
+        if name in ("act-now.html", "index.html", "tank-farms.html"):
+            assert "City Hall Council Chambers" not in page, name
+            assert venue in page, (
+                f"{name}: every Dec. 1 surface carries the new venue")
+    # the strip ships the new venue with the operator's urgent marker and
+    # points Details at the new landing page
+    strip = read(docs, "index.html")
+    assert "🚨 " in strip
+    assert venue in strip
+    assert '<a class="alert-strip__details" href="dec-1-workshop.html">Details</a>' in strip
+    # the ICS location moved with the event
+    ics = open(os.path.join(docs, "assets", "calendar",
+                            "city-council-workshop-2026-12-01.ics"),
+               encoding="utf-8").read()
+    assert "LOCATION:South Portland High School Lecture Hall, 637 Highland Ave, South Portland, ME" in ics.replace("\\,", ",")
+    # the mailto payload stays venue-free in the built CTA href (verified, not assumed)
+    body = urllib.parse.unquote(_mailto_param(_act_now_cta_href(read(docs, "act-now.html")), "body"))
+    assert "Cottage" not in body and "Highland" not in body
+    # the landing page exists and carries the meeting block
+    landing = read(docs, "dec-1-workshop.html")
+    assert venue in landing and "6:30" in landing and "6:15" in landing
+    assert "Wear green" in landing
+    # workshop public comment stated in the city's own words (Standing Rules
+    # Rule 34, amended Jan. 6, 2026): up to three minutes on the agenda item;
+    # the "on or off the agenda" freedom belongs to business-meeting citizen
+    # discussion, so it no longer ships on act-now
+    act = read(docs, "act-now.html")
+    assert "up to 3 minutes to speak on an item on the agenda, workshop items included" in act
+    assert "on or off the agenda" not in act
+    # act-now's workshop paragraph links the landing page
+    assert '<a href="dec-1-workshop.html">meeting details, directions and talking points</a>' in act
+    # the landing page: agenda portals, the rule-cited packet deadline,
+    # the map link to the street address, and the 🚨 riding the banner strip
+    # alone (count 1 on the built page; the page's own copy uses no emoji)
+    for portal in ("https://go.boarddocs.com/me/sport/Board.nsf/Public",
+                   "https://www.southportland.gov/AgendaCenter",
+                   "https://www.southportland.gov/calendar.aspx?CID=22"):
+        assert portal in landing, portal
+    assert "agenda packets must be published by 4:30 p.m. on the Friday before the meeting week" in landing
+    assert ('href="https://www.google.com/maps/search/?api=1&amp;query=637%20Highland%20Ave%2C%20'
+            'South%20Portland%2C%20ME"') in landing
+    assert landing.count("🚨") == 1
+    # talking points derive only from approved site copy
+    assert "strongest action possible" in landing
+    assert "staff and special counsel will be delivering a report" in landing
+    assert "Clear Skies Ordinance" in landing
+    # no fabricated agenda items and no invented entrance guidance
+    assert "Agenda:" not in landing and "entrance" not in landing.lower()
 
 
 def test_every_button_variant_keeps_a_visible_focus_ring_on_its_surface(docs):
@@ -4817,7 +4903,7 @@ def test_act_now_primary_cta_holds_two_equal_steps(docs):
     # step two: the show-up ask, composed from the banner facts
     assert "<strong>Wear green</strong>" in steps
     assert "come to the City Council meeting" in steps
-    assert "Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road" in steps
+    assert "Tuesday, Dec. 1 at 6:30 p.m. in South Portland High School Lecture Hall, 637&nbsp;Highland&nbsp;Ave." in steps
     # equal weight: the two-column grid at 720px and above, one column below
     assert re.search(r"\.ask-steps \{[^}]*grid-template-columns: 1fr", css, re.S)
     assert re.search(r"@media \(min-width: 720px\) \{\s*\.ask-steps \{ grid-template-columns: 1fr 1fr; \}", css, re.S)
@@ -4908,7 +4994,7 @@ def test_act_now_calendar_dropdown_is_native_details(docs):
 def test_act_now_google_calendar_url_carries_the_right_utc_dates(docs):
     """Operator directive, 2026-11-25 (ledger row 129): the Google Calendar
     entry uses the standard no-auth template URL for the fixed event —
-    Tuesday, Dec. 1, 6:30 p.m., City Hall Council Chambers, 25 Cottage Road,
+    Tuesday, Dec. 1, 6:30 p.m., South Portland High School Lecture Hall, 637 Highland Ave,
     timezone America/New_York. December is EST (UTC-5), so 6:30 p.m. local is
     23:30Z and the two-hour block runs to 01:30Z on Dec. 2.
     """
@@ -4923,7 +5009,7 @@ def test_act_now_google_calendar_url_carries_the_right_utc_dates(docs):
     assert params["action"] == "TEMPLATE"
     assert params["dates"] == "20261201T233000Z/20261202T013000Z"
     assert "City%20Council%20Workshop" in params["text"]
-    assert "25%20Cottage%20Road" in params["location"]
+    assert "South%20Portland%20High%20School%20Lecture%20Hall%2C%20637%20Highland%20Ave" in params["location"]
     # the invite carries the ask, not stage guidance
     assert "{{" not in url and "}}" not in url
 
@@ -4963,7 +5049,7 @@ def test_calendar_ics_asset_parses_with_the_right_event(docs):
     assert "SUMMARY:City Council workshop (Protect South Portland)" in event
     # text values escape their commas per RFC 5545; unescape before comparing
     unescaped = event.replace("\\,", ",")
-    assert "LOCATION:City Hall Council Chambers, 25 Cottage Road, South Portland, ME" in unescaped
+    assert "LOCATION:South Portland High School Lecture Hall, 637 Highland Ave, South Portland, ME" in unescaped
     assert "UID:" in event and "DTSTAMP:" in event
 
 
@@ -5015,7 +5101,7 @@ def test_the_wear_green_ask_agrees_between_banner_and_act_now(docs):
     hero meta line (the block the operator calls the banner; renamed
     hero__meta when the banner became the hero) and the featured panel's
     show-up step must agree on the ask's verbs and every fact: the date, the
-    time and the venue (City Hall Council Chambers, 25 Cottage Road, ruling
+    time and the venue (South Portland High School Lecture Hall, 637 Highland Ave, ruling
     dec_huccqekz7fjt). Any divergence is a named finding, not a style choice.
 
     2026-11-24 (ledger row 117), retargeted as a recorded correction: the
@@ -5034,14 +5120,15 @@ def test_the_wear_green_ask_agrees_between_banner_and_act_now(docs):
     assert "Wear green!" in idx
     # the featured panel's show-up step carries the same verbs and all facts
     assert "Wear green" in act and "come to the City Council meeting" in act
-    for fact in ("Tuesday, Dec. 1", "6:30 p.m.", "City Hall Council Chambers, 25 Cottage Road"):
+    for fact in ("Tuesday, Dec. 1", "6:30 p.m.", "South Portland High School Lecture Hall, 637 Highland Ave"):
         assert fact in idx, fact
         assert fact in act, fact
-    # the alert strip carries the same facts on every page, so nothing contradicts
-    assert "Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road" in act
+    # the wear-green step carries the same facts (street kept as one unbreakable
+    # unit by the row-159 orphan fix), and the strip repeats them with plain spaces
+    assert "Tuesday, Dec. 1 at 6:30 p.m. in South Portland High School Lecture Hall, 637&nbsp;Highland&nbsp;Ave." in act
     # act-now's own detailed paragraph keeps the same facts, so nothing on
     # the page contradicts the ask
-    assert act.count("City Hall Council Chambers") >= 2
+    assert act.count("South Portland High School Lecture Hall") >= 2
 
 
 def test_no_double_brace_stage_guidance_ships_anywhere(docs):
@@ -5080,7 +5167,9 @@ def test_act_now_past_tense_and_one_email_action(docs):
     # the invitation class: gone
     assert "Make plans to come to the City Council workshop" not in act
     assert "before the workshop" not in act
-    assert "637 Highland Ave" not in act
+    # 2026-11-27 (Dec. 1 venue hotpatch): the address is the live venue again
+    # (banner strip, wear-green step, more-ways) — count, not absence.
+    assert act.count("Lecture Hall") == 3
     # the rejected instrument: not named, not implied
     assert "municipal license" not in act
     assert "license the tank farms" not in act
@@ -5149,11 +5238,14 @@ def test_homepage_and_tank_farms_lead_with_the_next_workshop(docs):
     assert idx_text.count("South Portland Terminal") >= 1 and "Citgo on Mechanic Street" in idx_text
     assert "require better technology at the tank farms" in idx
     assert "make public what special counsel advises" in idx
-    assert "637 Highland Ave" not in idx
+    # 2026-11-27 (Dec. 1 venue hotpatch): the venue address is live again —
+    # three occurrences on the homepage (banner strip, hero, workshop bullet),
+    # two on tank-farms (banner strip, workshop bullet).
+    assert idx.count("637 Highland Ave") == 3
     assert bullet_state in tank_text
     assert "require better technology at the tank farms" in tank
     assert "make public what special counsel advises" in tank
-    assert "637 Highland Ave" not in tank
+    assert tank.count("637 Highland Ave") == 2
     assert "email the Council now" in tank
 
 
@@ -5182,7 +5274,7 @@ def test_homepage_hero_card_row131_copy_button_and_mission(docs):
     idx = read(docs, "index.html")
     hero = idx[idx.index('<section class="hero">'):idx.index('<section class="section section--intro')]
     # paragraph one keeps the filer's text through "Wear green!" and stops there
-    assert "City Hall Council Chambers, 25 Cottage Road. Wear green!</p>" in hero
+    assert "South Portland High School Lecture Hall, 637 Highland Ave. Wear green!</p>" in hero
     assert "Wear green! Email the Council" not in hero, (
         "the email ask must open its own paragraph, not ride the meta line")
     # paragraph two is the kept email line with its exclamation point, and
@@ -5318,7 +5410,9 @@ def test_about_workshop_is_past_tense(docs):
     assert "Oct. 27" not in about
     assert "took no vote" not in about
     assert "Come to the City Council workshop" not in about
-    assert "637 Highland Ave" not in about
+    # 2026-11-27 (Dec. 1 venue hotpatch): the address ships once on this page,
+    # in the banner strip alone; the page's own copy stays forward-looking.
+    assert about.count("637 Highland Ave") == 1
 
 
 def test_act_now_lead_is_the_row130_rewrite(docs):
@@ -5339,7 +5433,7 @@ def test_act_now_lead_is_the_row130_rewrite(docs):
     # box opens on the ask itself (named in the PR)
     assert "Current ask:" not in act
     # survival (a): the date, time and venue live in the wear-green step
-    assert "The meeting is Tuesday, Dec. 1 at 6:30 p.m. in City Hall Council Chambers, 25 Cottage Road." in act
+    assert "The meeting is Tuesday, Dec. 1 at 6:30 p.m. in South Portland High School Lecture Hall, 637&nbsp;Highland&nbsp;Ave." in act
     # survival (b): the email instruction lives in the ask-step lede and the
     # ready-to-send flow
     assert "<strong>Email the Council</strong> and ask it to require better technology" in act

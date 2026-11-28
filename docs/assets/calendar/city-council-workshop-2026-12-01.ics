@@ -26,7 +26,7 @@ DTSTAMP:20261125T170000Z
 DTSTART;TZID=America/New_York:20261201T183000
 DTEND;TZID=America/New_York:20261201T203000
 SUMMARY:City Council workshop (Protect South Portland)
-LOCATION:City Hall Council Chambers\, 25 Cottage Road\, South Portland\, ME
+LOCATION:South Portland High School Lecture Hall\, 637 Highland Ave\, South Portland\, ME
 DESCRIPTION:The council weighs what to require at the tank farms. Wear green\, and arrive by 6:15 to fill the room.
 END:VEVENT
 END:VCALENDAR

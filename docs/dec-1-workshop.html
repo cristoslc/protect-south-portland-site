@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dec. 1 Council workshop: new venue, directions and talking points — Protect South Portland</title>
+<meta name="description" content="The City Council's Dec. 1 tank-farms workshop has moved to the South Portland High School Lecture Hall, 637 Highland Ave. Same date and time — Tuesday, Dec. 1 at 6:30 p.m. Arrive by 6:15, wear green, and get directions, agenda links and talking points.">
+<link rel="icon" type="image/png" href="assets/psp-favicon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="masthead">
+  <div class="masthead__inner">
+    <a class="logo-link" href="index.html">
+      <img src="assets/psp-logo.png" alt="Protect South Portland">
+    </a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle">
+    <label class="nav-toggle-label" for="nav-toggle" aria-label="Toggle navigation">MENU</label>
+    <nav class="main-nav" aria-label="Main">
+      <!-- Header items, in order: Home, Our work, About, Share your story,
+           Contact, then the Act now pill. Home returned here after the
+           2026-11-23 header pass dropped it on the reasoning that the seal
+           already links home; Newsletter left the header for the signup on
+           its own page, which the footer still links. -->
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li class="has-sub">
+          <a href="our-campaigns.html" aria-haspopup="true" aria-expanded="false">Our work</a>
+          <ul class="submenu">
+            <li><a href="tank-farms.html">South Portland Tank Farms</a></li>
+            <li><a href="coastal-flooding.html">Coastal Flooding</a></li>
+            <li class="has-sub has-flyout">
+              <a href="past-work.html" aria-haspopup="true" aria-expanded="false">Past work</a>
+              <ul class="submenu flyout">
+                <li><a href="past-work.html">All past work</a></li>
+                <li><a href="yard-south-proposal.html">Yard South Proposal</a></li>
+                <li><a href="clear-skies.html">Clear Skies</a></li>
+                <li><a href="fertilizer-ban.html">Fertilizer Ban</a></li>
+                <li><a href="pesticides.html">Pesticides</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="share-your-story.html">Share your story</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li class="nav-cta"><a href="act-now.html">Act now</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div class="alert-strip" id="alert-strip">
+  <p class="alert-strip__text">🚨 Next event: City Council meeting, Tuesday, Dec. 1 at 6:30 p.m., South Portland High School Lecture Hall, 637 Highland Ave. Show up by wearing green! <a class="alert-strip__details" href="dec-1-workshop.html">Details</a></p>
+  <button class="alert-strip__close" type="button" aria-label="Dismiss the event banner; it comes back tomorrow" hidden>&times;</button>
+</div>
+<script>
+(function () {
+  var strip = document.getElementById('alert-strip');
+  if (!strip) return;
+  /* 2026-11-25 sticky-top refinement: the banner's stuck seat is the
+     masthead's own stuck height, measured live so it can never drift from
+     a constant. Set on load and on window resize only — never on nav-panel
+     open, so the menus-above-banner composition (a later fix, 2026-11-25)
+     stays the natural behavior when the panel grows the masthead. */
+  var masthead = document.querySelector('.masthead');
+  var seat = function () {
+    if (masthead) strip.style.top = masthead.offsetHeight + 'px';
+  };
+  seat();
+  window.addEventListener('resize', seat);
+  var KEY = 'psp-event-banner-day';
+  var close = strip.querySelector('.alert-strip__close');
+  if (close) close.hidden = false;
+  var today = new Date().toDateString();
+  var stored = null;
+  try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
+  if (stored === today) { strip.hidden = true; return; }
+  if (close) close.addEventListener('click', function () {
+    try { localStorage.setItem(KEY, new Date().toDateString()); } catch (e) { /* storage refused: the banner returns on the next visit, nothing is stored */ }
+    strip.hidden = true;
+  });
+})();
+</script>
+<script src="assets/js/staging-bar.js" defer></script>
+<main id="content">
+<section class="section page-head">
+  <div class="wrap">
+    <span class="kicker">Take action</span>
+    <h1>The Dec. 1 Council workshop has a new venue</h1>
+    <p class="lede">The City Council&rsquo;s next tank-farms workshop has moved from City Hall to the South Portland High School Lecture Hall, 637 Highland Ave. Same date and time: <strong>Tuesday, Dec. 1 at 6:30 p.m.</strong> Wear green, bring your neighbors, and arrive by 6:15 to fill the room.</p>
+  </div>
+</section>
+
+<section class="section section--mist">
+  <div class="wrap">
+    <div class="callout callout--ask">
+      <h2 style="margin-top:0">Tuesday, Dec. 1 &mdash; City Council workshop on the tank farms</h2>
+      <ul class="contact-list">
+        <li>What: a public workshop where staff and special counsel deliver their report on the tank farms, and the Council weighs what action to take.</li>
+        <li>When: Tuesday, Dec. 1, 6:30 p.m. Arrive by 6:15 to fill the room.</li>
+        <li>Where: South Portland High School Lecture Hall, 637 Highland Ave, South Portland, ME</li>
+        <li>Wear: green!</li>
+      </ul>
+      <p><a class="btn btn--cta" href="https://www.google.com/maps/search/?api=1&amp;query=637%20Highland%20Ave%2C%20South%20Portland%2C%20ME" target="_blank" rel="noopener">Get directions to 637 Highland Ave</a> <a class="btn btn--light" href="act-now.html">Email the Council first</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap prose">
+    <h2>The meeting moved &mdash; the ask is the same</h2>
+    <p>The Council originally planned this workshop for the City Hall Council Chambers at 25 Cottage Road. The meeting has moved to the high school&rsquo;s Lecture Hall on Highland Ave; the date and time are unchanged. Wear green, bring your neighbors, and come early.</p>
+
+    <h2>The agenda</h2>
+    <p>The city posts the Council&rsquo;s agenda for each meeting. You can look for the Dec. 1 agenda here:</p>
+    <ul class="link-row">
+      <li><a href="https://go.boarddocs.com/me/sport/Board.nsf/Public" target="_blank" rel="noopener">BoardDocs (city meeting packets)</a></li>
+      <li><a href="https://www.southportland.gov/AgendaCenter" target="_blank" rel="noopener">City Agenda Center</a></li>
+      <li><a href="https://www.southportland.gov/calendar.aspx?CID=22" target="_blank" rel="noopener">City Council calendar</a></li>
+    </ul>
+    <p>Under the Council&rsquo;s <a href="https://www.southportland.gov/DocumentCenter/View/1375/Council_Standing_Rules_-_FINAL_As_Amended_01-09-2024">standing rules (PDF)</a>, City Council agenda packets must be published by 4:30 p.m. on the Friday before the meeting week. We&rsquo;ll share the agenda when it posts; to get an email when it does, write to <a href="mailto:protectsouthportland@gmail.com?subject=Workshop%20alerts">protectsouthportland@gmail.com</a> with &ldquo;Workshop alerts&rdquo; in the subject line.</p>
+
+    <h2>Talking points</h2>
+    <p>This is the workshop where the strongest action possible is on the table. A few points to raise:</p>
+    <ul>
+      <li>Urge the Council to take the strongest action possible on the tank farms. The Council is considering what &mdash; if any &mdash; action to take, and staff and special counsel will be delivering a report at this workshop.</li>
+      <li>Ask the Council to require better technology at the tank farms, and to make public what special counsel advises about the city&rsquo;s authority.</li>
+      <li>Remind the Council of its own record: South Portland set a precedent with its Clear Skies Ordinance, and the community expects that same resolve here.</li>
+    </ul>
+
+    <h2>Public comment</h2>
+    <p>Members of the public have an opportunity to comment for up to 3 minutes each on an item on the agenda, with the limit able to be extended at the Council&rsquo;s discretion. Workshop items are agenda items, so your three minutes at a workshop count.</p>
+
+    <h2>You can also email the Council</h2>
+    <p>If you can&rsquo;t make the meeting &mdash; or want your message there before you go &mdash; use our ready-to-send message on the <a href="act-now.html">Act now page</a>.</p>
+    <ul class="link-row">
+      <li><a href="act-now.html">Act now: email the City Council</a></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=637%20Highland%20Ave%2C%20South%20Portland%2C%20ME" target="_blank" rel="noopener">Directions to South Portland High School Lecture Hall</a></li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<div class="action-strip" role="note">
+  <p><a href="act-now.html">Report every odor.</a></p>
+</div>
+<footer class="footer">
+  <div class="wrap footer__grid">
+    <div>
+      <img src="assets/psp-logo.png" alt="Protect South Portland logo">
+    </div>
+    <div class="footer__links">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="our-campaigns.html">Our work</a></li>
+        <li><a href="tank-farms.html">Tank farms</a></li>
+        <li><a href="toolkit.html">Tank farms toolkit</a></li>
+        <li><a href="fertilizer-ban.html">Fertilizer ban</a></li>
+        <li><a href="coastal-flooding.html">Coastal flooding</a></li>
+        <li><a href="past-work.html">Past work</a></li>
+        <li><a href="yard-south-proposal.html">Yard South proposal</a></li>
+        <li><a href="clear-skies.html">Clear Skies</a></li>
+        <li><a href="pesticides.html">Pesticides</a></li>
+        <li><a href="newsletter.html">Newsletter</a></li>
+        <li><a href="act-now.html">Act now</a></li>
+        <li><a href="report-an-odor.html">Report an odor</a></li>
+        <li><a href="donate.html">Donate</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div class="footer__donate">
+      <p>Help defend our <strong>COMMUNITY</strong>. Please donate to Protect South Portland.</p>
+      <a class="btn btn--cta" href="donate.html">Donate</a>
+    </div>
+  </div>
+  <div class="wrap footer__base">
+    <div class="social">
+      <a href="https://x.com/ProtectSoPo" rel="noopener">X</a>
+      <a href="https://www.facebook.com/protectsouthportland/" rel="noopener">Facebook</a>
+    </div>
+    <p class="credit">A special thank you goes out to Dan Woods and Karen Silverman for their photography donations.</p>
+  </div>
+</footer>
+<script>
+/* Dropdown a11y (2026-10-15), progressive enhancement only. The menus already
+   open and close in CSS (:hover and :focus-within; blur closes) with no
+   JavaScript at all; this script adds Escape-to-close (drop focus, the
+   :focus-within release closes the panel) and keeps aria-expanded truthful
+   on the two parent links, including the mobile static list where the
+   children are always visible at <=1120px. */
+(function () {
+  var nav = document.querySelector(".main-nav");
+  if (!nav) return;
+  var parents = nav.querySelectorAll(".has-sub > a");
+  var MOBILE = window.matchMedia("(max-width: 1120px)");
+  function sync() {
+    parents.forEach(function (a) {
+      var li = a.parentElement;
+      var open = MOBILE.matches || li.matches(":hover") || li.matches(":focus-within");
+      a.setAttribute("aria-expanded", String(open));
+    });
+  }
+  parents.forEach(function (a) {
+    ["focusin", "focusout", "mouseenter", "mouseleave"].forEach(function (type) {
+      a.addEventListener(type, function () { setTimeout(sync, 0); });
+    });
+  });
+  nav.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || !e.target.closest(".has-sub")) return;
+    e.preventDefault();
+    if (document.activeElement) document.activeElement.blur();
+    sync();
+  });
+  if (typeof MOBILE.addEventListener === "function") MOBILE.addEventListener("change", sync);
+  sync();
+})();
+</script>
+
+</body>
+</html>

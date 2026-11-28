@@ -186,7 +186,7 @@ FOOTER_BODY = """
 # so with scripting off the banner shows and nothing is lost. The map
 # subtree is outside this shell and stays chrome-free by construction.
 ALERT_STRIP = """<div class="alert-strip" id="alert-strip">
-  <p class="alert-strip__text">Next event: City Council meeting, Tuesday, Dec. 1 at 6:30 p.m., City Hall Council Chambers, 25 Cottage Road. Show up by wearing green! <a class="alert-strip__details" href="act-now.html">Details</a></p>
+  <p class="alert-strip__text">🚨 Next event: City Council meeting, Tuesday, Dec. 1 at 6:30 p.m., South Portland High School Lecture Hall, 637 Highland Ave. Show up by wearing green! <a class="alert-strip__details" href="dec-1-workshop.html">Details</a></p>
   <button class="alert-strip__close" type="button" aria-label="Dismiss the event banner; it comes back tomorrow" hidden>&times;</button>
 </div>
 <script>
